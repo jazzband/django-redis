@@ -1,0 +1,12 @@
+This is a simple Redis cache backend for django.  It is fast, but compared to memcached, it performs a little more slowly.However, the cache is persistent so if that is what you need more than speed, this is the way to go.
+
+Note:  Redis writes to disk asynchronously so there is a slight chance of losing some data, but for most purposes this is acceptable.
+
+I included the python client library that comes with Redis:
+http://github.com/antirez/redis/tree/master
+
+Installation:
+
+    1. Put redis.py and client.py somewhere on you python path
+
+    2. In your django settings file put: CACHE_BACKEND = 'path.to.redis://<host>:<port>'
