@@ -51,8 +51,13 @@ class CacheClass(BaseCache):
         if value is None:
             return default
         else:
+            # picke doesn't want a unicode!
+            value = smart_str(value)
+            
+            # hydrate that pickle
             value = pickle.loads(value)
-            if isinstance(val, basestring):
+            
+            if isinstance(value, basestring):
                 return smart_unicode(value)
             else:
                 return value
