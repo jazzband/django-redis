@@ -20,7 +20,8 @@ of losing some data, but for most purposes this is acceptable.
 Usage
 -----
 
-1. Place ``redis_cache.py`` on your Python path.
+1. Run ``python setup.py install`` to install, 
+   or place ``redis_cache`` on your Python path.
 2. Modify your Django settings to use ``redis_cache`` ::
 
     CACHE_BACKEND = 'redis_cache.cache://<host>:<port>'
