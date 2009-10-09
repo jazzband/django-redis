@@ -84,6 +84,9 @@ class CacheClass(BaseCache):
         "Remove a key from the cache."
         key = self._prepare_key(key)
         self._cache.delete(key)
+        
+    def flush(self, all_dbs=False):
+        self._cache.flush(all_dbs)
 
     def get_many(self, keys):
         "Retrieve many keys."
