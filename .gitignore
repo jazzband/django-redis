@@ -1,0 +1,10 @@
+*.py[c|o]
+.DS_Store
+*.sql
+*.bz2
+*~
+*.log
+*.json
+*.wsgi
+local_settings.py
+development_settings.py
