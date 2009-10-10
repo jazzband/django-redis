@@ -46,6 +46,8 @@ class CacheClass(BaseCache):
         """
         
         key = self._prepare_key(key)
+        
+        # get the value from the cache
         value = self._cache.get(key)
         
         if value is None:
@@ -67,6 +69,9 @@ class CacheClass(BaseCache):
         
         key = self._prepare_key(key)
         value = self._prepare_value(value)
+        
+        # pickle the value
+        value = pickle.dumps(value)
         
         # store the key/value pair
         result = self._cache.set(key, value)
