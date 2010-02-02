@@ -19,8 +19,6 @@ class CacheClass(BaseCache):
         return smart_str(raw_key)
 
     def _prepare_value(self, value):
-        if isinstance(value, unicode):
-            value = value.encode('utf-8')
         return value
 
     def add(self, key, value, timeout=0):
