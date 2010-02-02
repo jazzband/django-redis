@@ -13,11 +13,11 @@ class CacheClass(BaseCache):
         "Connect to Redis, and set up cache backend."
         BaseCache.__init__(self, params)
         self._cache = redis.Redis(server.split(':')[0], db=1)
-        
+
     def _prepare_key(self, raw_key):
         "``smart_str``-encode the key."
         return smart_str(raw_key)
-        
+
     def _prepare_value(self, value):
         if isinstance(value, unicode):
             value = value.encode('utf-8')
@@ -25,40 +25,37 @@ class CacheClass(BaseCache):
 
     def add(self, key, value, timeout=0):
         """Add a value to the cache, failing if the key already exists.
-        
+
         Returns ``True`` if the object was added, ``False`` if not.
-        
+
         """
-        
-        _key = self._prepare_key(key)
-        _value = self._prepare_key(value)
-        
+
         if self._cache.exists(_key):
             return False
-        
+
         return self.set(key, value, timeout)
 
     def get(self, key, default=None):
         """Retrieve a value from the cache.
-        
+
         Returns unpicked value if key is found, ``None`` if not.
-        
+
         """
-        
+
         key = self._prepare_key(key)
-        
+
         # get the value from the cache
         value = self._cache.get(key)
-        
+
         if value is None:
             return default
         else:
             # picke doesn't want a unicode!
             value = smart_str(value)
-            
+
             # hydrate that pickle
-            value = pickle.loads(value)
-            
+            value = pickle.loads(value.decode('base64'))
+
             if isinstance(value, basestring):
                 return smart_unicode(value)
             else:
@@ -66,20 +63,20 @@ class CacheClass(BaseCache):
 
     def set(self, key, value, timeout=0):
         "Persist a value to the cache, and set an optional expiration time."
-        
+
         key = self._prepare_key(key)
         value = self._prepare_value(value)
-        
+
         # pickle the value
-        value = pickle.dumps(value)
-        
+        value = pickle.dumps(value).encode('base64')
+
         # store the key/value pair
         result = self._cache.set(key, value)
-        
+
         # set content expiration, if necessary
         if timeout > 0:
             self._cache.expire(key, timeout)
-        
+
         if result == "OK":
             return True
         else:
@@ -89,7 +86,7 @@ class CacheClass(BaseCache):
         "Remove a key from the cache."
         key = self._prepare_key(key)
         self._cache.delete(key)
-        
+
     def flush(self, all_dbs=False):
         self._cache.flush(all_dbs)
 
