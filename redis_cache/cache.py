@@ -104,4 +104,4 @@ class CacheClass(BaseCache):
 
     def close(self, **kwargs):
         "Disconnect from the cache."
-        self._cache.disconnect()
+        self._cache.connection.disconnect()
