@@ -59,7 +59,7 @@ class CacheClass(BaseCache):
             else:
                 return value
 
-    def set(self, key, value, timeout=0):
+    def set(self, key, value, timeout=None):
         "Persist a value to the cache, and set an optional expiration time."
 
         key = self._prepare_key(key)
@@ -72,7 +72,8 @@ class CacheClass(BaseCache):
         result = self._cache.set(key, value)
 
         # set content expiration, if necessary
-        if timeout > 0:
+        if timeout is None or timeout is not False:
+            timeout = timeout or self.default_timeout
             self._cache.expire(key, timeout)
 
         if result == "OK":
