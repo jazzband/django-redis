@@ -28,7 +28,7 @@ class CacheClass(BaseCache):
 
         """
 
-        if self._cache.exists(_key):
+        if self._cache.exists(key):
             return False
 
         return self.set(key, value, timeout)
