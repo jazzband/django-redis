@@ -47,17 +47,17 @@ class CacheClass(BaseCache):
 
         if value is None:
             return default
+
+        # picke doesn't want a unicode!
+        value = smart_str(value)
+
+        # hydrate that pickle
+        value = pickle.loads(value.decode('base64'))
+
+        if isinstance(value, basestring):
+            return smart_unicode(value)
         else:
-            # picke doesn't want a unicode!
-            value = smart_str(value)
-
-            # hydrate that pickle
-            value = pickle.loads(value.decode('base64'))
-
-            if isinstance(value, basestring):
-                return smart_unicode(value)
-            else:
-                return value
+            return value
 
     def set(self, key, value, timeout=None):
         "Persist a value to the cache, and set an optional expiration time."
