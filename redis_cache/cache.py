@@ -76,10 +76,8 @@ class CacheClass(BaseCache):
             timeout = timeout or self.default_timeout
             self._cache.expire(key, timeout)
 
-        if result == "OK":
-            return True
-        else:
-            return False
+        # result is a boolean
+        return result
 
     def delete(self, key):
         "Remove a key from the cache."
