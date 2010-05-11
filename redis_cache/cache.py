@@ -98,15 +98,6 @@ class CacheClass(BaseCache):
         "Retrieve many keys."
         return self._cache.mget(map(self._prepare_key, keys))
 
-    def incr(self, key, delta=1):
-        "Atomically increment ``key`` by ``delta``."
-        key = self._prepare_key(key)
-        return self._cache.incr(key, delta)
-
-    def decr(self, key, delta=1):
-        "Atomically decrement ``key`` by ``delta``."
-        key = self._prepare_key(key)
-        return self._cache.decr(key, delta)
 
     def close(self, **kwargs):
         """
