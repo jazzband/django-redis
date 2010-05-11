@@ -8,3 +8,4 @@
 *.wsgi
 local_settings.py
 development_settings.py
+*.egg-info
