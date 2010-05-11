@@ -51,7 +51,8 @@ class CacheClass(BaseCache):
         Persist a value to the cache, and set an optional expiration time.
         """
         # pickle the value
-        value = base64.encodestring(pickle.dumps(value, pickle.HIGHEST_PROTOCOL)).strip()
+        value = base64.encodestring(
+            pickle.dumps(value, pickle.HIGHEST_PROTOCOL)).strip()
         # store the key/value pair
         result = self._cache.set(smart_str(key), value)
         # set expiration if needed
@@ -105,7 +106,8 @@ class CacheClass(BaseCache):
         """
         safe_data = {}
         for key, value in data.iteritems():
-            safe_data[smart_str(key)] = base64.encodestring(pickle.dumps(value, pickle.HIGHEST_PROTOCOL)).strip()
+            safe_data[smart_str(key)] = base64.encodestring(
+                pickle.dumps(value, pickle.HIGHEST_PROTOCOL)).strip()
         self._cache.mset(safe_data)
         map(self.expire, safe_data, [timeout]*len(safe_data))
 
