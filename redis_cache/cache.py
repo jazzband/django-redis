@@ -1,11 +1,17 @@
+from django.core.cache.backends.base import BaseCache, InvalidCacheBackendError
+from django.utils.encoding import smart_unicode, smart_str
+from django.utils.datastructures import SortedDict
+
 try:
     import cPickle as pickle
 except ImportError:
     import pickle
 
-import redis
-from django.core.cache.backends.base import BaseCache
-from django.utils.encoding import smart_unicode, smart_str
+try:
+    import redis
+except:
+    raise InvalidCacheBackendError(
+        "Redis cache backend requires the 'redis-py' library")
 
 
 class CacheClass(BaseCache):
