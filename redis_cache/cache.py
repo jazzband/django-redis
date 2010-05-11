@@ -17,7 +17,9 @@ except:
 
 class CacheClass(BaseCache):
     def __init__(self, server, params):
-        "Connect to Redis, and set up cache backend."
+        """
+        Connect to Redis, and set up cache backend.
+        """
         BaseCache.__init__(self, params)
         self._cache = redis.Redis(server.split(':')[0], db=1)
 
@@ -62,19 +64,27 @@ class CacheClass(BaseCache):
 
     def expire(self, key, timeout=None):
         """
-        set content expiration, if necessary
+        Set content expiration, if necessary
         """
         timeout = timeout or self.default_timeout
         self._cache.expire(smart_str(key), timeout)
 
     def delete(self, key):
-        "Remove a key from the cache."
+        """
+        Remove a key from the cache.
+        """
         self._cache.delete(smart_str(key))
 
     def delete_many(self, keys):
+        """
+        Remove multiple keys at once.
+        """
         self._cache.delete(*map(smart_str, keys))
 
     def clear(self):
+        """
+        Flush all cache keys.
+        """
         self._cache.flushdb()
 
     def get_many(self, keys):
@@ -98,8 +108,7 @@ class CacheClass(BaseCache):
     def set_many(self, data, timeout=None):
         """
         Set a bunch of values in the cache at once from a dict of key/value
-        pairs.  For certain backends (memcached), this is much more efficient
-        than calling set() multiple times.
+        pairs. This is much more efficient than calling set() multiple times.
 
         If timeout is given, that timeout will be used for the key; otherwise
         the default cache timeout will be used.
