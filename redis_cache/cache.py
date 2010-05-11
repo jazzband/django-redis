@@ -28,10 +28,10 @@ class CacheClass(BaseCache):
         return value
 
     def add(self, key, value, timeout=0):
-        """Add a value to the cache, failing if the key already exists.
+        """
+        Add a value to the cache, failing if the key already exists.
 
         Returns ``True`` if the object was added, ``False`` if not.
-
         """
 
         if self._cache.exists(key):
@@ -40,10 +40,10 @@ class CacheClass(BaseCache):
         return self.set(key, value, timeout)
 
     def get(self, key, default=None):
-        """Retrieve a value from the cache.
+        """
+        Retrieve a value from the cache.
 
         Returns unpicked value if key is found, ``None`` if not.
-
         """
 
         key = self._prepare_key(key)
@@ -66,11 +66,12 @@ class CacheClass(BaseCache):
             return value
 
     def set(self, key, value, timeout=None):
-        "Persist a value to the cache, and set an optional expiration time."
-
         key = self._prepare_key(key)
         value = self._prepare_value(value)
 
+        """
+        Persist a value to the cache, and set an optional expiration time.
+        """
         # pickle the value
         value = pickle.dumps(value).encode('base64')
 
@@ -108,5 +109,7 @@ class CacheClass(BaseCache):
         return self._cache.decr(key, delta)
 
     def close(self, **kwargs):
-        "Disconnect from the cache."
+        """
+        Disconnect from the cache.
+        """
         self._cache.connection.disconnect()
