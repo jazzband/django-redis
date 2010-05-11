@@ -53,8 +53,7 @@ class CacheClass(BaseCache):
 
         if value is None:
             return default
-
-        # picke doesn't want a unicode!
+        # pickle doesn't want a unicode!
         value = smart_str(value)
 
         # hydrate that pickle
