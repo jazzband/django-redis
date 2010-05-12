@@ -106,7 +106,7 @@ class CacheClass(BaseCache):
         """
         Retrieve many keys.
         """
-        decoded_results = SortedDict()
+        recovered_data = SortedDict()
         results = self._cache.mget(map(lambda k: smart_str(k), keys))
         for key, value in zip(keys, results):
             if value is None:
@@ -117,8 +117,8 @@ class CacheClass(BaseCache):
             value = pickle.loads(base64.decodestring(value))
             if isinstance(value, basestring):
                 value = smart_unicode(value)
-            decoded_results[key] = value
-        return decoded_results
+            recovered_data[key] = value
+        return recovered_data
 
     def set_many(self, data, timeout=None):
         """
