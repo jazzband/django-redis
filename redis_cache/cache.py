@@ -36,7 +36,7 @@ class CacheClass(BaseCache):
         else:
             host = 'localhost'
             port = 6379
-        self._cache = redis.Redis(host=host, port=port, db=db, password=None)
+        self._cache = redis.Redis(host=host, port=port, db=db, password=password)
 
     def add(self, key, value, timeout=0):
         """
