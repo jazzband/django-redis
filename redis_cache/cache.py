@@ -10,7 +10,7 @@ except ImportError:
 
 try:
     import redis
-except:
+except ImportError:
     raise InvalidCacheBackendError(
         "Redis cache backend requires the 'redis-py' library")
 
