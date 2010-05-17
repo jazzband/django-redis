@@ -19,7 +19,8 @@ class RedisCacheTests(unittest.TestCase):
     
     """
     def setUp(self):
-        self.cache = get_cache('redis_cache.cache://127.0.0.1:6379')
+        # use DB 16 for testing and hope there isn't any important data :->
+        self.cache = get_cache('redis_cache.cache://127.0.0.1:6379?db=15')
 
     def tearDown(self):
         self.cache.clear()
