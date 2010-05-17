@@ -38,15 +38,22 @@ class CacheClass(BaseCache):
             port = 6379
         self._cache = redis.Redis(host=host, port=port, db=db, password=password)
 
+    def prepare_key(self, key):
+        """
+        Hashes the key if length is greater than 250.
+        """
+        return smart_str(key)
+
     def add(self, key, value, timeout=None):
         """
         Add a value to the cache, failing if the key already exists.
 
         Returns ``True`` if the object was added, ``False`` if not.
         """
-        if self._cache.exists(smart_str(key)):
+        key = self.prepare_key(key)
+        if self._cache.exists(key):
             return False
-        return self.set(smart_str(key), value, timeout)
+        return self.set(key, value, timeout)
 
     def get(self, key, default=None):
         """
@@ -55,7 +62,7 @@ class CacheClass(BaseCache):
         Returns unpicked value if key is found, ``None`` if not.
         """
         # get the value from the cache
-        value = self._cache.get(smart_str(key))
+        value = self._cache.get(self.prepare_key(key))
         if value is None:
             return default
         # pickle doesn't want a unicode!
@@ -67,11 +74,12 @@ class CacheClass(BaseCache):
         """
         Persist a value to the cache, and set an optional expiration time.
         """
+        key = self.prepare_key(key)
         # pickle the value
         value = base64.encodestring(
             pickle.dumps(value, pickle.HIGHEST_PROTOCOL)).strip()
         # store the key/value pair
-        result = self._cache.set(smart_str(key), value)
+        result = self._cache.set(key, value)
         # set expiration if needed
         self.expire(key, timeout)
         # result is a boolean
@@ -82,19 +90,19 @@ class CacheClass(BaseCache):
         Set content expiration, if necessary
         """
         timeout = timeout or self.default_timeout
-        self._cache.expire(smart_str(key), timeout)
+        self._cache.expire(self.prepare_key(key), timeout)
 
     def delete(self, key):
         """
         Remove a key from the cache.
         """
-        self._cache.delete(smart_str(key))
+        self._cache.delete(self.prepare_key(key))
 
     def delete_many(self, keys):
         """
         Remove multiple keys at once.
         """
-        self._cache.delete(*map(smart_str, keys))
+        self._cache.delete(*map(self.prepare_key, keys))
 
     def clear(self):
         """
@@ -107,7 +115,7 @@ class CacheClass(BaseCache):
         Retrieve many keys.
         """
         recovered_data = SortedDict()
-        results = self._cache.mget(map(lambda k: smart_str(k), keys))
+        results = self._cache.mget(map(lambda k: self.prepare_key(k), keys))
         for key, value in zip(keys, results):
             if value is None:
                 continue
@@ -130,7 +138,7 @@ class CacheClass(BaseCache):
         """
         safe_data = {}
         for key, value in data.iteritems():
-            safe_data[smart_str(key)] = base64.encodestring(
+            safe_data[self.prepare_key(key)] = base64.encodestring(
                 pickle.dumps(value, pickle.HIGHEST_PROTOCOL)).strip()
         self._cache.mset(safe_data)
         map(self.expire, safe_data, [timeout]*len(safe_data))
