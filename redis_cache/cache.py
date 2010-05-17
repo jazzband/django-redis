@@ -102,7 +102,8 @@ class CacheClass(BaseCache):
         """
         Remove multiple keys at once.
         """
-        self._cache.delete(*map(self.prepare_key, keys))
+        if keys:
+            self._cache.delete(*map(self.prepare_key, keys))
 
     def clear(self):
         """
