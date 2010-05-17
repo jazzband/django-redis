@@ -5,7 +5,7 @@ setup(
     url = "http://github.com/blackbrrr/django-redis-cache/",
     author = "Matt Dennewitz",
     author_email = "mattdennewitz@gmail.com",
-    version = "0.2a2",
+    version = "0.2a3",
     packages = ["redis_cache"],
     description = "Redis Cache Backend for Django",
     classifiers = [
