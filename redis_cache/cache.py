@@ -38,7 +38,7 @@ class CacheClass(BaseCache):
             port = 6379
         self._cache = redis.Redis(host=host, port=port, db=db, password=password)
 
-    def add(self, key, value, timeout=0):
+    def add(self, key, value, timeout=None):
         """
         Add a value to the cache, failing if the key already exists.
 
