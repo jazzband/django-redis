@@ -141,8 +141,9 @@ class CacheClass(BaseCache):
         for key, value in data.iteritems():
             safe_data[self.prepare_key(key)] = base64.encodestring(
                 pickle.dumps(value, pickle.HIGHEST_PROTOCOL)).strip()
-        self._cache.mset(safe_data)
-        map(self.expire, safe_data, [timeout]*len(safe_data))
+        if safe_data:
+            self._cache.mset(safe_data)
+            map(self.expire, safe_data, [timeout]*len(safe_data))
 
     def close(self, **kwargs):
         """
