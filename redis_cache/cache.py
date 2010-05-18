@@ -90,7 +90,7 @@ class CacheClass(BaseCache):
         Set content expiration, if necessary
         """
         timeout = timeout or self.default_timeout
-        self._cache.expire(self.prepare_key(key), timeout)
+        self._cache.expire(key, timeout)
 
     def delete(self, key):
         """
