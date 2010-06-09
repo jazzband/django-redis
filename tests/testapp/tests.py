@@ -4,7 +4,7 @@ import time
 import unittest
 
 from django.core.cache import get_cache
-from testapp.models import Poll, expensive_calculation
+from models import Poll, expensive_calculation
 
 # functions/classes for complex data type tests
 def f():
@@ -16,7 +16,7 @@ class C:
 class RedisCacheTests(unittest.TestCase):
     """
     A common set of tests derived from Django's own cache tests
-    
+
     """
     def setUp(self):
         # use DB 16 for testing and hope there isn't any important data :->
