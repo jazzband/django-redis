@@ -75,7 +75,7 @@ class CacheClass(BaseCache):
         """
         key = self.prepare_key(key)
         # store the pickled value
-        result = self._cache.setnx(key, pickle.dumps(value))
+        result = self._cache.set(key, pickle.dumps(value))
         # set expiration if needed
         self.expire(key, timeout)
         # result is a boolean
@@ -138,7 +138,7 @@ class CacheClass(BaseCache):
         for key, value in data.iteritems():
             safe_data[self.prepare_key(key)] = pickle.dumps(value)
         if safe_data:
-            self._cache.msetnx(safe_data)
+            self._cache.mset(safe_data)
             map(self.expire, safe_data, [timeout]*len(safe_data))
 
     def close(self, **kwargs):
