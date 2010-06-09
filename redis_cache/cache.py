@@ -1,4 +1,3 @@
-import base64
 from django.core.cache.backends.base import BaseCache, InvalidCacheBackendError
 from django.utils.encoding import smart_unicode, smart_str
 from django.utils.datastructures import SortedDict
@@ -40,7 +39,7 @@ class CacheClass(BaseCache):
 
     def prepare_key(self, key):
         """
-        Hashes the key if length is greater than 250.
+        Returns the utf-8 encoded bytestring of the given key.
         """
         return smart_str(key)
 
@@ -68,18 +67,15 @@ class CacheClass(BaseCache):
         # pickle doesn't want a unicode!
         value = smart_str(value)
         # hydrate that pickle
-        return pickle.loads(base64.decodestring(value))
+        return pickle.loads(value)
 
     def set(self, key, value, timeout=None):
         """
         Persist a value to the cache, and set an optional expiration time.
         """
         key = self.prepare_key(key)
-        # pickle the value
-        value = base64.encodestring(
-            pickle.dumps(value, pickle.HIGHEST_PROTOCOL)).strip()
-        # store the key/value pair
-        result = self._cache.set(key, value)
+        # store the pickled value
+        result = self._cache.setnx(key, pickle.dumps(value))
         # set expiration if needed
         self.expire(key, timeout)
         # result is a boolean
@@ -124,7 +120,7 @@ class CacheClass(BaseCache):
             # pickle doesn't want a unicode!
             value = smart_str(value)
             # hydrate that pickle
-            value = pickle.loads(base64.decodestring(value))
+            value = pickle.loads(value)
             if isinstance(value, basestring):
                 value = smart_unicode(value)
             recovered_data[key] = value
@@ -140,10 +136,9 @@ class CacheClass(BaseCache):
         """
         safe_data = {}
         for key, value in data.iteritems():
-            safe_data[self.prepare_key(key)] = base64.encodestring(
-                pickle.dumps(value, pickle.HIGHEST_PROTOCOL)).strip()
+            safe_data[self.prepare_key(key)] = pickle.dumps(value)
         if safe_data:
-            self._cache.mset(safe_data)
+            self._cache.msetnx(safe_data)
             map(self.expire, safe_data, [timeout]*len(safe_data))
 
     def close(self, **kwargs):
