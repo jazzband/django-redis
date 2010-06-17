@@ -85,9 +85,17 @@ class CacheClass(BaseCache):
         """
         Set content expiration, if necessary
         """
-        if timeout is None:
-            timeout = self.default_timeout
-        self._cache.expire(key, timeout)
+        if timeout == 0:
+            # force the key to be non-volatile
+            result = self._cache.get(key)
+            self._cache.set(key, result)
+        else:
+            timeout = timeout or self.default_timeout
+            # If the expiration command returns false, we need to reset the key
+            # with the new expiration
+            if not self._cache.expire(key, timeout):
+                value = self.get(key)
+                self.set(key, value, timeout)
 
     def delete(self, key):
         """
