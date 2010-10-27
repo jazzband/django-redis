@@ -33,7 +33,7 @@ class CacheClass(BaseCache):
             except (ValueError, TypeError):
                 port = 6379
         else:
-            host = 'localhost'
+            host = server or 'localhost'
             port = 6379
         self._cache = redis.Redis(host=host, port=port, db=db, password=password)
 
