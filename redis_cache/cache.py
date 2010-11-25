@@ -15,11 +15,11 @@ except ImportError:
 
 
 class CacheClass(BaseCache):
-    def __init__(self, server, params):
+    def __init__(self, server, params, key_prefix='', version=1, key_func=None):
         """
         Connect to Redis, and set up cache backend.
         """
-        BaseCache.__init__(self, params)
+        BaseCache.__init__(self, params, key_prefix, version, key_func)
         db = params.get('db', 1)
         try:
             db = int(db)
@@ -37,31 +37,31 @@ class CacheClass(BaseCache):
             port = 6379
         self._cache = redis.Redis(host=host, port=port, db=db, password=password)
 
-    def prepare_key(self, key):
+    def make_key(self, key, version=None):
         """
         Returns the utf-8 encoded bytestring of the given key.
         """
-        return smart_str(key)
+        return smart_str(super(CacheClass, self).make_key(key, version))
 
-    def add(self, key, value, timeout=None):
+    def add(self, key, value, timeout=None, version=None):
         """
         Add a value to the cache, failing if the key already exists.
 
         Returns ``True`` if the object was added, ``False`` if not.
         """
-        key = self.prepare_key(key)
+        key = self.make_key(key, version=version)
         if self._cache.exists(key):
             return False
         return self.set(key, value, timeout)
 
-    def get(self, key, default=None):
+    def get(self, key, default=None, version=None):
         """
         Retrieve a value from the cache.
 
         Returns unpicked value if key is found, ``None`` if not.
         """
         # get the value from the cache
-        value = self._cache.get(self.prepare_key(key))
+        value = self._cache.get(self.make_key(key, version=version))
         if value is None:
             return default
         # pickle doesn't want a unicode!
@@ -69,22 +69,25 @@ class CacheClass(BaseCache):
         # hydrate that pickle
         return pickle.loads(value)
 
-    def set(self, key, value, timeout=None):
+    def set(self, key, value, timeout=None, version=None):
         """
         Persist a value to the cache, and set an optional expiration time.
         """
-        key = self.prepare_key(key)
+        _key = key
+        key = self.make_key(key, version=version)
         # store the pickled value
         result = self._cache.set(key, pickle.dumps(value))
         # set expiration if needed
-        self.expire(key, timeout)
+        self.expire(_key, timeout, version=version)
         # result is a boolean
         return result
 
-    def expire(self, key, timeout=None):
+    def expire(self, key, timeout=None, version=None):
         """
         Set content expiration, if necessary
         """
+        _key = key
+        key = self.make_key(key, version=version)
         if timeout == 0:
             # force the key to be non-volatile
             result = self._cache.get(key)
@@ -94,21 +97,22 @@ class CacheClass(BaseCache):
             # If the expiration command returns false, we need to reset the key
             # with the new expiration
             if not self._cache.expire(key, timeout):
-                value = self.get(key)
-                self.set(key, value, timeout)
+                value = self.get(_key, version=version)
+                self.set(_key, value, timeout, version=version)
 
-    def delete(self, key):
+    def delete(self, key, version=None):
         """
         Remove a key from the cache.
         """
-        self._cache.delete(self.prepare_key(key))
+        self._cache.delete(self.make_key(key, version))
 
-    def delete_many(self, keys):
+    def delete_many(self, keys, version=None):
         """
         Remove multiple keys at once.
         """
         if keys:
-            self._cache.delete(*map(self.prepare_key, keys))
+            l = lambda x: self.make_key(x, version=version)
+            self._cache.delete(*map(l, keys))
 
     def clear(self):
         """
@@ -116,13 +120,15 @@ class CacheClass(BaseCache):
         """
         self._cache.flushdb()
 
-    def get_many(self, keys):
+    def get_many(self, keys, version=None):
         """
         Retrieve many keys.
         """
         recovered_data = SortedDict()
-        results = self._cache.mget(map(lambda k: self.prepare_key(k), keys))
-        for key, value in zip(keys, results):
+        new_keys = map(lambda x: self.make_key(x, version=version), keys)
+        results = self._cache.mget(new_keys)
+        map_keys = dict(zip(new_keys, keys))
+        for key, value in zip(new_keys, results):
             if value is None:
                 continue
             # pickle doesn't want a unicode!
@@ -131,10 +137,10 @@ class CacheClass(BaseCache):
             value = pickle.loads(value)
             if isinstance(value, basestring):
                 value = smart_unicode(value)
-            recovered_data[key] = value
+            recovered_data[map_keys[key]] = value
         return recovered_data
 
-    def set_many(self, data, timeout=None):
+    def set_many(self, data, timeout=None, version=None):
         """
         Set a bunch of values in the cache at once from a dict of key/value
         pairs. This is much more efficient than calling set() multiple times.
@@ -144,9 +150,9 @@ class CacheClass(BaseCache):
         """
         safe_data = {}
         for key, value in data.iteritems():
-            safe_data[self.prepare_key(key)] = pickle.dumps(value)
+            safe_data[key] = pickle.dumps(value)
         if safe_data:
-            self._cache.mset(safe_data)
+            self._cache.mset(dict((self.make_key(key, version=version), value) for key, value in safe_data.iteritems()))
             map(self.expire, safe_data, [timeout]*len(safe_data))
 
     def close(self, **kwargs):
@@ -154,3 +160,17 @@ class CacheClass(BaseCache):
         Disconnect from the cache.
         """
         self._cache.connection.disconnect()
+
+    def incr_version(self, key, delta=1, version=None):
+        """Adds delta to the cache version for the supplied key. Returns the
+        new version.
+        """
+        if version is None:
+            version = self.version
+
+        value = self.get(key, version=version)
+        if value is None:
+            raise ValueError("Key '%s' not found" % key)
+
+        self._cache.rename(self.make_key(key, version), self.make_key(key, version=version+delta))
+        return version+delta
