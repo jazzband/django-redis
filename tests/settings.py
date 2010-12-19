@@ -1,6 +1,10 @@
 DEBUG = True
 
-DATABASE_ENGINE = 'sqlite3'
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+    }
+}
 
 INSTALLED_APPS = [
     'tests.testapp',
