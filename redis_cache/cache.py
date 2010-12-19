@@ -49,10 +49,11 @@ class CacheClass(BaseCache):
 
         Returns ``True`` if the object was added, ``False`` if not.
         """
+        _key = key
         key = self.make_key(key, version=version)
         if self._cache.exists(key):
             return False
-        return self.set(key, value, timeout)
+        return self.set(_key, value, timeout)
 
     def get(self, key, default=None, version=None):
         """
