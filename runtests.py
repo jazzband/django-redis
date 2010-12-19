@@ -22,10 +22,9 @@ def runtests(*test_args):
         test_args = ['testapp']
     parent = dirname(abspath(__file__))
     sys.path.insert(0, parent)
-    runner = DjangoTestSuiteRunner(verbosity=1, interactive=True)
+    runner = DjangoTestSuiteRunner(verbosity=1, interactive=True, failfast=False)
     failures = runner.run_tests(test_args)
     sys.exit(failures)
-
 
 if __name__ == '__main__':
     runtests(*sys.argv[1:])
