@@ -152,7 +152,8 @@ class CacheClass(BaseCache):
         for key, value in data.iteritems():
             safe_data[key] = pickle.dumps(value)
         if safe_data:
-            self._cache.mset(dict((self.make_key(key, version=version), value) for key, value in safe_data.iteritems()))
+            self._cache.mset(dict((self.make_key(key, version=version), value)
+                                   for key, value in safe_data.iteritems()))
             map(self.expire, safe_data, [timeout]*len(safe_data))
 
     def close(self, **kwargs):
@@ -172,5 +173,6 @@ class CacheClass(BaseCache):
         if value is None:
             raise ValueError("Key '%s' not found" % key)
 
-        self._cache.rename(self.make_key(key, version), self.make_key(key, version=version+delta))
+        self._cache.rename(self.make_key(key, version), self.make_key(key,
+            version=version+delta))
         return version+delta
