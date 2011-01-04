@@ -15,12 +15,12 @@ except ImportError:
 
 
 class CacheClass(BaseCache):
-    def __init__(self, server, params, key_prefix='', version=1, key_func=None):
+    def __init__(self, server, params):
         """
         Connect to Redis, and set up cache backend.
         """
-        BaseCache.__init__(self, params, key_prefix, version, key_func)
-        db = params.get('db', 1)
+        BaseCache.__init__(self, params)
+        db = params.get('OPTIONS', {}).get('db', 1)
         try:
             db = int(db)
         except (ValueError, TypeError):

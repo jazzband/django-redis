@@ -20,7 +20,15 @@ Usage
 
 2. Modify your Django settings to use ``redis_cache`` ::
 
-    CACHE_BACKEND = 'redis_cache.cache://<host>:<port>'
+    CACHES = {
+        'default': {
+            'BACKEND': 'redis_cache.cache.CacheClass',
+            'LOCATION': '<host>:<port>',
+            'OPTIONS': { # optional
+                'DB': 1,
+            },
+        },
+    }
 
 
 
