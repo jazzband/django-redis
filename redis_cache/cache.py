@@ -119,6 +119,7 @@ class CacheClass(BaseCache):
         """
         Flush all cache keys.
         """
+        # TODO : potential data loss here, should we only delete keys based on the correct version ?
         self._cache.flushdb()
 
     def get_many(self, keys, version=None):
