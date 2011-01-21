@@ -168,17 +168,15 @@ class RedisCacheTests(unittest.TestCase):
     def test_set_expiration_timeout_None(self):
         key, value = 'key', 'value'
         self.cache.set(key, value);
-        self.assertEqual(self.cache._cache.ttl(key), None)
-
+        self.assertTrue(self.cache._cache.ttl(key) > 0)
 
     def test_set_expiration_timeout_0(self):
         key, value = 'key', 'value'
-        _key = self.cache.make_key(key)
-        self.cache.set(key, value);
-        self.assertTrue(self.cache._cache.ttl(_key) > 0)
+        self.cache.set(key, value)
+        self.assertTrue(self.cache._cache.ttl(key) > 0)
         self.cache.expire(key, 0)
         self.assertEqual(self.cache.get(key), value)
-        self.assertEqual(self.cache._cache.ttl(_key), None)
+        self.assertTrue(self.cache._cache.ttl(key) < 0)
 
     def test_set_expiration_first_expire_call(self):
         key, value = self.cache.make_key('key'), 'value'
