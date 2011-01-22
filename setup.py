@@ -2,10 +2,10 @@ from distutils.core import setup
 
 setup(
     name = "django-redis-cache",
-    url = "http://github.com/blackbrrr/django-redis-cache/",
-    author = "Matt Dennewitz",
-    author_email = "mattdennewitz@gmail.com",
-    version = "0.2a10",
+    url = "http://github.com/sebleier/django-redis-cache/",
+    author = "Sean Bleier",
+    author_email = "sebleier@gmail.com",
+    version = "0.2a11",
     packages = ["redis_cache"],
     description = "Redis Cache Backend for Django",
     classifiers = [
@@ -17,4 +17,3 @@ setup(
         "Framework :: Django",
     ],
 )
-
