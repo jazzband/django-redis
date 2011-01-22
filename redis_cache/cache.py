@@ -14,11 +14,22 @@ except ImportError:
         "Redis cache backend requires the 'redis-py' library")
 
 
-class CacheKey(basestring):
+class CacheKey(object):
     """
     A stub string class that we can use to check if a key was created already.
     """
-    pass
+    def __init__(self, key):
+        self._key = key
+
+    def __eq__(self, other):
+        return self._key == other
+
+    def __str__(self):
+        return self.__unicode__()
+
+    def __unicode__(self):
+        return smart_str(self._key)
+
 
 class CacheClass(BaseCache):
     def __init__(self, server, params):
@@ -49,8 +60,8 @@ class CacheClass(BaseCache):
         Returns the utf-8 encoded bytestring of the given key as a CacheKey
         instance to be able to check if it was "made" before.
         """
-        if isinstance(key, CacheKey):
-            key = CacheKey(smart_str(key))
+        if not isinstance(key, CacheKey):
+            key = CacheKey(key)
         return key
 
     def add(self, key, value, timeout=None, version=None):
@@ -93,12 +104,13 @@ class CacheClass(BaseCache):
         Set content expiration, if necessary
         """
         key = self.make_key(key, version=version)
-        if timeout == 0:
+        if timeout is None:
+            timeout = self.default_timeout
+        if timeout <= 0:
             # force the key to be non-volatile
             result = self._cache.get(key)
             self._cache.set(key, result)
         else:
-            timeout = timeout or self.default_timeout
             # If the expiration command returns false, we need to reset the key
             # with the new expiration
             if not self._cache.expire(key, timeout):
@@ -130,9 +142,7 @@ class CacheClass(BaseCache):
         """
         Unpickles the given value.
         """
-        # pickle doesn't want a unicode!
         value = smart_str(value)
-        # hydrate that pickle
         return pickle.loads(value)
 
     def get_many(self, keys, version=None):
@@ -178,22 +188,30 @@ class RedisCache(CacheClass):
     """
     A subclass that is supposed to be used on Django >= 1.3.
     """
+
     def make_key(self, key, version=None):
         if not isinstance(key, CacheKey):
-            key = CacheKey(smart_str(super(CacheClass, self).make_key(key, version)))
+            key = CacheKey(super(CacheClass, self).make_key(key, version))
         return key
 
     def incr_version(self, key, delta=1, version=None):
         """
         Adds delta to the cache version for the supplied key. Returns the
         new version.
+
+        Note: In Redis 2.0 you cannot rename a volitle key, so we have to move
+        the value from the old key to the new key and maintain the ttl.
         """
         if version is None:
             version = self.version
-        key = self.make_key(key, version)
-        value = self.get(key, version=version)
+        old_key = self.make_key(key, version)
+        value = self.get(old_key, version=version)
+        ttl = self._cache.ttl(old_key)
         if value is None:
             raise ValueError("Key '%s' not found" % key)
-        incr_key = self.make_key(key, version=version+delta)
-        self._cache.rename(key, incr_key)
+        new_key = self.make_key(key, version=version+delta)
+        # TODO: See if we can check the version of Redis, since 2.2 will be able
+        # to rename volitile keys.
+        self.set(new_key, value, timeout=ttl)
+        self.delete(old_key)
         return version + delta

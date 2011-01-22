@@ -12,7 +12,17 @@ if not settings.configured:
         },
         INSTALLED_APPS = [
             'tests.testapp',
-        ]
+        ],
+        CACHES = {
+            'default': {
+                'BACKEND': 'redis_cache.RedisCache',
+                'LOCATION': '127.0.0.1:6379',
+                'OPTIONS': {
+                    'DB': 15,
+                    'PASSWORD': 'yadayada',
+                },
+            },
+        }
     )
 
 from django.test.simple import DjangoTestSuiteRunner

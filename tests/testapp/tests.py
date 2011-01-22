@@ -7,9 +7,10 @@ try:
     import cPickle as pickle
 except ImportError:
     import pickle
-
+from django import VERSION
 from django.core.cache import get_cache
 from models import Poll, expensive_calculation
+from redis_cache.cache import RedisCache
 
 # functions/classes for complex data type tests
 def f():
@@ -25,10 +26,32 @@ class RedisCacheTests(unittest.TestCase):
     """
     def setUp(self):
         # use DB 16 for testing and hope there isn't any important data :->
-        self.cache = get_cache('redis_cache.cache://127.0.0.1:6379?db=15')
+        self.cache = self.get_cache()
 
     def tearDown(self):
         self.cache.clear()
+        self.cache.close()
+
+    def get_cache(self, backend=None):
+        if VERSION[0] == 1 and VERSION[1] < 3:
+            cache = get_cache(backend or 'redis_cache.cache://127.0.0.1:6379?db=15')
+        elif VERSION[0] == 1 and VERSION[1] >= 3:
+            cache = get_cache(backend or 'default')
+        return cache
+
+    def test_bad_db_initialization(self):
+        self.cache = self.get_cache('redis_cache.cache://127.0.0.1:6379?db=not_a_number')
+        self.assertEqual(self.cache._cache.db, 1)
+
+    def test_bad_port_initialization(self):
+        self.cache = self.get_cache('redis_cache.cache://127.0.0.1:not_a_number?db=15')
+        self.assertEqual(self.cache._cache.port, 6379)
+
+    def test_default_initialization(self):
+        self.cache = self.get_cache('redis_cache.cache://127.0.0.1')
+        self.assertEqual(self.cache._cache.host, '127.0.0.1')
+        self.assertEqual(self.cache._cache.db, 1)
+        self.assertEqual(self.cache._cache.port, 6379)
 
     def test_simple(self):
         # Simple cache set/get works
@@ -166,12 +189,12 @@ class RedisCacheTests(unittest.TestCase):
         self.assertEqual(self.cache.has_key("expire3"), False)
 
     def test_set_expiration_timeout_None(self):
-        key, value = 'key', 'value'
+        key, value = self.cache.make_key('key'), 'value'
         self.cache.set(key, value);
         self.assertTrue(self.cache._cache.ttl(key) > 0)
 
     def test_set_expiration_timeout_0(self):
-        key, value = 'key', 'value'
+        key, value = self.cache.make_key('key'), 'value'
         self.cache.set(key, value)
         self.assertTrue(self.cache._cache.ttl(key) > 0)
         self.cache.expire(key, 0)
@@ -267,6 +290,19 @@ class RedisCacheTests(unittest.TestCase):
         self.cache.set_many({'key3': 'sausage', 'key4': 'lobster bisque'}, 60*60*24*30 + 1)
         self.assertEqual(self.cache.get('key3'), 'sausage')
         self.assertEqual(self.cache.get('key4'), 'lobster bisque')
+
+    def test_incr_version(self):
+        if isinstance(self.cache, RedisCache):
+            old_key = "key1"
+            self.cache.set(old_key, "spam", version=1)
+            self.assertEqual(self.cache.make_key(old_key), ':1:key1')
+            new_version = self.cache.incr_version(old_key, 1)
+            self.assertEqual(new_version, 2)
+            new_key = self.cache.make_key(old_key, version=new_version)
+            self.assertEqual(new_key, ':2:key1')
+            self.assertEqual(self.cache.get(old_key), None)
+            self.assertEqual(self.cache.get(new_key), 'spam')
+
 
 if __name__ == '__main__':
     unittest.main()
