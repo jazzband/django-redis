@@ -41,17 +41,17 @@ class RedisCacheTests(unittest.TestCase):
 
     def test_bad_db_initialization(self):
         self.cache = self.get_cache('redis_cache.cache://127.0.0.1:6379?db=not_a_number')
-        self.assertEqual(self.cache._cache.db, 1)
+        self.assertEqual(self.cache._cache.connection_pool.connection_kwargs['db'], 1)
 
     def test_bad_port_initialization(self):
         self.cache = self.get_cache('redis_cache.cache://127.0.0.1:not_a_number?db=15')
-        self.assertEqual(self.cache._cache.port, 6379)
+        self.assertEqual(self.cache._cache.connection_pool.connection_kwargs['port'], 6379)
 
     def test_default_initialization(self):
         self.cache = self.get_cache('redis_cache.cache://127.0.0.1')
-        self.assertEqual(self.cache._cache.host, '127.0.0.1')
-        self.assertEqual(self.cache._cache.db, 1)
-        self.assertEqual(self.cache._cache.port, 6379)
+        self.assertEqual(self.cache._cache.connection_pool.connection_kwargs['host'], '127.0.0.1')
+        self.assertEqual(self.cache._cache.connection_pool.connection_kwargs['db'], 1)
+        self.assertEqual(self.cache._cache.connection_pool.connection_kwargs['port'], 6379)
 
     def test_simple(self):
         # Simple cache set/get works
