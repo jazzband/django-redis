@@ -88,7 +88,12 @@ class CacheClass(BaseCache):
         value = self._cache.get(key)
         if value is None:
             return default
-        return self.unpickle(value)
+        try:
+            result = int(value)
+        except (ValueError, TypeError):
+            result = self.unpickle(value)
+        return result
+
 
     def set(self, key, value, timeout=None, version=None, client=None):
         """
@@ -97,11 +102,14 @@ class CacheClass(BaseCache):
         if not client:
             client = self._cache
         key = self.make_key(key, version=version)
-        # get timout
         if not timeout:
             timeout = self.default_timeout
-        # store the pickled value
-        result = self._cache.setex(key, pickle.dumps(value), int(timeout))
+        try:
+            value = int(value)
+        except (ValueError, TypeError):
+            result = self._cache.setex(key, pickle.dumps(value), int(timeout))
+        else:
+            result = self._cache.setex(key, value, int(timeout))
         # result is a boolean
         return result
 
@@ -164,6 +172,22 @@ class CacheClass(BaseCache):
         for key, value in data.iteritems():
             self.set(key, value, timeout, version=version, client=pipeline)
         pipeline.execute()
+
+    def incr(self, key, delta=1, version=None):
+        """
+        Add delta to value in the cache. If the key does not exist, raise a
+        ValueError exception.
+        """
+        key = self.make_key(key, version=version)
+        exists = self._cache.exists(key)
+        if not exists:
+            raise ValueError("Key '%s' not found" % key)
+        try:
+            value = self._cache.incr(key, delta)
+        except redis.ResponseError:
+            value = self.get(key) + 1
+            self.set(key, value)
+        return value
 
 
 class RedisCache(CacheClass):

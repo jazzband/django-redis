@@ -277,6 +277,24 @@ class RedisCacheTests(TestCase):
             self.assertEqual(self.cache.get(old_key), None)
             self.assertEqual(self.cache.get(new_key), 'spam')
 
+    def test_incr_with_pickled_integer(self):
+        "Testing case where there exists a pickled integer and we increment it"
+        number = 42
+        key = self.cache.make_key("key")
+
+        # manually set value using the redis client
+        self.cache._cache.set(key, pickle.dumps(number))
+        new_value = self.cache.incr(key)
+        self.assertEqual(new_value, number + 1)
+
+        # Test that the pickled value was converted to an integer
+        value = int(self.cache._cache.get(key))
+        self.assertTrue(isinstance(value, int))
+
+        # now that the value is an integer, let's increment it again.
+        new_value = self.cache.incr(key, 7)
+        self.assertEqual(new_value, number + 8)
+
 
 if __name__ == '__main__':
     unittest.main()
