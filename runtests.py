@@ -22,7 +22,8 @@ if not settings.configured:
                     'PASSWORD': 'yadayada',
                 },
             },
-        }
+        },
+        ROOT_URLCONF = 'tests.urls',
     )
 
 from django.test.simple import DjangoTestSuiteRunner
