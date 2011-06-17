@@ -30,7 +30,6 @@ class RedisCacheTests(unittest.TestCase):
 
     def tearDown(self):
         self.cache.clear()
-        self.cache.close()
 
     def get_cache(self, backend=None):
         if VERSION[0] == 1 and VERSION[1] < 3:
