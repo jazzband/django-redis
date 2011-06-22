@@ -10,7 +10,7 @@ from django import VERSION
 from django.core.cache import get_cache
 from django.test import TestCase
 from models import Poll, expensive_calculation
-from redis_cache.cache import RedisCache
+from redis_cache.cache import RedisCache, pool, ImproperlyConfigured
 
 # functions/classes for complex data type tests
 def f():
@@ -26,10 +26,14 @@ class RedisCacheTests(TestCase):
     """
     def setUp(self):
         # use DB 16 for testing and hope there isn't any important data :->
+        self.reset_pool()
         self.cache = self.get_cache()
 
     def tearDown(self):
         self.cache.clear()
+
+    def reset_pool(self):
+        pool._connection_pool = None
 
     def get_cache(self, backend=None):
         if VERSION[0] == 1 and VERSION[1] < 3:
@@ -39,14 +43,13 @@ class RedisCacheTests(TestCase):
         return cache
 
     def test_bad_db_initialization(self):
-        self.cache = self.get_cache('redis_cache.cache://127.0.0.1:6379?db=not_a_number')
-        self.assertEqual(self.cache._cache.connection_pool.connection_kwargs['db'], 1)
+        self.assertRaises(ImproperlyConfigured, self.get_cache, 'redis_cache.cache://127.0.0.1:6379?db=not_a_number')
 
     def test_bad_port_initialization(self):
-        self.cache = self.get_cache('redis_cache.cache://127.0.0.1:not_a_number?db=15')
-        self.assertEqual(self.cache._cache.connection_pool.connection_kwargs['port'], 6379)
+        self.assertRaises(ImproperlyConfigured, self.get_cache, 'redis_cache.cache://127.0.0.1:not_a_number?db=15')
 
     def test_default_initialization(self):
+        self.reset_pool()
         self.cache = self.get_cache('redis_cache.cache://127.0.0.1')
         self.assertEqual(self.cache._cache.connection_pool.connection_kwargs['host'], '127.0.0.1')
         self.assertEqual(self.cache._cache.connection_pool.connection_kwargs['db'], 1)
@@ -303,8 +306,8 @@ class RedisCacheTests(TestCase):
             self.assertEqual(self.cache.get(new_key), 'spam')
 
     def test_connection_pool(self):
-        # First, let's make sure that one connection exists in the pool
-        self.assertEqual(self.cache._cache.connection_pool._created_connections, 1)
+        # First, let's make sure there are no connections in the pool
+        self.assertEqual(self.cache._cache.connection_pool._created_connections, 0)
 
         # Now, let's tie up two connections in the pool.
         c1 = self.cache._cache.connection_pool.get_connection("_")

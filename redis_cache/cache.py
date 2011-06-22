@@ -1,7 +1,6 @@
 from django.core.cache.backends.base import BaseCache, InvalidCacheBackendError
 from django.utils.encoding import smart_unicode, smart_str
 from django.utils.datastructures import SortedDict
-from django.conf import settings
 
 try:
     import cPickle as pickle
@@ -13,6 +12,11 @@ try:
 except ImportError:
     raise InvalidCacheBackendError(
         "Redis cache backend requires the 'redis-py' library")
+
+
+class ImproperlyConfigured(Exception):
+    "Django Redis Cache is somehow improperly configured"
+    pass
 
 
 class CacheConnectionPool(object):
@@ -63,13 +67,13 @@ class CacheClass(BaseCache):
         try:
             db = int(db)
         except (ValueError, TypeError):
-            db = 1
+            raise ImproperlyConfigured("db value must be an integer")
         if ':' in server:
             host, port = server.split(':')
             try:
                 port = int(port)
             except (ValueError, TypeError):
-                port = 6379
+                raise ImproperlyConfigured("port value must be an integer")
         else:
             host = server or 'localhost'
             port = 6379

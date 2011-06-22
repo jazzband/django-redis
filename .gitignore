@@ -9,3 +9,6 @@
 local_settings.py
 development_settings.py
 *.egg-info
+.project
+.pydevproject
+.settings
