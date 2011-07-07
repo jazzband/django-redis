@@ -130,18 +130,13 @@ class CacheClass(BaseCache):
         Set content expiration, if necessary
         """
         key = self.make_key(key, version=version)
-        if timeout is None:
+        if not timeout:
             timeout = self.default_timeout
-        if timeout <= 0:
-            # force the key to be non-volatile
-            result = self._cache.get(key)
-            self._cache.set(key, result)
-        else:
-            # If the expiration command returns false, we need to reset the key
-            # with the new expiration
-            if not self._cache.expire(key, timeout):
-                value = self.get(key, version=version)
-                self.set(key, value, timeout, version=version)
+        # If the expiration command returns false, we need to reset the key
+        # with the new expiration
+        if not self._cache.expire(key, timeout):
+            value = self.get(key, version=version)
+            self.set(key, value, timeout, version=version)
 
     def delete(self, key, version=None):
         """
