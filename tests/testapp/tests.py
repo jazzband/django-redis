@@ -195,27 +195,6 @@ class RedisCacheTests(TestCase):
         self.cache.set(key, value);
         self.assertTrue(self.cache._cache.ttl(key) > 0)
 
-    def test_set_expiration_first_expire_call(self):
-        key, value = self.cache.make_key('key'), 'value'
-        # bypass public set api so we don't set the expiration
-        self.cache._cache.set(key, pickle.dumps(value))
-        self.cache.expire('key', 1)
-        time.sleep(2)
-        self.assertEqual(self.cache.get('key'), None)
-
-    def test_set_expiration_mulitple_expire_calls(self):
-        key, value = 'key', 'value'
-        self.cache.set(key, value, 1)
-        time.sleep(2)
-        self.assertEqual(self.cache.get('key'), None)
-        self.cache.set(key, value, 100)
-        self.assertEqual(self.cache.get('key'), value)
-        time.sleep(2)
-        self.assertEqual(self.cache.get('key'), value)
-        self.cache.expire(key, 1)
-        time.sleep(2)
-        self.assertEqual(self.cache.get('key'), None)
-
     def test_unicode(self):
         # Unicode values can be cached
         stuff = {

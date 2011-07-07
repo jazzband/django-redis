@@ -128,17 +128,6 @@ class CacheClass(BaseCache):
         # result is a boolean
         return result
 
-    def expire(self, key, timeout=None, version=None):
-        """
-        Set content expiration, if necessary
-        """
-        key = self.make_key(key, version=version)
-        if not timeout:
-            timeout = self.default_timeout
-        # If the expiration command returns false, we need to reset the key
-        # with the new expiration
-        self._cache.expire(key, timeout)
-
     def delete(self, key, version=None):
         """
         Remove a key from the cache.
