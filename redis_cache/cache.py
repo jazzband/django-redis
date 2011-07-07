@@ -113,10 +113,12 @@ class CacheClass(BaseCache):
             return default
         return self.unpickle(value)
 
-    def set(self, key, value, timeout=None, version=None):
+    def set(self, key, value, timeout=None, version=None, client=None):
         """
         Persist a value to the cache, and set an optional expiration time.
         """
+        if not client:
+            client = self._cache
         key = self.make_key(key, version=version)
         # get timout
         if not timeout:
@@ -190,13 +192,10 @@ class CacheClass(BaseCache):
         If timeout is given, that timeout will be used for the key; otherwise
         the default cache timeout will be used.
         """
-        safe_data = {}
+        pipeline = self._cache.pipeline()
         for key, value in data.iteritems():
-            safe_data[key] = pickle.dumps(value)
-        if safe_data:
-            self._cache.mset(dict((self.make_key(key, version=version), value)
-                                   for key, value in safe_data.iteritems()))
-            map(self.expire, safe_data, [timeout]*len(safe_data))
+            self.set(key, value, timeout, version=version, client=pipeline)
+        pipeline.execute()
 
 
 class RedisCache(CacheClass):
