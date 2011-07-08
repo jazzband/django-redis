@@ -10,7 +10,7 @@ from django import VERSION
 from django.core.cache import get_cache
 from django.test import TestCase
 from models import Poll, expensive_calculation
-from redis_cache.cache import RedisCache, pool, ImproperlyConfigured
+from redis_cache.cache import RedisCache, ImproperlyConfigured
 
 # functions/classes for complex data type tests
 def f():
@@ -33,7 +33,8 @@ class RedisCacheTests(TestCase):
         self.cache.clear()
 
     def reset_pool(self):
-        pool._connection_pool = None
+        if hasattr(self, 'cache'):
+            self.cache._cache.connection_pool.disconnect()
 
     def get_cache(self, backend=None):
         if VERSION[0] == 1 and VERSION[1] < 3:
@@ -275,26 +276,6 @@ class RedisCacheTests(TestCase):
             self.assertEqual(new_key, ':2:key1')
             self.assertEqual(self.cache.get(old_key), None)
             self.assertEqual(self.cache.get(new_key), 'spam')
-
-    def test_connection_pool(self):
-        # First, let's make sure there are no connections in the pool
-        self.assertEqual(self.cache._cache.connection_pool._created_connections, 0)
-
-        # Now, let's tie up two connections in the pool.
-        c1 = self.cache._cache.connection_pool.get_connection("_")
-        self.assertEqual(self.cache._cache.connection_pool._created_connections, 1)
-        c2 = self.cache._cache.connection_pool.get_connection("_")
-        self.assertEqual(self.cache._cache.connection_pool._created_connections, 2)
-
-        # with 2 connections tied up, lets access a view makes sure it creates
-        # another connection
-        self.client.get("/")
-        self.assertEqual(self.cache._cache.connection_pool._created_connections, 3)
-
-        # The previous request releases the connection, let's call the view again
-        # and make sure that only 3 connections are created
-        self.client.get("/")
-        self.assertEqual(self.cache._cache.connection_pool._created_connections, 3)
 
 
 if __name__ == '__main__':

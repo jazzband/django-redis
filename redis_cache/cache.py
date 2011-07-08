@@ -16,25 +16,6 @@ except ImportError:
 
 
 
-class CacheConnectionPool(object):
-    _connection_pool = None
-
-    def get_connection_pool(self, host='127.0.0.1', port=6379, db=1, password=None,
-        socket_timeout=None, connection_pool=None, charset='utf-8', errors='strict'):
-        if self._connection_pool is None:
-            kwargs = {
-                'db': db,
-                'password': password,
-                'socket_timeout': socket_timeout,
-                'encoding': charset,
-                'encoding_errors': errors,
-                'host': host,
-                'port': port
-            }
-            self._connection_pool = redis.ConnectionPool(**kwargs)
-        return self._connection_pool
-pool = CacheConnectionPool()
-
 class CacheKey(object):
     """
     A stub string class that we can use to check if a key was created already.
@@ -74,8 +55,7 @@ class CacheClass(BaseCache):
         else:
             host = server or 'localhost'
             port = 6379
-        self._cache = redis.Redis(host=host, port=port, db=db,
-            password=password, connection_pool=pool.get_connection_pool(host=host, port=port, db=db, password=password))
+        self._cache = redis.Redis(host=host, port=port, db=db, password=password)
 
 
     def make_key(self, key, version=None):
