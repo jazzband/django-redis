@@ -1,4 +1,5 @@
 from django.core.cache.backends.base import BaseCache, InvalidCacheBackendError
+from django.core.exceptions import ImproperlyConfigured
 from django.utils.encoding import smart_unicode, smart_str
 from django.utils.datastructures import SortedDict
 
@@ -13,10 +14,6 @@ except ImportError:
     raise InvalidCacheBackendError(
         "Redis cache backend requires the 'redis-py' library")
 
-
-class ImproperlyConfigured(Exception):
-    "Django Redis Cache is somehow improperly configured"
-    pass
 
 
 class CacheConnectionPool(object):
