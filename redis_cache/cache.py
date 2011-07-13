@@ -101,7 +101,7 @@ class CacheClass(BaseCache):
         if not timeout:
             timeout = self.default_timeout
         # store the pickled value
-        result = self._cache.setex(key, pickle.dumps(value), timeout)
+        result = self._cache.setex(key, pickle.dumps(value), int(timeout))
         # result is a boolean
         return result
 
