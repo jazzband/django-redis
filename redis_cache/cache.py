@@ -137,6 +137,8 @@ class CacheClass(BaseCache):
         """
         Retrieve many keys.
         """
+        if not keys:
+            return {}
         recovered_data = SortedDict()
         new_keys = map(lambda key: self.make_key(key, version=version), keys)
         map_keys = dict(zip(new_keys, keys))
