@@ -5,7 +5,7 @@ setup(
     url = "http://github.com/sebleier/django-redis-cache/",
     author = "Sean Bleier",
     author_email = "sebleier@gmail.com",
-    version = "0.6.1",
+    version = "0.7.0",
     packages = ["redis_cache"],
     description = "Redis Cache Backend for Django",
     install_requires=['redis>=2.4.5',],

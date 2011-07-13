@@ -6,3 +6,4 @@ Noah Kantrowitz / coderanger <http://github.com/coderanger>
 Martin Mahner / bartTC <http://github.com/bartTC>
 Timothée Peignier / cyberdelia <https://github.com/cyberdelia>
 Lior Sion / liorsion <https://github.com/liorsion>
+Ales Zoulek / aleszoulek <https://github.com/aleszoulek>
