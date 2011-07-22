@@ -295,6 +295,15 @@ class RedisCacheTests(TestCase):
         new_value = self.cache.incr(key, 7)
         self.assertEqual(new_value, number + 8)
 
+    def test_pickling_cache_object(self):
+        p = pickle.dumps(self.cache)
+        cache = pickle.loads(p)
+        # Now let's do a simple operation using the unpickled cache object
+        cache.add("addkey1", "value")
+        result = cache.add("addkey1", "newvalue")
+        self.assertEqual(result, False)
+        self.assertEqual(cache.get("addkey1"), "value")
+
 
 if __name__ == '__main__':
     unittest.main()
