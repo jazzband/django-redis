@@ -15,7 +15,6 @@ except ImportError:
         "Redis cache backend requires the 'redis-py' library")
 
 
-
 class CacheKey(object):
     """
     A stub string class that we can use to check if a key was created already.
@@ -55,8 +54,7 @@ class CacheClass(BaseCache):
         else:
             host = server or 'localhost'
             port = 6379
-        self._cache = redis.Redis(host=host, port=port, db=db, password=password)
-
+        self._client = redis.Redis(host=host, port=port, db=db, password=password)
 
     def make_key(self, key, version=None):
         """
@@ -74,7 +72,7 @@ class CacheClass(BaseCache):
         Returns ``True`` if the object was added, ``False`` if not.
         """
         key = self.make_key(key, version=version)
-        if self._cache.exists(key):
+        if self._client.exists(key):
             return False
         return self.set(key, value, timeout)
 
@@ -85,7 +83,7 @@ class CacheClass(BaseCache):
         Returns unpickled value if key is found, the default if not.
         """
         key = self.make_key(key, version=version)
-        value = self._cache.get(key)
+        value = self._client.get(key)
         if value is None:
             return default
         try:
@@ -100,16 +98,16 @@ class CacheClass(BaseCache):
         Persist a value to the cache, and set an optional expiration time.
         """
         if not client:
-            client = self._cache
+            client = self._client
         key = self.make_key(key, version=version)
         if not timeout:
             timeout = self.default_timeout
         try:
             value = int(value)
         except (ValueError, TypeError):
-            result = self._cache.setex(key, pickle.dumps(value), int(timeout))
+            result = self._client.setex(key, pickle.dumps(value), int(timeout))
         else:
-            result = self._cache.setex(key, value, int(timeout))
+            result = self._client.setex(key, value, int(timeout))
         # result is a boolean
         return result
 
@@ -117,7 +115,7 @@ class CacheClass(BaseCache):
         """
         Remove a key from the cache.
         """
-        self._cache.delete(self.make_key(key, version=version))
+        self._client.delete(self.make_key(key, version=version))
 
     def delete_many(self, keys, version=None):
         """
@@ -125,14 +123,14 @@ class CacheClass(BaseCache):
         """
         if keys:
             keys = map(lambda key: self.make_key(key, version=version), keys)
-            self._cache.delete(*keys)
+            self._client.delete(*keys)
 
     def clear(self):
         """
         Flush all cache keys.
         """
         # TODO : potential data loss here, should we only delete keys based on the correct version ?
-        self._cache.flushdb()
+        self._client.flushdb()
 
     def unpickle(self, value):
         """
@@ -150,7 +148,7 @@ class CacheClass(BaseCache):
         recovered_data = SortedDict()
         new_keys = map(lambda key: self.make_key(key, version=version), keys)
         map_keys = dict(zip(new_keys, keys))
-        results = self._cache.mget(new_keys)
+        results = self._client.mget(new_keys)
         for key, value in zip(new_keys, results):
             if value is None:
                 continue
@@ -168,7 +166,7 @@ class CacheClass(BaseCache):
         If timeout is given, that timeout will be used for the key; otherwise
         the default cache timeout will be used.
         """
-        pipeline = self._cache.pipeline()
+        pipeline = self._client.pipeline()
         for key, value in data.iteritems():
             self.set(key, value, timeout, version=version, client=pipeline)
         pipeline.execute()
@@ -179,11 +177,11 @@ class CacheClass(BaseCache):
         ValueError exception.
         """
         key = self.make_key(key, version=version)
-        exists = self._cache.exists(key)
+        exists = self._client.exists(key)
         if not exists:
             raise ValueError("Key '%s' not found" % key)
         try:
-            value = self._cache.incr(key, delta)
+            value = self._client.incr(key, delta)
         except redis.ResponseError:
             value = self.get(key) + 1
             self.set(key, value)
@@ -212,7 +210,7 @@ class RedisCache(CacheClass):
             version = self.version
         old_key = self.make_key(key, version)
         value = self.get(old_key, version=version)
-        ttl = self._cache.ttl(old_key)
+        ttl = self._client.ttl(old_key)
         if value is None:
             raise ValueError("Key '%s' not found" % key)
         new_key = self.make_key(key, version=version+delta)

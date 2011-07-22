@@ -34,7 +34,7 @@ class RedisCacheTests(TestCase):
 
     def reset_pool(self):
         if hasattr(self, 'cache'):
-            self.cache._cache.connection_pool.disconnect()
+            self.cache._client.connection_pool.disconnect()
 
     def get_cache(self, backend=None):
         if VERSION[0] == 1 and VERSION[1] < 3:
@@ -52,9 +52,9 @@ class RedisCacheTests(TestCase):
     def test_default_initialization(self):
         self.reset_pool()
         self.cache = self.get_cache('redis_cache.cache://127.0.0.1')
-        self.assertEqual(self.cache._cache.connection_pool.connection_kwargs['host'], '127.0.0.1')
-        self.assertEqual(self.cache._cache.connection_pool.connection_kwargs['db'], 1)
-        self.assertEqual(self.cache._cache.connection_pool.connection_kwargs['port'], 6379)
+        self.assertEqual(self.cache._client.connection_pool.connection_kwargs['host'], '127.0.0.1')
+        self.assertEqual(self.cache._client.connection_pool.connection_kwargs['db'], 1)
+        self.assertEqual(self.cache._client.connection_pool.connection_kwargs['port'], 6379)
 
     def test_simple(self):
         # Simple cache set/get works
@@ -194,7 +194,7 @@ class RedisCacheTests(TestCase):
     def test_set_expiration_timeout_None(self):
         key, value = self.cache.make_key('key'), 'value'
         self.cache.set(key, value);
-        self.assertTrue(self.cache._cache.ttl(key) > 0)
+        self.assertTrue(self.cache._client.ttl(key) > 0)
 
     def test_unicode(self):
         # Unicode values can be cached
@@ -283,12 +283,12 @@ class RedisCacheTests(TestCase):
         key = self.cache.make_key("key")
 
         # manually set value using the redis client
-        self.cache._cache.set(key, pickle.dumps(number))
+        self.cache._client.set(key, pickle.dumps(number))
         new_value = self.cache.incr(key)
         self.assertEqual(new_value, number + 1)
 
         # Test that the pickled value was converted to an integer
-        value = int(self.cache._cache.get(key))
+        value = int(self.cache._client.get(key))
         self.assertTrue(isinstance(value, int))
 
         # now that the value is an integer, let's increment it again.
