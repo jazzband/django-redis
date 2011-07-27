@@ -28,6 +28,9 @@ class CacheKey(object):
     def __str__(self):
         return self.__unicode__()
 
+    def __repr__(self):
+        return self.__unicode__()
+
     def __unicode__(self):
         return smart_str(self._key)
 
@@ -162,7 +165,10 @@ class CacheClass(BaseCache):
         for key, value in zip(new_keys, results):
             if value is None:
                 continue
-            value = self.unpickle(value)
+            try:
+                value = int(value)
+            except (ValueError, TypeError):
+                value = self.unpickle(value)
             if isinstance(value, basestring):
                 value = smart_unicode(value)
             recovered_data[map_keys[key]] = value

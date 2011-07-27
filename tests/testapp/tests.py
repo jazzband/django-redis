@@ -83,6 +83,20 @@ class RedisCacheTests(TestCase):
         self.assertEqual(self.cache.get_many(['a', 'c', 'd']), {'a' : 'a', 'c' : 'c', 'd' : 'd'})
         self.assertEqual(self.cache.get_many(['a', 'b', 'e']), {'a' : 'a', 'b' : 'b'})
 
+    def test_get_many_with_manual_integer_insertion(self):
+        keys = ['a', 'b', 'c', 'd']
+        cache_keys = map(self.cache.make_key, keys)
+        # manually set integers and then get_many
+        for i, key in enumerate(cache_keys):
+            self.cache._client.set(key, i)
+        self.assertEqual(self.cache.get_many(keys), {'a': 0, 'b': 1, 'c': 2, 'd': 3})
+
+    def test_get_many_with_automatic_integer_insertion(self):
+        keys = ['a', 'b', 'c', 'd']
+        for i, key in enumerate(keys):
+            self.cache.set(key, i)
+        self.assertEqual(self.cache.get_many(keys), {'a': 0, 'b': 1, 'c': 2, 'd': 3})
+
     def test_delete(self):
         # Cache keys can be deleted
         self.cache.set("key1", "spam")
