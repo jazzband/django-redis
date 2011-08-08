@@ -1,1 +1,1 @@
-from redis_cache.cache import RedisCache
+from .cache import RedisCache

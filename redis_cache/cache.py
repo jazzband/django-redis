@@ -36,6 +36,8 @@ class CacheKey(object):
 
 
 class CacheClass(BaseCache):
+    _pickle_version = -1
+
     def __init__(self, server, params):
         """
         Connect to Redis, and set up cache backend.
@@ -44,14 +46,23 @@ class CacheClass(BaseCache):
 
     def _init(self, server, params):
         super(CacheClass, self).__init__(params)
-        self._initargs = { 'server': server, 'params': params }
-        options = params.get('OPTIONS', {})
-        password = params.get('password', options.get('PASSWORD', None))
-        db = params.get('db', options.get('DB', 1))
+        self._initargs = {'server': server, 'params': params}
+        self._options = params.get('OPTIONS', {})
+        
+        password, db = params.get('password', self._options.get('PASSWORD', None)), \
+            params.get('db', self._options.get('DB', 1))
+
+        if "PICKLE_VERSION" in self._options:
+            try:
+                self._pickle_version = int(self._options['PICKLE_VERSION'])
+            except (ValueError, TypeError):
+                raise ImproperlyConfigured("PICKLE_VERSION value must be an integer")
+
         try:
             db = int(db)
         except (ValueError, TypeError):
             raise ImproperlyConfigured("db value must be an integer")
+
         if ':' in server:
             host, port = server.split(':')
             try:
@@ -61,6 +72,7 @@ class CacheClass(BaseCache):
         else:
             host = server or 'localhost'
             port = 6379
+
         self._client = redis.Redis(host=host, port=port, db=db, password=password)
 
     def __getstate__(self):
@@ -118,7 +130,7 @@ class CacheClass(BaseCache):
         try:
             value = int(value)
         except (ValueError, TypeError):
-            result = self._client.setex(key, pickle.dumps(value), int(timeout))
+            result = self._client.setex(key, self.pickle(value), int(timeout))
         else:
             result = self._client.setex(key, value, int(timeout))
         # result is a boolean
@@ -151,6 +163,13 @@ class CacheClass(BaseCache):
         """
         value = smart_str(value)
         return pickle.loads(value)
+
+    def pickle(self, value):
+        """
+        Pickle the given value.
+        """
+        print self._pickle_version
+        return pickle.dumps(value, self._pickle_version)
 
     def get_many(self, keys, version=None):
         """

@@ -32,9 +32,16 @@ On Django >= 1.3::
             'LOCATION': '<host>:<port>',
             'OPTIONS': { # optional
                 'DB': 1,
-                'PASSWORD': 'yadayada',
+                'PASSWORD': 'yadayada', 
+                'PICKLE_VERSION': -1,   # default
             },
         },
     }
+
+
+Todo:
+-----
+
+Read/Write routing on master/slave configuration.
 
 .. _redis-py: http://github.com/andymccurdy/redis-py/
