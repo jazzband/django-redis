@@ -39,9 +39,4 @@ On Django >= 1.3::
     }
 
 
-Todo:
------
-
-Read/Write routing on master/slave configuration.
-
 .. _redis-py: http://github.com/andymccurdy/redis-py/

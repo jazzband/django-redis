@@ -70,8 +70,7 @@ class CacheClass(BaseCache):
             except (ValueError, TypeError):
                 raise ImproperlyConfigured("port value must be an integer")
         else:
-            host = server or 'localhost'
-            port = 6379
+            host, port = server or 'localhost', 6379
 
         self._client = redis.Redis(host=host, port=port, db=db, password=password)
 
@@ -168,7 +167,6 @@ class CacheClass(BaseCache):
         """
         Pickle the given value.
         """
-        print self._pickle_version
         return pickle.dumps(value, self._pickle_version)
 
     def get_many(self, keys, version=None):
