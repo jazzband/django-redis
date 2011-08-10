@@ -70,7 +70,7 @@ class CacheClass(BaseCache):
     def __setstate__(self, state):
         self._init(**state)
 
-    def close(self):
+    def close(self, **kwargs):
         self._client.connection_pool.disconnect()
 
     def make_key(self, key, version=None):
