@@ -71,7 +71,8 @@ class CacheClass(BaseCache):
         self._init(**state)
 
     def close(self, **kwargs):
-        self._client.connection_pool.disconnect()
+        for c in self._client.connection_pool._available_connections:
+            c.disconnect()
 
     def make_key(self, key, version=None):
         """
