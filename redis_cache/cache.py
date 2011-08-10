@@ -70,6 +70,9 @@ class CacheClass(BaseCache):
     def __setstate__(self, state):
         self._init(**state)
 
+    def close(self):
+        self._client.connection_pool.disconnect()
+
     def make_key(self, key, version=None):
         """
         Returns the utf-8 encoded bytestring of the given key as a CacheKey
