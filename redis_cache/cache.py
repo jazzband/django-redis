@@ -41,6 +41,7 @@ class CacheClass(BaseCache):
         Connect to Redis, and set up cache backend.
         """
         self._init(server, params)
+        super(CacheClass, self).__init__(params)
 
     def _init(self, server, params):
         super(CacheClass, self).__init__(params)
