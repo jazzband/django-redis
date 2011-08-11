@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from django.core.cache.backends.base import BaseCache, InvalidCacheBackendError
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.encoding import smart_unicode, smart_str
@@ -13,7 +15,6 @@ try:
 except ImportError:
     raise InvalidCacheBackendError(
         "Redis cache backend requires the 'redis-py' library")
-
 
 class CacheKey(object):
     """
