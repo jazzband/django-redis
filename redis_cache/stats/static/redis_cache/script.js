@@ -46,5 +46,5 @@ $(document).ready(function() {
         });
     };
     load_current_status();
-    setInterval(load_current_status, 5000);
+    setInterval(load_current_status, 3000);
 });

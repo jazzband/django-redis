@@ -41,11 +41,13 @@ On Django >= 1.3::
     }
 
 
-Usage redis_cache.status djago-app.
+Usage redis_cache.stats django-app.
 -----------------------------------
 
-1. Place 'redis_cache.stats' on your INSTALLED_APPS.
-2. Add this url on your urls.py:
+1. Place ``redis_cache.stats`` on your INSTALLED_APPS.
+
+2. Add this url on your urls.py::
+    
     url(r'^redis/status/', include('redis_cache.stats.urls', namespace='redis_cache'))
 
 
