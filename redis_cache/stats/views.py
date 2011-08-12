@@ -12,14 +12,15 @@ import redis, re
 
 class RedisStatsView(View):
     dbs_rx = re.compile(r'^db(\d+)$', flags=re.U)
-    def get_info(self):
+    has_redis_cache = True
+
+    def __init__(self, *args, **kwargs):
         if not hasattr(settings, "CACHES"):
-            return {}
-        
+            self.has_redis_cache = False
+
         caches = {}
         for name, options in getattr(settings, 'CACHES').iteritems():
             if 'BACKEND' not in options or 'RedisCache' not in options['BACKEND']:
-                print 1
                 continue
 
             cachedict = {}
@@ -42,6 +43,12 @@ class RedisStatsView(View):
                 raise ImproperlyConfigured("db value must be an integer")
 
             caches[name] = cachedict
+        self.caches = caches
+        super(RedisStatsView, self).__init__(*args, **kwargs)
+
+    def get_info(self):
+        if not self.has_redis_cache:
+            return {}
 
         def parse_dbs(infoobject):
             dbs = {}
@@ -53,7 +60,7 @@ class RedisStatsView(View):
             return dbs
         
         caches_info = {}
-        for name, options in caches.iteritems():
+        for name, options in self.caches.iteritems():
             rclient = redis.Redis(**options)
             caches_info[name] = rclient.info()
             caches_info[name]['dbs'] = parse_dbs(caches_info[name])
