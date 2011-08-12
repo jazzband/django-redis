@@ -3,10 +3,16 @@
         <tr>
             <th class="dbname">Database name:</th>
             <th class="dbinfo">Database stats:</th>
+            <th class="dbextra">Database details:</th>
         </tr>
         {% for dbname, dbinfo in info.iteritems %}
         <tr>
-            <td class="dbname">{{ dbname|capfirst }}:</td>
+            <td class="dbname">
+                <div class="djangoname">{{ dbname|capfirst }} →</div>
+                <div class="smalldetails">
+                    ({{ dbinfo.options.host }}:{{ dbinfo.options.port }})
+                </div>
+            </td>
             <td class="dbinfo">
                 <ul>
                     <li><strong>Architecture: </strong> {{ dbinfo.arch_bits }} bits.</li>
@@ -27,6 +33,19 @@
                        sys:{{ dbinfo.used_cpu_sys }} user:{{ dbinfo.used_cpu_user }}</li>
                     <li><strong>Used memory: </strong> {{ dbinfo.used_memory_human }}</li>
                 </ul>
+            </td>
+            <td class="dbextra">
+                <div class="databases">
+                    <ul>
+                        {% for db, options in dbinfo.dbs.iteritems %}
+                        <li id="db{{ db }}"><strong>DB{{ db }} → </strong>
+                            <strong>Keys:</strong>{{ options.keys }} 
+                            <strong>Expires:</strong>{{ options.expires }}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </td>
         </tr>
         {% endfor %}
     </tbody>

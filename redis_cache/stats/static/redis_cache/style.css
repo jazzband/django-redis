@@ -15,9 +15,22 @@ body {
     width: 120px;
     padding: 5px;
 }
+.stats-body table td.dbname .djangoname {
+    font-weight: bold;
+}
+.stats-body table td.dbname .smalldetails {
+    font-size: 11px;
+    font-style: italic;
+    color: #333;
+}
+.stats-body table td.dbextra ul,
 .stats-body table td.dbinfo ul {
     margin: 0px;
     padding: 0px;
     padding-bottom: 6px;
     list-style: none;
+}
+.stats-body table td.dbinfo,
+.stats-body table td.dbextra {
+    vertical-align: top;
 }
