@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# Copyright (c) 2011 Andrei Antoukh <niwi@niwi.be>
 
 from django.views.generic import View
 from django.shortcuts import render_to_response, get_object_or_404
@@ -71,7 +72,6 @@ class RedisStatsView(View):
     def get(self, request):
         return render_to_response("redis_cache/stats.html", {},
             context_instance=RequestContext(request))
-
     
     def post(self, request):
         context = {'info':self.get_info()}
