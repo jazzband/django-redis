@@ -44,6 +44,7 @@ class CacheClass(BaseCache):
         Connect to Redis, and set up cache backend.
         """
         self._init(server, params)
+        super(CacheClass, self).__init__(params)
 
     def _init(self, server, params):
         super(CacheClass, self).__init__(params)
@@ -80,6 +81,10 @@ class CacheClass(BaseCache):
 
     def __setstate__(self, state):
         self._init(**state)
+
+    def close(self, **kwargs):
+        for c in self._client.connection_pool._available_connections:
+            c.disconnect()
 
     def make_key(self, key, version=None):
         """
