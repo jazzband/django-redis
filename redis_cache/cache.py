@@ -130,9 +130,9 @@ class CacheClass(BaseCache):
         try:
             value = int(value)
         except (ValueError, TypeError):
-            result = self._client.setex(key, self.pickle(value), int(timeout))
+            result = client.setex(key, pickle.dumps(value), int(timeout))
         else:
-            result = self._client.setex(key, value, int(timeout))
+            result = client.setex(key, value, int(timeout))
         # result is a boolean
         return result
 
