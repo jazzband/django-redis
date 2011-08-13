@@ -8,6 +8,9 @@ from django.http import HttpResponseRedirect
 from django.template import RequestContext
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
+
 
 import redis, re
 
@@ -78,3 +81,6 @@ class RedisStatsView(View):
         return render_to_response("redis_cache/stats_include.html", context,
             context_instance=RequestContext(request))
 
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(RedisStatsView, self).dispatch(*args, **kwargs)
