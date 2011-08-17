@@ -1,5 +1,6 @@
 from django.core.cache.backends.base import BaseCache, InvalidCacheBackendError
 from django.core.exceptions import ImproperlyConfigured
+from django.utils import importlib
 from django.utils.encoding import smart_unicode, smart_str
 from django.utils.datastructures import SortedDict
 
@@ -13,7 +14,8 @@ try:
 except ImportError:
     raise InvalidCacheBackendError(
         "Redis cache backend requires the 'redis-py' library")
-
+from redis.connection import UnixDomainSocketConnection, Connection
+from redis.connection import DefaultParser
 
 class CacheKey(object):
     """
@@ -35,6 +37,34 @@ class CacheKey(object):
         return smart_str(self._key)
 
 
+class CacheConnectionPool(object):
+    _connection_pool = None
+
+    def get_connection_pool(self, host='127.0.0.1', port=6379, db=1,
+        password=None, parser_class=None,
+        unix_socket_path=None):
+        if self._connection_pool is None:
+            connection_class = (
+                unix_socket_path and UnixDomainSocketConnection or Connection
+            )
+            kwargs = {
+                'db': db,
+                'password': password,
+                'connection_class': connection_class,
+                'parser_class': parser_class,
+            }
+            if unix_socket_path is None:
+                kwargs.update({
+                    'host': host,
+                    'port': port,
+                })
+            else:
+                kwargs['path'] = unix_socket_path
+            self._connection_pool = redis.ConnectionPool(**kwargs)
+        return self._connection_pool
+pool = CacheConnectionPool()
+
+
 class CacheClass(BaseCache):
     def __init__(self, server, params):
         """
@@ -44,27 +74,76 @@ class CacheClass(BaseCache):
 
     def _init(self, server, params):
         super(CacheClass, self).__init__(params)
-        self._initargs = { 'server': server, 'params': params }
-        options = params.get('OPTIONS', {})
-        password = params.get('password', options.get('PASSWORD', None))
-        db = params.get('db', options.get('DB', 1))
-        try:
-            db = int(db)
-        except (ValueError, TypeError):
-            raise ImproperlyConfigured("db value must be an integer")
-        if ':' in server:
-            host, port = server.split(':')
+        self._server = server
+        self._params = params
+
+        unix_socket_path = None
+        if ':' in self.server:
+            host, port = self.server.split(':')
             try:
                 port = int(port)
             except (ValueError, TypeError):
                 raise ImproperlyConfigured("port value must be an integer")
         else:
-            host = server or 'localhost'
-            port = 6379
-        self._client = redis.Redis(host=host, port=port, db=db, password=password)
+            host, port = None, None
+            unix_socket_path = self.server
+
+        kwargs = {
+            'db': self.db,
+            'password': self.password,
+            'host': host,
+            'port': port,
+            'unix_socket_path': unix_socket_path,
+        }
+        connection_pool = pool.get_connection_pool(
+            parser_class=self.parser_class,
+            **kwargs
+        )
+        self._client = redis.Redis(
+            connection_pool=connection_pool,
+            **kwargs
+        )
+
+    @property
+    def server(self):
+        return self._server or "127.0.0.1:6379"
+
+    @property
+    def params(self):
+        return self._params or {}
+
+    @property
+    def options(self):
+        return self.params.get('OPTIONS', {})
+
+    @property
+    def db(self):
+        _db = self.params.get('db', self.options.get('DB', 1))
+        try:
+            _db = int(_db)
+        except (ValueError, TypeError):
+            raise ImproperlyConfigured("db value must be an integer")
+        return _db
+
+    @property
+    def password(self):
+        return self.params.get('password', self.options.get('PASSWORD', None))
+
+    @property
+    def parser_class(self):
+        cls = self.options.get('PARSER_CLASS', None)
+        if cls is None:
+            return DefaultParser
+        mod_path, cls_name = cls.rsplit('.', 1)
+        try:
+            mod = importlib.import_module(mod_path)
+            parser_class = getattr(mod, cls_name)
+        except (AttributeError, ImportError):
+            raise ImproperlyConfigured("Could not find parser class '%s'" % parser_class)
+        return parser_class
 
     def __getstate__(self):
-        return self._initargs
+        return {'params': self._params, 'server': self._server}
 
     def __setstate__(self, state):
         self._init(**state)
