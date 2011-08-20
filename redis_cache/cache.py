@@ -197,9 +197,13 @@ class CacheClass(BaseCache):
         try:
             value = int(value)
         except (ValueError, TypeError):
-            result = client.setex(key, pickle.dumps(value), int(timeout))
-        else:
+            value = pickle.dumps(value)
+
+        if timeout <> -1:
             result = client.setex(key, value, int(timeout))
+        else:
+            result = client.set(key, value)
+
         # result is a boolean
         return result
 
