@@ -184,6 +184,13 @@ class CacheClass(BaseCache):
             result = self.unpickle(value)
         return result
 
+    def _set(self, key, value, timeout, client):
+        if timeout == 0:
+            return client.set(key, value)
+        elif timeout > 0:
+            return client.setex(key, value, int(timeout))
+        else:
+            return False
 
     def set(self, key, value, timeout=None, version=None, client=None):
         """
@@ -192,14 +199,14 @@ class CacheClass(BaseCache):
         if not client:
             client = self._client
         key = self.make_key(key, version=version)
-        if not timeout:
+        if timeout is None:
             timeout = self.default_timeout
         try:
             value = int(value)
         except (ValueError, TypeError):
-            result = client.setex(key, pickle.dumps(value), int(timeout))
+            result = self._set(key, pickle.dumps(value), int(timeout), client)
         else:
-            result = client.setex(key, value, int(timeout))
+            result = self._set(key, value, int(timeout), client)
         # result is a boolean
         return result
 

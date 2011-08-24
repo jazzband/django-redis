@@ -213,8 +213,20 @@ class RedisCacheTests(TestCase):
 
     def test_set_expiration_timeout_None(self):
         key, value = self.cache.make_key('key'), 'value'
-        self.cache.set(key, value);
+        self.cache.set(key, value)
         self.assertTrue(self.cache._client.ttl(key) > 0)
+
+    def test_set_expiration_timeout_zero(self):
+        key, value = self.cache.make_key('key'), 'value'
+        self.cache.set(key, value, timeout=0)
+        self.assertTrue(self.cache._client.ttl(key) is None)
+        self.assertTrue(self.cache.has_key(key))
+
+    def test_set_expiration_timeout_negative(self):
+        key, value = self.cache.make_key('key'), 'value'
+        self.cache.set(key, value, timeout=-1)
+        self.assertTrue(self.cache._client.ttl(key) is None)
+        self.assertFalse(self.cache.has_key(key))
 
     def test_unicode(self):
         # Unicode values can be cached
