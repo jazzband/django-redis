@@ -8,4 +8,5 @@ Timothée Peignier / cyberdelia <https://github.com/cyberdelia>
 Lior Sion / liorsion <https://github.com/liorsion>
 Ales Zoulek / aleszoulek <https://github.com/aleszoulek>
 James Aylett / jaylett <https://github.com/jaylett>
+Todd Boland / boland <https://github.com/boland>
 Andrei Antoukh / niwibe <https://github.com/niwibe>
