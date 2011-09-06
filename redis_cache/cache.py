@@ -219,11 +219,14 @@ class CacheClass(BaseCache):
         if timeout is None:
             timeout = self.default_timeout
         try:
-            value = int(value)
+            value = float(value)
+            # If you lose precision from the typecast to str, then pickle value
+            if int(value) != value:
+                raise TypeError
         except (ValueError, TypeError):
             result = self._set(key, pickle.dumps(value), int(timeout), client)
         else:
-            result = self._set(key, value, int(timeout), client)
+            result = self._set(key, int(value), int(timeout), client)
         # result is a boolean
         return result
 

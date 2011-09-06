@@ -336,6 +336,15 @@ class RedisCacheTests(TestCase):
         self.assertEqual(result, False)
         self.assertEqual(cache.get("addkey1"), "value")
 
+    def test_float_caching(self):
+        self.cache.set('a', 1.1)
+        a = self.cache.get('a')
+        self.assertEqual(a, 1.1)
+
+    def test_string_float_caching(self):
+        self.cache.set('a', '1.1')
+        a = self.cache.get('a')
+        self.assertEqual(a, 1.1)
 
 if __name__ == '__main__':
     unittest.main()
