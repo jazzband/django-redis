@@ -82,6 +82,7 @@ class CacheClass(BaseCache):
         super(CacheClass, self).__init__(params)
         self._server = server
         self._params = params
+        self._options = params.get('OPTIONS', {})
 
         unix_socket_path = None
         if ':' in self.server:
@@ -94,8 +95,8 @@ class CacheClass(BaseCache):
         else:
             host, port = None, None
             unix_socket_path = self.server
-
-        if "PICKLE_VERSION" in self._params:
+        
+        if "PICKLE_VERSION" in self._options:
             try:
                 self._pickle_version = int(self._options['PICKLE_VERSION'])
             except (ValueError, TypeError):
@@ -224,7 +225,7 @@ class CacheClass(BaseCache):
             if int(value) != value:
                 raise TypeError
         except (ValueError, TypeError):
-            result = self._set(key, pickle.dumps(value), int(timeout), client)
+            result = self._set(key, self.pickle(value), int(timeout), client)
         else:
             result = self._set(key, int(value), int(timeout), client)
         # result is a boolean
