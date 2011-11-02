@@ -65,8 +65,8 @@ class CacheConnectionPool(object):
                 kwargs['path'] = unix_socket_path
             self._connection_pool = redis.ConnectionPool(**kwargs)
         return self._connection_pool
-pool = CacheConnectionPool()
 
+pool = CacheConnectionPool()
 
 class CacheClass(BaseCache):
     _pickle_version = -1
