@@ -34,7 +34,7 @@ Usage cache backend.
    or place ``redis_cache`` on your Python path. 
    You can also install it with: ``pip install django-redis``
 
-2. Modify your Django settings to use ``redis_cache`` :
+2. Modify your Django settings to use ``redis_cache`` ::
 
     # When using TCP connections
     CACHES = {
