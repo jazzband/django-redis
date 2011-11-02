@@ -1,1 +1,1 @@
-#__all__ = ['RedisCache', 'stats']
+__version__ = (1, 1, 0, 'candidate', 1)

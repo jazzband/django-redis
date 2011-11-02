@@ -12,3 +12,5 @@ development_settings.py
 .project
 .pydevproject
 .settings
+versiontools*
+build*
