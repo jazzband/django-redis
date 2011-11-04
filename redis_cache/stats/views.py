@@ -22,6 +22,12 @@ class RedisStatsView(View):
         if not hasattr(settings, "CACHES"):
             self.has_redis_cache = False
 
+        if not hasattr(self, 'caches'):
+            self.__class__.caches = self.get_caches()
+
+        super(RedisStatsView, self).__init__(*args, **kwargs)
+    
+    def get_caches(self):
         caches = {}
         for name, options in getattr(settings, 'CACHES').iteritems():
             if 'BACKEND' not in options or 'RedisCache' not in options['BACKEND']:
@@ -47,8 +53,7 @@ class RedisStatsView(View):
                 raise ImproperlyConfigured("db value must be an integer")
 
             caches[name] = cachedict
-        self.caches = caches
-        super(RedisStatsView, self).__init__(*args, **kwargs)
+        return caches
 
     def get_info(self):
         if not self.has_redis_cache:
