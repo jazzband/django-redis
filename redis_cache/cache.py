@@ -6,6 +6,8 @@ from django.utils import importlib
 from django.utils.encoding import smart_unicode, smart_str
 from django.utils.datastructures import SortedDict
 
+import itertools
+
 try:
     import cPickle as pickle
 except ImportError:
@@ -315,6 +317,11 @@ class CacheClass(BaseCache):
             value = self.get(key) + 1
             self.set(key, value)
         return value
+
+    # Other not default and not standar methods.
+
+    def keys(self, search):
+        return list(set(map(lambda x: x.split(":", 2)[2], self._client.keys(search))))
 
 
 class RedisCache(CacheClass):
