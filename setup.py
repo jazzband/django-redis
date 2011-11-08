@@ -18,6 +18,7 @@ setup(
     install_requires=[
         'distribute',
         'redis>=2.4.5',
+        'hiredis>=0.1.0',
     ],
     setup_requires = [
         'versiontools >= 1.8',

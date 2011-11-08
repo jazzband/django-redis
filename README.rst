@@ -25,16 +25,20 @@ communicating with the Redis server.
 Redis writes to disk asynchronously so there is a slight chance
 of losing some data, but for most purposes this is acceptable.
 
-This version is not the same that is in PyPI
+
+How to install.
+---------------
+
+Run ``python setup.py install`` to install, 
+or place ``redis_cache`` on your Python path.
+
+You can also install it with: ``pip install django-redis``
+
 
 Usage cache backend.
 --------------------
 
-1. Run ``python setup.py install`` to install,
-   or place ``redis_cache`` on your Python path. 
-   You can also install it with: ``pip install django-redis``
-
-2. Modify your Django settings to use ``redis_cache`` ::
+Modify your Django settings to use ``redis_cache`` ::
 
     # When using TCP connections
     CACHES = {
