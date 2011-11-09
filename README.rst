@@ -25,6 +25,8 @@ communicating with the Redis server.
 Redis writes to disk asynchronously so there is a slight chance
 of losing some data, but for most purposes this is acceptable.
 
+This cache backend is full ready for `django-orm`_ cache.
+
 
 How to install.
 ---------------
@@ -82,4 +84,12 @@ Usage redis_cache.stats django-app.
 
 Note: only tested with django >= 1.3
 
+
+TODO:
+-----
+
+* Improve stats django-app: add more administration options.
+* Add garbage collection and memory limits options.
+
 .. _redis-py: http://github.com/andymccurdy/redis-py/
+.. _django-orm: http://github.com/niwibe/django-orm/
