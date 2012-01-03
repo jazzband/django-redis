@@ -46,31 +46,31 @@ class CacheConnectionPool(object):
     _connection_pool = None
 
     def get_connection_pool(self, host='127.0.0.1', port=6379, db=1,
-        password=None, parser_class=None,
-        unix_socket_path=None):
+                password=None, parser_class=None, unix_socket_path=None):
+
         if self._connection_pool is None:
-            connection_class = (
-                unix_socket_path and UnixDomainSocketConnection or Connection
-            )
+            connection_class = unix_socket_path \
+                and UnixDomainSocketConnection or Connection
+
             kwargs = {
                 'db': db,
                 'password': password,
                 'connection_class': connection_class,
                 'parser_class': parser_class,
             }
+
             if unix_socket_path is None:
-                kwargs.update({
-                    'host': host,
-                    'port': port,
-                })
+                kwargs.update({'host': host, 'port': port})
             else:
                 kwargs['path'] = unix_socket_path
             self._connection_pool = redis.ConnectionPool(**kwargs)
+
         return self._connection_pool
 
 pool = CacheConnectionPool()
 
-class CacheClass(BaseCache):
+
+class RedisCache(BaseCache):
     _pickle_version = -1
 
     def __init__(self, server, params):
@@ -78,10 +78,10 @@ class CacheClass(BaseCache):
         Connect to Redis, and set up cache backend.
         """
         self._init(server, params)
-        super(CacheClass, self).__init__(params)
+        super(RedisCache, self).__init__(params)
 
     def _init(self, server, params):
-        super(CacheClass, self).__init__(params)
+        super(RedisCache, self).__init__(params)
         self._server = server
         self._params = params
         self._options = params.get('OPTIONS', {})
@@ -111,14 +111,39 @@ class CacheClass(BaseCache):
             'port': port,
             'unix_socket_path': unix_socket_path,
         }
+
         connection_pool = pool.get_connection_pool(
-            parser_class=self.parser_class,
-            **kwargs
-        )
+            parser_class=self.parser_class, **kwargs)
+
         self._client = redis.Redis(
-            connection_pool=connection_pool,
-            **kwargs
-        )
+            connection_pool=connection_pool, **kwargs)
+
+    def make_key(self, key, version=None):
+        if not isinstance(key, CacheKey):
+            key = CacheKey(super(RedisCache, self).make_key(key, version))
+        return key
+
+    def incr_version(self, key, delta=1, version=None):
+        """
+        Adds delta to the cache version for the supplied key. Returns the
+        new version.
+
+        Note: In Redis 2.0 you cannot rename a volitle key, so we have to move
+        the value from the old key to the new key and maintain the ttl.
+        """
+        if version is None:
+            version = self.version
+        old_key = self.make_key(key, version)
+        value = self.get(old_key, version=version)
+        ttl = self._client.ttl(old_key)
+        if value is None:
+            raise ValueError("Key '%s' not found" % key)
+        new_key = self.make_key(key, version=version+delta)
+        # TODO: See if we can check the version of Redis, since 2.2 will be able
+        # to rename volitile keys.
+        self.set(new_key, value, timeout=ttl)
+        self.delete(old_key)
+        return version + delta
 
     @property
     def server(self):
@@ -218,9 +243,11 @@ class CacheClass(BaseCache):
         """
         if not client:
             client = self._client
+
         key = self.make_key(key, version=version)
         if timeout is None:
             timeout = self.default_timeout
+
         try:
             value = float(value)
             # If you lose precision from the typecast to str, then pickle value
@@ -230,7 +257,7 @@ class CacheClass(BaseCache):
             result = self._set(key, self.pickle(value), int(timeout), client)
         else:
             result = self._set(key, int(value), int(timeout), client)
-        # result is a boolean
+
         return result
 
     def delete(self, key, version=None):
@@ -251,7 +278,6 @@ class CacheClass(BaseCache):
         """
         Flush all cache keys.
         """
-        # TODO : potential data loss here, should we only delete keys based on the correct version ?
         self._client.flushdb()
 
     def unpickle(self, value):
@@ -318,40 +344,14 @@ class CacheClass(BaseCache):
             self.set(key, value)
         return value
 
-    # Other not default and not standar methods.
+    def has_key(self, key, version=None):
+        """
+        Test if key exists.
+        """
 
+        key = self.make_key(key, version=version)
+        return self._client.exists(key)
+
+    # Other not default and not standar methods.
     def keys(self, search):
         return list(set(map(lambda x: x.split(":", 2)[2], self._client.keys(search))))
-
-
-class RedisCache(CacheClass):
-    """
-    A subclass that is supposed to be used on Django >= 1.3.
-    """
-
-    def make_key(self, key, version=None):
-        if not isinstance(key, CacheKey):
-            key = CacheKey(super(CacheClass, self).make_key(key, version))
-        return key
-
-    def incr_version(self, key, delta=1, version=None):
-        """
-        Adds delta to the cache version for the supplied key. Returns the
-        new version.
-
-        Note: In Redis 2.0 you cannot rename a volitle key, so we have to move
-        the value from the old key to the new key and maintain the ttl.
-        """
-        if version is None:
-            version = self.version
-        old_key = self.make_key(key, version)
-        value = self.get(old_key, version=version)
-        ttl = self._client.ttl(old_key)
-        if value is None:
-            raise ValueError("Key '%s' not found" % key)
-        new_key = self.make_key(key, version=version+delta)
-        # TODO: See if we can check the version of Redis, since 2.2 will be able
-        # to rename volitile keys.
-        self.set(new_key, value, timeout=ttl)
-        self.delete(old_key)
-        return version + delta
