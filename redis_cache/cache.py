@@ -193,15 +193,6 @@ class RedisCache(BaseCache):
         for c in self._client.connection_pool._available_connections:
             c.disconnect()
 
-    def make_key(self, key, version=None):
-        """
-        Returns the utf-8 encoded bytestring of the given key as a CacheKey
-        instance to be able to check if it was "made" before.
-        """
-        if not isinstance(key, CacheKey):
-            key = CacheKey(key)
-        return key
-
     def add(self, key, value, timeout=None, version=None):
         """
         Add a value to the cache, failing if the key already exists.
