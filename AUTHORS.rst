@@ -10,3 +10,4 @@ Ales Zoulek / aleszoulek <https://github.com/aleszoulek>
 James Aylett / jaylett <https://github.com/jaylett>
 Todd Boland / boland <https://github.com/boland>
 Andrei Antoukh / niwibe <https://github.com/niwibe>
+David Zderic / dzderic <https://github.com/dzderic>
