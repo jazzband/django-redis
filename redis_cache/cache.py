@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
+from collections import defaultdict
+
 from django.core.cache.backends.base import BaseCache, InvalidCacheBackendError
 from django.core.exceptions import ImproperlyConfigured
 from django.utils import importlib
 from django.utils.encoding import smart_unicode, smart_str
 from django.utils.datastructures import SortedDict
-
-import itertools
 
 try:
     import cPickle as pickle
@@ -67,8 +67,8 @@ class CacheConnectionPool(object):
 
         return self._connection_pool
 
-pool = CacheConnectionPool()
-
+# ConnectionPools keyed off the connection parameters
+pools = defaultdict(CacheConnectionPool)
 
 class RedisCache(BaseCache):
     _pickle_version = -1
@@ -111,8 +111,9 @@ class RedisCache(BaseCache):
             'port': port,
             'unix_socket_path': unix_socket_path,
         }
-
-        connection_pool = pool.get_connection_pool(
+        
+        pool_key = ':'.join([str(v) for v in kwargs.values()])
+        connection_pool = pools[pool_key].get_connection_pool(
             parser_class=self.parser_class, **kwargs)
 
         self._client = redis.Redis(
