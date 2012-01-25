@@ -182,6 +182,8 @@ class RedisCache(BaseCache):
             parser_class = getattr(mod, cls_name)
         except (AttributeError, ImportError):
             raise ImproperlyConfigured("Could not find parser class '%s'" % parser_class)
+        except ImportError as e:
+            raise ImproperlyConfigured("Could not find module '%s'" % e)
         return parser_class
 
     def __getstate__(self):
