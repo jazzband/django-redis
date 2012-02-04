@@ -25,6 +25,9 @@ setup(
     ],
     zip_safe=False,
     include_package_data = True,
+    package_data = {
+        '': ['templates/redis_cache/*'],
+    },
     classifiers = [
         'Development Status :: 4 - Beta',
         "Programming Language :: Python",
