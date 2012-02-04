@@ -1,1 +1,3 @@
 include LICENSE AUTHORS.rst README.rst
+include redis_cache/stats/templates/redis_cache/*.html
+include redis_cache/stats/static/redis_cache/*
