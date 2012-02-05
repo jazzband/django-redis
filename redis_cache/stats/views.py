@@ -15,6 +15,10 @@ from django.utils.decorators import method_decorator
 import redis, re
 
 class RedisStatsView(View):
+    """
+    TODO: add connection pool
+    """
+
     dbs_rx = re.compile(r'^db(\d+)$', flags=re.U)
     has_redis_cache = True
 
@@ -46,9 +50,10 @@ class RedisStatsView(View):
             except (ValueError, TypeError):
                 raise ImproperlyConfigured("port value must be an integer")
 
-            options = options.get('OPTIONS', {})
+            _options = options.get('OPTIONS', {})
             try:
-                cachedict['db'] = int(options.get('DB', 1))
+                cachedict['db'] = int(_options.get('DB', 1))
+                cachedict['password'] = _options.get('PASSWORD', None)
             except (ValueError, TypeError):
                 raise ImproperlyConfigured("db value must be an integer")
 

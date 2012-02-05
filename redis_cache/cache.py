@@ -63,6 +63,7 @@ class CacheConnectionPool(object):
                 kwargs.update({'host': host, 'port': port})
             else:
                 kwargs['path'] = unix_socket_path
+
             self._connection_pool = redis.ConnectionPool(**kwargs)
 
         return self._connection_pool
@@ -111,13 +112,14 @@ class RedisCache(BaseCache):
             'port': port,
             'unix_socket_path': unix_socket_path,
         }
-        
+
         pool_key = ':'.join([str(v) for v in kwargs.values()])
+
+        global pools
         connection_pool = pools[pool_key].get_connection_pool(
             parser_class=self.parser_class, **kwargs)
 
-        self._client = redis.Redis(
-            connection_pool=connection_pool, **kwargs)
+        self._client = redis.Redis(connection_pool=connection_pool)
 
     def make_key(self, key, version=None):
         if not isinstance(key, CacheKey):
@@ -155,12 +157,8 @@ class RedisCache(BaseCache):
         return self._params or {}
 
     @property
-    def options(self):
-        return self.params.get('OPTIONS', {})
-
-    @property
     def db(self):
-        _db = self.params.get('db', self.options.get('DB', 1))
+        _db = self.params.get('db', self._options.get('DB', 1))
         try:
             _db = int(_db)
         except (ValueError, TypeError):
@@ -169,11 +167,11 @@ class RedisCache(BaseCache):
 
     @property
     def password(self):
-        return self.params.get('password', self.options.get('PASSWORD', None))
+        return self._options.get('PASSWORD', None)
 
     @property
     def parser_class(self):
-        cls = self.options.get('PARSER_CLASS', None)
+        cls = self._options.get('PARSER_CLASS', None)
         if cls is None:
             return DefaultParser
         mod_path, cls_name = cls.rsplit('.', 1)
