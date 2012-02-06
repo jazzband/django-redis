@@ -11,8 +11,13 @@ from django.core.exceptions import ImproperlyConfigured
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 
+from redis_cache.cache import CacheConnectionPool
+from redis.connection import DefaultParser
+from collections import defaultdict
 
 import redis, re
+
+pools = defaultdict(CacheConnectionPool)
 
 class RedisStatsView(View):
     dbs_rx = re.compile(r'^db(\d+)$', flags=re.U)
@@ -33,22 +38,24 @@ class RedisStatsView(View):
             if 'BACKEND' not in options or 'RedisCache' not in options['BACKEND']:
                 continue
 
-            cachedict = {}
+            cachedict = {'unix_socket_path': None}
+            server = options.get('LOCATION', 'localhost:6379')
+
             try:
-                if "LOCATION" in options and ":" in options['LOCATION']:
-                    host, port = options['LOCATION'].split(':')
+                if ":" in server:
+                    host, port = server.split(':')
                     cachedict['port'] = int(port)
                     cachedict['host'] = host
                 else:
-                    cachedict['port'] = 6379
-                    cachedict['host'] = 'localhost'
-
+                    cachedict['port'] = cachedict['host'] = None
+                    cachedict['unix_socket_path'] = server
             except (ValueError, TypeError):
                 raise ImproperlyConfigured("port value must be an integer")
 
-            options = options.get('OPTIONS', {})
+            _options = options.get('OPTIONS', {})
             try:
-                cachedict['db'] = int(options.get('DB', 1))
+                cachedict['db'] = int(_options.get('DB', 1))
+                cachedict['password'] = _options.get('PASSWORD', None)
             except (ValueError, TypeError):
                 raise ImproperlyConfigured("db value must be an integer")
 
@@ -68,9 +75,15 @@ class RedisStatsView(View):
 
             return dbs
         
+        global pools
+
         caches_info = {}
         for name, options in self.caches.iteritems():
-            rclient = redis.Redis(**options)
+            connection_pool = pools[name]\
+                .get_connection_pool(parser_class=DefaultParser, **options)
+
+            rclient = redis.Redis(connection_pool=connection_pool)
+
             caches_info[name] = rclient.info()
             caches_info[name]['dbs'] = parse_dbs(caches_info[name])
             caches_info[name]['options'] = options

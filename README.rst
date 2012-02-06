@@ -45,7 +45,7 @@ Modify your Django settings to use ``redis_cache`` ::
     # When using TCP connections
     CACHES = {
         'default': {
-            'BACKEND': 'redis_cache.RedisCache',
+            'BACKEND': 'redis_cache.cache.RedisCache',
             'LOCATION': '<host>:<port>',
             'OPTIONS': {
                 'DB': 1,
@@ -60,7 +60,7 @@ Modify your Django settings to use ``redis_cache`` ::
     # in your redis.conf
     CACHES = {
         'default': {
-            'BACKEND': 'redis_cache.RedisCache',
+            'BACKEND': 'redis_cache.cache.RedisCache',
             'LOCATION': '/path/to/socket/file',
             'OPTIONS': {
                 'DB': 1,
@@ -92,4 +92,3 @@ TODO:
 * Add garbage collection and memory limits options.
 
 .. _redis-py: http://github.com/andymccurdy/redis-py/
-.. _django-orm: http://github.com/niwibe/django-orm/
