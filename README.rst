@@ -1,6 +1,6 @@
-==========================
-Redis Django Cache Backend
-==========================
+==============================
+Redis cache backend for Django
+==============================
 
 A simple Redis cache backend for Django
 
