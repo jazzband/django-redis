@@ -2,6 +2,7 @@
 
 from django.test import TestCase
 from django.core.cache import cache
+import time
 import datetime
 
 class DjangoRedisCacheTests(TestCase):
@@ -49,3 +50,10 @@ class DjangoRedisCacheTests(TestCase):
 
         self.assertIsInstance(res, float)
         self.assertEqual(res, float_val)
+
+    def test_timeout(self):
+        self.cache.set("test_key", 222, timeout=3)
+        time.sleep(4)
+        
+        res = self.cache.get("test_key", None)
+        self.assertEqual(res, None)
