@@ -1,6 +1,3 @@
-from django.conf.urls.defaults import *
+# -*- coding: utf-8 -*-
 
 
-urlpatterns = patterns('',
-    (r'^$', 'tests.views.someview'),
-)

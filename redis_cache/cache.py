@@ -16,8 +16,7 @@ except ImportError:
 try:
     import redis
 except ImportError:
-    raise InvalidCacheBackendError(
-        "Redis cache backend requires the 'redis-py' library")
+    raise InvalidCacheBackendError("Redis cache backend requires the 'redis-py' library")
 
 from redis.connection import UnixDomainSocketConnection, Connection
 from redis.connection import DefaultParser

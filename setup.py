@@ -28,7 +28,7 @@ setup(
         '': ['*.html'],
     },
     classifiers = [
-        'Development Status :: 4 - Beta',
+        "Development Status :: 5 - Production/Stable",
         "Programming Language :: Python",
         "Operating System :: OS Independent",
         "Topic :: Software Development :: Libraries",
