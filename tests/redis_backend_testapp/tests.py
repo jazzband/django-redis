@@ -57,3 +57,76 @@ class DjangoRedisCacheTests(TestCase):
         
         res = self.cache.get("test_key", None)
         self.assertEqual(res, None)
+
+    def test_set_add(self):
+        self.cache.set('add_key', 'Initial value')
+        self.cache.add('add_key', 'New value')
+        res = cache.get('add_key')
+
+        self.assertEqual(res, 'Initial value')
+
+    def test_get_many(self):
+        self.cache.set('a', 1)
+        self.cache.set('b', 2)
+        self.cache.set('c', 3)
+
+        res = self.cache.get_many(['a','b','c'])
+        self.assertEqual(res, {'a': 1, 'b': 2, 'c': 3})
+
+    def test_set_many(self):
+        self.cache.set_many({'a': 1, 'b': 2, 'c': 3})
+        res = self.cache.get_many(['a', 'b', 'c'])
+        self.assertEqual(res, {'a': 1, 'b': 2, 'c': 3})
+
+    def test_delete(self):
+        self.cache.set_many({'a': 1, 'b': 2, 'c': 3})
+        self.cache.delete('a')
+
+        res = self.cache.get_many(['a', 'b', 'c'])
+        self.assertEqual(res, {'b': 2, 'c': 3})
+
+    def test_delete_many(self):
+        self.cache.set_many({'a': 1, 'b': 2, 'c': 3})
+        self.cache.delete_many(['a','b'])
+        res = self.cache.get_many(['a', 'b', 'c'])
+        self.assertEqual(res, {'c': 3})
+
+    def test_incr(self):
+        self.cache.set("num", 1)
+
+        self.cache.incr("num")
+        res = self.cache.get("num")
+        self.assertEqual(res, 2)
+
+        self.cache.incr("num", 10)
+        res = self.cache.get("num")
+        self.assertEqual(res, 12)
+
+    def test_decr(self):
+        self.cache.set("num", 20)
+        
+        self.cache.decr("num")
+        res = self.cache.get("num")
+        self.assertEqual(res, 19)
+
+        self.cache.decr("num", 20)
+        res = self.cache.get("num")
+        self.assertEqual(res, -1)
+
+    def test_version(self):
+        self.cache.set("keytest", 2, version=2)
+        res = self.cache.get("keytest")
+        self.assertEqual(res, None)
+
+        res = self.cache.get("keytest", version=2)
+        self.assertEqual(res, 2)
+
+    def test_incr_version(self):
+        self.cache.set("keytest", 2)
+        self.cache.incr_version("keytest")
+
+        res = self.cache.get("keytest")
+        self.assertEqual(res, None)
+
+        res = self.cache.get("keytest", version=2)
+        self.assertEqual(res, 2)

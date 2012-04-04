@@ -314,13 +314,28 @@ class RedisCache(BaseCache):
         """
         key = self.make_key(key, version=version)
         exists = self._client.exists(key)
+
         if not exists:
             raise ValueError("Key '%s' not found" % key)
-        try:
-            value = self._client.incr(key, delta)
-        except redis.ResponseError:
-            value = self.get(key) + 1
-            self.set(key, value)
+
+        value = self.get(key) + delta
+        self.set(key, value)
+        return value
+
+    def decr(self, key, delta=1, version=None):
+        """
+        Decreace delta to value in the cache. If the key does not exist, raise a
+        ValueError exception.
+        """
+
+        key = self.make_key(key, version=version)
+        exists = self._client.exists(key)
+
+        if not exists:
+            raise ValueError("Key '%s' not found" % key)
+
+        value = self.get(key) - delta
+        self.set(key, value)
         return value
 
     def has_key(self, key, version=None):
