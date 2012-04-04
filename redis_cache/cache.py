@@ -215,11 +215,8 @@ class RedisCache(BaseCache):
         value = self._client.get(key)
         if value is None:
             return default
-        try:
-            result = int(value)
-        except (ValueError, TypeError):
-            result = self.unpickle(value)
-        return result
+        return self.unpickle(value)
+
 
     def _set(self, key, value, timeout, client):
         if timeout == 0:
@@ -239,17 +236,8 @@ class RedisCache(BaseCache):
         key = self.make_key(key, version=version)
         if timeout is None:
             timeout = self.default_timeout
-
-        try:
-            value = float(value)
-            # If you lose precision from the typecast to str, then pickle value
-            if int(value) != value:
-                raise TypeError
-        except (ValueError, TypeError):
-            result = self._set(key, self.pickle(value), int(timeout), client)
-        else:
-            result = self._set(key, int(value), int(timeout), client)
-
+    
+        result = self._set(key, self.pickle(value), int(timeout), client)
         return result
 
     def delete(self, key, version=None):
