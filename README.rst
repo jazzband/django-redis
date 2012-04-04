@@ -49,7 +49,6 @@ Modify your Django settings to use ``redis_cache`` ::
             'LOCATION': '<host>:<port>',
             'OPTIONS': {
                 'DB': 1,
-                'PASSWORD': 'yadayada',
                 'PARSER_CLASS': 'redis.connection.HiredisParser'
             },
         },
@@ -64,7 +63,7 @@ Modify your Django settings to use ``redis_cache`` ::
             'LOCATION': '/path/to/socket/file',
             'OPTIONS': {
                 'DB': 1,
-                'PASSWORD': 'yadayada', 
+                'PASSWORD': 'foopassword', 
                 'PICKLE_VERSION': -1,   # default
                 'PARSER_CLASS': 'redis.connection.HiredisParser'
             },
