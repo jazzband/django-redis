@@ -16,7 +16,6 @@ setup(
     ],
     description = description.strip(),
     install_requires=[
-        'distribute',
         'redis>=2.4.5',
     ],
     setup_requires = [
