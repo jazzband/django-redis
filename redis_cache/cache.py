@@ -87,11 +87,7 @@ class RedisCache(BaseCache):
         """
         Adds delta to the cache version for the supplied key. Returns the
         new version.
-
-        Note: In Redis 2.0 you cannot rename a volitle key, so we have to move
-        the value from the old key to the new key and maintain the ttl.
         """
-
         if client is None:
             client = self._client
 
@@ -104,11 +100,12 @@ class RedisCache(BaseCache):
 
         if value is None:
             raise ValueError("Key '%s' not found" % key)
-
-        new_key = self.make_key(key, version=version+delta)
         
-        # TODO: See if we can check the version of Redis, since 2.2 will be able
-        # to rename volitile keys.
+        if isinstance(key, CacheKey):
+            new_key = self.make_key(key.original_key(), version=version+delta)
+        else:
+            new_key = self.make_key(key, version=version+delta)
+        
         self.set(new_key, value, timeout=ttl)
         self.delete(old_key, client=client)
         return version + delta

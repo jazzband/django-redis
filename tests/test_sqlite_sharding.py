@@ -26,7 +26,8 @@ CACHES = {
     'default': {
         'BACKEND': 'redis_cache.cache.ShardedRedisCache',
         'LOCATION': [
-            '127.0.0.1:6379',
+            '127.0.0.1:6379:1',
+            '127.0.0.1:6379:2',
         ],
         'OPTIONS': {
             'DB': 15,

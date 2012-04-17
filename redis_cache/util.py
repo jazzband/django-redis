@@ -21,6 +21,10 @@ class CacheKey(object):
     def __unicode__(self):
         return smart_str(self._key)
 
+    def original_key(self):
+        _, key = self._key.rsplit(":", 1)
+        return key
+
 
 class Singleton(type):
     """ Singleton metaclass. """
