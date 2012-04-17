@@ -67,6 +67,7 @@ class CacheConnectionPool(object):
 
         return self._connection_pool
 
+
 # ConnectionPools keyed off the connection parameters
 pools = defaultdict(CacheConnectionPool)
 
@@ -80,15 +81,10 @@ class RedisCache(BaseCache):
         self._init(server, params)
         super(RedisCache, self).__init__(params)
 
-    def _init(self, server, params):
-        super(RedisCache, self).__init__(params)
-        self._server = server
-        self._params = params
-        self._options = params.get('OPTIONS', {})
-
+    def _connect(self):
         unix_socket_path = None
-        if ':' in self.server:
-            host, port = self.server.split(':')
+        if ':' in self._server:
+            host, port = self._server.split(':')
             try:
                 port = int(port)
             except (ValueError, TypeError):
@@ -96,16 +92,18 @@ class RedisCache(BaseCache):
 
         else:
             host, port = None, None
-            unix_socket_path = self.server
-        
-        if "PICKLE_VERSION" in self._options:
-            try:
-                self._pickle_version = int(self._options['PICKLE_VERSION'])
-            except (ValueError, TypeError):
-                raise ImproperlyConfigured("PICKLE_VERSION value must be an integer")
+            unix_socket_path = self._server
 
+        # parse database
+        _db = self._params.get('db', self._options.get('DB', 1))
+        try:
+            _db = int(_db)
+        except (ValueError, TypeError):
+            raise ImproperlyConfigured("db value must be an integer")
+        
+        # params for connection pool.
         kwargs = {
-            'db': self.db,
+            'db': self._db,
             'password': self.password,
             'host': host,
             'port': port,
@@ -118,7 +116,21 @@ class RedisCache(BaseCache):
         connection_pool = pools[pool_key].get_connection_pool(
             parser_class=self.parser_class, **kwargs)
 
-        self._client = redis.Redis(connection_pool=connection_pool)
+        self._client = redis.Redis(connection_pool=connection_pool
+
+    def _init(self, server, params):
+        super(RedisCache, self).__init__(params)
+        self._server = server
+        self._params = params
+        self._options = params.get('OPTIONS', {})
+
+        if "PICKLE_VERSION" in self._options:
+            try:
+                self._pickle_version = int(self._options['PICKLE_VERSION'])
+            except (ValueError, TypeError):
+                raise ImproperlyConfigured("PICKLE_VERSION value must be an integer")
+
+        self._connect()
 
     def make_key(self, key, version=None):
         if not isinstance(key, CacheKey):
@@ -135,34 +147,26 @@ class RedisCache(BaseCache):
         """
         if version is None:
             version = self.version
+
         old_key = self.make_key(key, version)
+
         value = self.get(old_key, version=version)
         ttl = self._client.ttl(old_key)
+
         if value is None:
             raise ValueError("Key '%s' not found" % key)
+
         new_key = self.make_key(key, version=version+delta)
+        
         # TODO: See if we can check the version of Redis, since 2.2 will be able
         # to rename volitile keys.
         self.set(new_key, value, timeout=ttl)
         self.delete(old_key)
+
         return version + delta
 
     @property
-    def server(self):
-        return self._server or "127.0.0.1:6379"
-
-    @property
-    def params(self):
-        return self._params or {}
-
-    @property
     def db(self):
-        _db = self.params.get('db', self._options.get('DB', 1))
-        try:
-            _db = int(_db)
-        except (ValueError, TypeError):
-            raise ImproperlyConfigured("db value must be an integer")
-        return _db
 
     @property
     def password(self):
