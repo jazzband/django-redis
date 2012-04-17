@@ -73,6 +73,14 @@ class DjangoRedisCacheTests(TestCase):
         res = self.cache.get_many(['a','b','c'])
         self.assertEqual(res, {'a': 1, 'b': 2, 'c': 3})
 
+    def test_get_many_unicode(self):
+        self.cache.set('a', '1')
+        self.cache.set('b', '2')
+        self.cache.set('c', '3')
+
+        res = self.cache.get_many(['a','b','c'])
+        self.assertEqual(res, {'a': '1', 'b': '2', 'c': '3'})
+
     def test_set_many(self):
         self.cache.set_many({'a': 1, 'b': 2, 'c': 3})
         res = self.cache.get_many(['a', 'b', 'c'])
