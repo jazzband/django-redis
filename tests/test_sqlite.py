@@ -22,3 +22,13 @@ DATABASES = {
 }
 
 SECRET_KEY = "django_tests_secret_key"
+CACHES = {
+    'default': {
+        'BACKEND': 'redis_cache.cache.RedisCache',
+        'LOCATION': '127.0.0.1:6379',
+        'OPTIONS': {
+            'DB': 15,
+            'PARSER_CLASS': 'redis.connection.HiredisParser'
+        }
+    }
+}

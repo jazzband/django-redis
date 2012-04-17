@@ -1,75 +1,24 @@
 # -*- coding: utf-8 -*-
 
-from collections import defaultdict
+from __future__ import absolute_import
 
 from django.core.cache.backends.base import BaseCache, InvalidCacheBackendError
 from django.core.exceptions import ImproperlyConfigured
-from django.utils import importlib
 from django.utils.encoding import smart_unicode, smart_str
 from django.utils.datastructures import SortedDict
+from django.utils import importlib
 
 try:
     import cPickle as pickle
 except ImportError:
     import pickle
 
-try:
-    import redis
-except ImportError:
-    raise InvalidCacheBackendError("Redis cache backend requires the 'redis-py' library")
+from collections import defaultdict
 
-from redis.connection import UnixDomainSocketConnection, Connection
+from redis import Redis
 from redis.connection import DefaultParser
+from .util import CacheKey, ConnectionPoolHandler
 
-class CacheKey(object):
-    """
-    A stub string class that we can use to check if a key was created already.
-    """
-    def __init__(self, key):
-        self._key = key
-
-    def __eq__(self, other):
-        return self._key == other
-
-    def __str__(self):
-        return self.__unicode__()
-
-    def __repr__(self):
-        return self.__unicode__()
-
-    def __unicode__(self):
-        return smart_str(self._key)
-
-
-class CacheConnectionPool(object):
-    _connection_pool = None
-
-    def get_connection_pool(self, host='127.0.0.1', port=6379, db=1,
-                password=None, parser_class=None, unix_socket_path=None):
-
-        if self._connection_pool is None:
-            connection_class = unix_socket_path \
-                and UnixDomainSocketConnection or Connection
-
-            kwargs = {
-                'db': db,
-                'password': password,
-                'connection_class': connection_class,
-                'parser_class': parser_class,
-            }
-
-            if unix_socket_path is None:
-                kwargs.update({'host': host, 'port': port})
-            else:
-                kwargs['path'] = unix_socket_path
-
-            self._connection_pool = redis.ConnectionPool(**kwargs)
-
-        return self._connection_pool
-
-
-# ConnectionPools keyed off the connection parameters
-pools = defaultdict(CacheConnectionPool)
 
 class RedisCache(BaseCache):
     _pickle_version = -1
@@ -103,20 +52,15 @@ class RedisCache(BaseCache):
         
         # params for connection pool.
         kwargs = {
-            'db': self._db,
+            'db': _db,
             'password': self.password,
             'host': host,
             'port': port,
             'unix_socket_path': unix_socket_path,
         }
 
-        pool_key = ':'.join([str(v) for v in kwargs.values()])
-
-        global pools
-        connection_pool = pools[pool_key].get_connection_pool(
-            parser_class=self.parser_class, **kwargs)
-
-        self._client = redis.Redis(connection_pool=connection_pool
+        connection_pool = ConnectionPoolHandler().connection_pool(**kwargs)
+        self._client = Redis(connection_pool=connection_pool)
 
     def _init(self, server, params):
         super(RedisCache, self).__init__(params)
@@ -166,9 +110,6 @@ class RedisCache(BaseCache):
         return version + delta
 
     @property
-    def db(self):
-
-    @property
     def password(self):
         return self._options.get('PASSWORD', None)
 
@@ -177,6 +118,7 @@ class RedisCache(BaseCache):
         cls = self._options.get('PARSER_CLASS', None)
         if cls is None:
             return DefaultParser
+
         mod_path, cls_name = cls.rsplit('.', 1)
         try:
             mod = importlib.import_module(mod_path)
