@@ -1,1 +1,1 @@
-__version__ = (1, 5, 2, 'final', 0)
+__version__ = (2, 0, 0, 'beta', 1)

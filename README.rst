@@ -2,8 +2,6 @@
 Redis cache backend for Django
 ==============================
 
-A simple Redis cache backend for Django
-
 Redis cache allows you to use either a TCP connection or Unix domain
 socket to connect to your redis server.  Using a TCP connection is useful for
 when you have your redis server separate from your app server and/or within
@@ -16,17 +14,10 @@ when parsing messages from the redis server.  redis-py will pick the best
 parser for you implicitly, but using the ``PARSER_CLASS`` setting gives you
 control and the option to roll your own parser class if you are so bold.
 
-Notes
------
-
 This cache backend requires the `redis-py`_ Python client library for
 communicating with the Redis server.
 
-Redis writes to disk asynchronously so there is a slight chance
-of losing some data, but for most purposes this is acceptable.
-
 This cache backend is full ready for `django-orm`_ cache.
-
 
 How to install.
 ---------------
@@ -35,6 +26,29 @@ Run ``python setup.py install`` to install,
 or place ``redis_cache`` on your Python path.
 
 You can also install it with: ``pip install django-redis``
+
+
+Changes on 2.0 (2012-04-17)
+---------------------------
+
+Now implemented sharding feature. For use it, see this example config::
+
+    CACHES = { 
+        'default': {
+            'BACKEND': 'redis_cache.cache.ShardedRedisCache',
+            'LOCATION': [
+                '127.0.0.1:6379:1',
+                '127.0.0.1:6379:2',
+                'unix:/path/to/socket:3',
+            ],  
+            'OPTIONS': {
+                'PARSER_CLASS': 'redis.connection.HiredisParser'
+            }   
+        }   
+    }
+
+
+This feature is stil experimental. Welcome, improvements and bug fixes.
 
 
 Usage cache backend.
