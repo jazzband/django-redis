@@ -6,7 +6,11 @@ import shutil
 import tempfile
 
 
-ALWAYS_INSTALLED_APPS = ['redis_backend_testapp']
+ALWAYS_INSTALLED_APPS = [
+    'redis_backend_testapp',
+    'hashring_test',
+]
+
 RUNTESTS_DIR = os.path.dirname(__file__)
 TEMP_DIR = tempfile.mkdtemp(prefix='redis_cache_')
 
@@ -45,17 +49,6 @@ def setup(verbosity, test_labels):
     # to be set, so that a test email is sent out which we catch
     # in our tests.
     settings.MANAGERS = ("niwi@niwi.be",)
-
-    #settings.CACHES = {
-    #    'default': {
-    #        'BACKEND': 'redis_cache.cache.RedisCache',
-    #        'LOCATION': '/tmp/redis.sock',
-    #        'OPTIONS': {
-    #            'DB': 15,
-    #            'PARSER_CLASS': 'redis.connection.HiredisParser'
-    #        }
-    #    }
-    #}
 
     # Load all the ALWAYS_INSTALLED_APPS.
     # (This import statement is intentionally delayed until after we

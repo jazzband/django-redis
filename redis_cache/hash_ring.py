@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
 
-import zlib
 import bisect
+import hashlib
 
 class HashRing(object):
     nodes = []
 
     def __init__(self, nodes=[], replicas=128):
-        #import pdb; pdb.set_trace()
         self.replicas = replicas
         self.ring = {}
         self.sorted_keys = []
@@ -19,18 +18,18 @@ class HashRing(object):
         self.nodes.append(node)
 
         for x in xrange(self.replicas):
-            crckey = zlib.crc32("%s:%d" % (node, x))
-            self.ring[crckey] = node
-            self.sorted_keys.append(crckey)
+            _hash = hashlib.sha256("%s:%d" % (node, x)).hexdigest()
+            self.ring[_hash] = node
+            self.sorted_keys.append(_hash)
 
         self.sorted_keys.sort()
 
     def remove_node(self, node):
         self.nodes.remove(node)
         for x in xrange(self.replicas):
-            crckey = zlib.crc32("%s:%d" % (node, x))
-            self.ring.remove(crckey)
-            self.sorted_keys.remove(crckey)
+            _hash = hashlib.sha256("%s:%d" % (node, x)).hexdigest()
+            self.ring.remove(_hash)
+            self.sorted_keys.remove(_hash)
 
     def get_node(self, key):
         n, i = self.get_node_pos(key)
@@ -40,8 +39,8 @@ class HashRing(object):
         if len(self.ring) == 0:
             return (None, None)
         
-        crc = zlib.crc32(key)
-        idx = bisect.bisect(self.sorted_keys, crc)
+        _hash = hashlib.sha256(key).hexdigest()
+        idx = bisect.bisect(self.sorted_keys, _hash)
         idx = min(idx, (self.replicas * len(self.nodes))-1)
         return (self.ring[self.sorted_keys[idx]], idx)
 
