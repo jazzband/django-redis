@@ -1,3 +1,4 @@
+Andrei Antoukh / niwibe <https://github.com/niwibe>
 Sean Bleier <http://github.com/sebleier>
 Matt Dennewitz <http://github.com/blackbrrr>
 Jannis Leidel <http://github.com/jezdez>
@@ -9,5 +10,4 @@ Lior Sion / liorsion <https://github.com/liorsion>
 Ales Zoulek / aleszoulek <https://github.com/aleszoulek>
 James Aylett / jaylett <https://github.com/jaylett>
 Todd Boland / boland <https://github.com/boland>
-Andrei Antoukh / niwibe <https://github.com/niwibe>
 David Zderic / dzderic <https://github.com/dzderic>
