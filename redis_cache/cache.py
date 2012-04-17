@@ -268,35 +268,40 @@ class RedisCache(BaseCache):
             self.set(key, value, timeout, version=version, client=pipeline)
         pipeline.execute()
 
-    def incr(self, key, delta=1, version=None):
+    def incr(self, key, delta=1, version=None, client=None):
         """
         Add delta to value in the cache. If the key does not exist, raise a
         ValueError exception.
         """
-        key = self.make_key(key, version=version)
-        exists = self._client.exists(key)
 
-        if not exists:
+        if client is None:
+            client = self._client
+
+        key = self.make_key(key, version=version)
+        exists = client.exists(key)
+
+        if not client.exists(key):
             raise ValueError("Key '%s' not found" % key)
 
-        value = self.get(key) + delta
-        self.set(key, value)
+        value = self.get(key, version=version, client=client) + delta
+        self.set(key, value, version=version, client=client)
         return value
 
-    def decr(self, key, delta=1, version=None):
+    def decr(self, key, delta=1, version=None, client=None):
         """
         Decreace delta to value in the cache. If the key does not exist, raise a
         ValueError exception.
         """
+        if client is None:
+            client = self._client
 
         key = self.make_key(key, version=version)
-        exists = self._client.exists(key)
 
-        if not exists:
+        if not client.exists(key):
             raise ValueError("Key '%s' not found" % key)
 
-        value = self.get(key) - delta
-        self.set(key, value)
+        value = self.get(key, version=version, client=client) - delta
+        self.set(key, value, version=version, client=client)
         return value
 
     def has_key(self, key, version=None):
@@ -340,17 +345,19 @@ class ShardedRedisCache(RedisCache):
             if host == "unix":
                 params['unix_socket_path'] = port
             else:
-                params['host'], params['port'] = host, port
+                params['unix_socket_path'] = None
+                params['host'], params['port'] = host, int(port)
             
             connection_pool = ConnectionPoolHandler()\
-                .connection_pool(parser_class=self.parser_class, **kwargs)
+                .connection_pool(parser_class=self.parser_class, **params)
 
             self.connections[location] = Redis(connection_pool=connection_pool)
             self.nodes.append(location)
         
         self.ring = HashRing(self.nodes)
 
-    def get_server_name(self, key):
+    def get_server_name(self, _key):
+        key = str(_key)
         g = _findhash.match(key)
         if g != None and len(g.groups()) > 0:
             key = g.groups()[0]
@@ -383,7 +390,7 @@ class ShardedRedisCache(RedisCache):
         recovered_data = SortedDict()
         new_keys = map(lambda key: self.make_key(key, version=version), keys)
         map_keys = dict(zip(new_keys, keys))
-
+        
         for key in new_keys:
             client = self.get_server(key)
             value = self.get(key=key, version=version, client=client)
@@ -391,7 +398,7 @@ class ShardedRedisCache(RedisCache):
             if value is None:
                 continue
 
-            recovered_data[map_keys[key]] = self.unpickle(value)
+            recovered_data[map_keys[key]] = value
         return recovered_data
 
     def set(self, key, value, timeout=None, version=None, client=None):
@@ -404,6 +411,18 @@ class ShardedRedisCache(RedisCache):
 
         return super(ShardedRedisCache, self).set(key=key, value=value, timeout=timeout,
                                                         version=version, client=client)
+
+
+    def set_many(self, data, timeout=None, version=None):
+        """
+        Set a bunch of values in the cache at once from a dict of key/value
+        pairs. This is much more efficient than calling set() multiple times.
+
+        If timeout is given, that timeout will be used for the key; otherwise
+        the default cache timeout will be used.
+        """
+        for key, value in data.iteritems():
+            self.set(key, value, timeout, version=version)
 
     def delete(self, key, version=None, client=None):
         if client is None:
@@ -428,3 +447,19 @@ class ShardedRedisCache(RedisCache):
         return super(ShardedRedisCache, self).incr_version(key=key, delta=delta, 
                                                     version=version, client=client)
 
+    def incr(self, key, delta=1, version=None, client=None):
+        if client is None:
+            key = self.make_key(key, version=version)
+            client = self.get_server(key)
+
+        return super(ShardedRedisCache, self).incr(key=key, delta=delta,
+                                        version=version, client=client)
+
+
+    def decr(self, key, delta=1, version=None, client=None):
+        if client is None:
+            key = self.make_key(key, version=version)
+            client = self.get_server(key)
+
+        return super(ShardedRedisCache, self).decr(key=key, delta=delta,
+                                        version=version, client=client)

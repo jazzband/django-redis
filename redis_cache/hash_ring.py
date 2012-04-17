@@ -4,8 +4,10 @@ import zlib
 import bisect
 
 class HashRing(object):
+    nodes = []
+
     def __init__(self, nodes=[], replicas=128):
-        self.nodes = nodes
+        #import pdb; pdb.set_trace()
         self.replicas = replicas
         self.ring = {}
         self.sorted_keys = []
