@@ -30,7 +30,7 @@ control and the option to roll your own parser class if you are so bold.
 This cache backend requires the `redis-py`_ Python client library for
 communicating with the Redis server.
 
-This cache backend is full ready for `django-orm`_ cache.
+This cache backend is full ready for `django-orm-extensions`_ orm cache.
 
 How to install.
 ---------------
@@ -108,13 +108,7 @@ Usage redis_cache.stats django-app.
     url(r'^redis/status/', include('redis_cache.stats.urls', namespace='redis_cache'))
 
 
-Note: only tested with django >= 1.3
-
-
-TODO:
------
-
-* Improve stats django-app: add more administration options.
-* Add garbage collection and memory limits options.
+Note: only tested with django >= 1.4, if you find a bug that happens with previous versions, I will gladly fix it.
 
 .. _redis-py: http://github.com/andymccurdy/redis-py/
+.. _django-orm-extensions: https://github.com/niwibe/django-orm-extensions
