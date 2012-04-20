@@ -2,6 +2,19 @@
 Redis cache backend for Django
 ==============================
 
+It is a fork of ``django-redis-cache``. And the reasons are: The author seems to have abandoned the project and has significant bugs that have not been fixed.
+
+Features:
+---------
+
+* In active development.
+* Sharding supported in a single package.
+* Complete battery of tests (accepting improvements).
+* Used in production environments on several projects.
+
+Description.
+------------
+
 Redis cache allows you to use either a TCP connection or Unix domain
 socket to connect to your redis server.  Using a TCP connection is useful for
 when you have your redis server separate from your app server and/or within
@@ -47,7 +60,7 @@ Now implemented sharding feature. For use it, see this example config::
         }   
     }
 
-
+The syntax of a ``LOCATION`` array item is a ``<ip>:<port>:<db>`` or ``unix:<path>:db``.
 This feature is stil experimental. Welcome, improvements and bug fixes.
 
 
