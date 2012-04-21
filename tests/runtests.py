@@ -11,6 +11,7 @@ ALWAYS_INSTALLED_APPS = [
     'hashring_test',
 ]
 
+TEST_TEMPLATE_DIR = "templates"
 RUNTESTS_DIR = os.path.dirname(__file__)
 TEMP_DIR = tempfile.mkdtemp(prefix='redis_cache_')
 
@@ -36,7 +37,7 @@ def setup(verbosity, test_labels):
     settings.ROOT_URLCONF = 'urls'
     settings.STATIC_URL = '/static/'
     settings.STATIC_ROOT = os.path.join(TEMP_DIR, 'static')
-    #settings.TEMPLATE_DIRS = (os.path.join(RUNTESTS_DIR, TEST_TEMPLATE_DIR),)
+    settings.TEMPLATE_DIRS = (os.path.join(RUNTESTS_DIR, TEST_TEMPLATE_DIR),)
     settings.USE_I18N = True
     settings.LANGUAGE_CODE = 'en'
     settings.LOGIN_URL = '/accounts/login/'
@@ -110,11 +111,7 @@ if __name__ == "__main__":
         help='Python path to settings module, e.g. "myproject.settings". If '
              'this isn\'t provided, the DJANGO_SETTINGS_MODULE environment '
              'variable will be used.')
-    parser.add_option(
-        '--liveserver', action='store', dest='liveserver', default=None,
-        help='Overrides the default address where the live server (used with '
-             'LiveServerTestCase) is expected to run from. The default value '
-             'is localhost:8081.'),
+    
     options, args = parser.parse_args()
     if options.settings:
         os.environ['DJANGO_SETTINGS_MODULE'] = options.settings
@@ -123,9 +120,6 @@ if __name__ == "__main__":
                       "Set it or use --settings.")
     else:
         options.settings = os.environ['DJANGO_SETTINGS_MODULE']
-
-    if options.liveserver is not None:
-        os.environ['DJANGO_LIVE_TEST_SERVER_ADDRESS'] = options.liveserver
 
     failures = django_tests(int(options.verbosity), options.interactive,
                             options.failfast, args)
