@@ -15,3 +15,4 @@ development_settings.py
 versiontools*
 build*
 dist*
+*.swp

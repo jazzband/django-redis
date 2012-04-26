@@ -11,13 +11,11 @@ from django.core.exceptions import ImproperlyConfigured
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 
-from redis_cache.cache import CacheConnectionPool
+from redis.connection import UnixDomainSocketConnection, Connection
 from redis.connection import DefaultParser
-from collections import defaultdict
+from ..util import ConnectionPoolHandler
 
 import redis, re
-
-pools = defaultdict(CacheConnectionPool)
 
 class RedisStatsView(View):
     dbs_rx = re.compile(r'^db(\d+)$', flags=re.U)
@@ -40,6 +38,10 @@ class RedisStatsView(View):
 
             cachedict = {'unix_socket_path': None}
             server = options.get('LOCATION', 'localhost:6379')
+
+            if isinstance(server, (list, tuple)):
+                # unsuported sharded connections
+                continue
 
             try:
                 if ":" in server:
@@ -79,9 +81,8 @@ class RedisStatsView(View):
 
         caches_info = {}
         for name, options in self.caches.iteritems():
-            connection_pool = pools[name]\
-                .get_connection_pool(parser_class=DefaultParser, **options)
-
+            connection_pool = ConnectionPoolHandler()\
+                .connection_pool(parser_class=DefaultParser, **options)
             rclient = redis.Redis(connection_pool=connection_pool)
 
             caches_info[name] = rclient.info()
