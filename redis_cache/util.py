@@ -70,7 +70,7 @@ class ConnectionPoolHandler(object):
 
         # port 6379
         if kwargs['unix_socket_path']:
-            kwargs['path'] = kwargs['unix_socket_path']
+            params['path'] = kwargs['unix_socket_path']
         else:
             params['host'], params['port'] = kwargs['host'], kwargs['port']
         
