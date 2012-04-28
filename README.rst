@@ -110,9 +110,7 @@ Modify your Django settings to use ``redis_cache`` ::
 Exta methods add by ``django-redis`` to a standar django cache api: ``cache.keys(term)``. This uses
 a redis ``keys`` command to find a specific key or collection of keys with glob patterns.
 
-Example:
-
-.. code-block:: python
+Example::
 
     from django.core.cache import cache
 
