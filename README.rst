@@ -4,6 +4,7 @@ Redis cache backend for Django
 
 It is a fork of ``django-redis-cache``. And the reasons are: The author seems to have abandoned the project and has significant bugs that have not been fixed.
 
+
 Features:
 ---------
 
@@ -27,10 +28,18 @@ when parsing messages from the redis server.  redis-py will pick the best
 parser for you implicitly, but using the ``PARSER_CLASS`` setting gives you
 control and the option to roll your own parser class if you are so bold.
 
-This cache backend requires the `redis-py`_ Python client library for
+This cache backend requires the `redis-py`_ python client library for
 communicating with the Redis server.
 
 This cache backend is full ready for `django-orm-extensions`_ orm cache.
+
+
+Coming from ``django-redis-cache``.
+-----------------------------------
+
+Currently, for django versions ``>1.3``, migration is very easy, since there is no difference in connection APIs. 
+The main difference is that ``django-redis`` does not support django versions lower than ``1.3``.
+
 
 How to install.
 ---------------
@@ -96,6 +105,19 @@ Modify your Django settings to use ``redis_cache`` ::
             },
         },
     }
+
+
+Exta methods add by ``django-redis`` to a standar django cache api: ``cache.keys(term)``. This uses
+a redis ``keys`` command to find a specific key or collection of keys with glob patterns.
+
+Example:
+
+.. code-block:: python
+
+    from django.core.cache import cache
+
+    # this returns all keys starts with ``session_``
+    result = cache.keys("session_*")
 
 
 Usage redis_cache.stats django-app.
