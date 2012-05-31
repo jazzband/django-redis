@@ -1,1 +1,1 @@
-__version__ = (2, 0, 0, 'candidate', 3)
+__version__ = (2, 1, 0, 'final', 0)

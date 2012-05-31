@@ -50,7 +50,7 @@ or place ``redis_cache`` on your Python path.
 You can also install it with: ``pip install django-redis``
 
 
-Changes on 2.0 (2012-04-17)
+Changes on 2.1 (2012-04-17)
 ---------------------------
 
 Now implemented sharding feature. For use it, see this example config::
@@ -62,7 +62,8 @@ Now implemented sharding feature. For use it, see this example config::
                 '127.0.0.1:6379:1',
                 '127.0.0.1:6379:2',
                 'unix:/path/to/socket:3',
-            ],  
+            ],
+            # The OPTIONS parameter is optional
             'OPTIONS': {
                 'PARSER_CLASS': 'redis.connection.HiredisParser'
             }   
@@ -85,7 +86,6 @@ Modify your Django settings to use ``redis_cache`` ::
             'LOCATION': '<host>:<port>',
             'OPTIONS': {
                 'DB': 1,
-                'PARSER_CLASS': 'redis.connection.HiredisParser'
             },
         },
     }
@@ -106,6 +106,8 @@ Modify your Django settings to use ``redis_cache`` ::
         },
     }
 
+
+Optionally, with ``PARSER_CLASS="redis.connection.HiredisParser"``` you can set hiredis parser.
 
 Exta methods add by ``django-redis`` to a standar django cache api: ``cache.keys(term)``. This uses
 a redis ``keys`` command to find a specific key or collection of keys with glob patterns.
