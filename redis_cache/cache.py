@@ -50,7 +50,7 @@ class RedisCache(BaseCache):
             _db = int(_db)
         except (ValueError, TypeError):
             raise ImproperlyConfigured("db value must be an integer")
-        
+
         # params for connection pool.
         kwargs = {
             'db': _db,
@@ -100,12 +100,12 @@ class RedisCache(BaseCache):
 
         if value is None:
             raise ValueError("Key '%s' not found" % key)
-        
+
         if isinstance(key, CacheKey):
             new_key = self.make_key(key.original_key(), version=version+delta)
         else:
             new_key = self.make_key(key, version=version+delta)
-        
+
         self.set(new_key, value, timeout=ttl)
         self.delete(old_key, client=client)
         return version + delta
@@ -146,7 +146,7 @@ class RedisCache(BaseCache):
 
         Returns ``True`` if the object was added, ``False`` if not.
         """
-        
+
         if client is None:
             client = self._client
 
@@ -193,7 +193,7 @@ class RedisCache(BaseCache):
         key = self.make_key(key, version=version)
         if timeout is None:
             timeout = self.default_timeout
-    
+
         result = self._set(key, self.pickle(value), int(timeout), client)
         return result
 
@@ -344,13 +344,13 @@ class ShardedRedisCache(RedisCache):
             else:
                 params['unix_socket_path'] = None
                 params['host'], params['port'] = host, int(port)
-            
+
             connection_pool = ConnectionPoolHandler()\
                 .connection_pool(parser_class=self.parser_class, **params)
 
             self.connections[location] = Redis(connection_pool=connection_pool)
             self.nodes.append(location)
-        
+
         self.ring = HashRing(self.nodes)
 
     def get_server_name(self, _key):
@@ -387,7 +387,7 @@ class ShardedRedisCache(RedisCache):
         recovered_data = SortedDict()
         new_keys = map(lambda key: self.make_key(key, version=version), keys)
         map_keys = dict(zip(new_keys, keys))
-        
+
         for key in new_keys:
             client = self.get_server(key)
             value = self.get(key=key, version=version, client=client)
@@ -425,7 +425,7 @@ class ShardedRedisCache(RedisCache):
         if client is None:
             key = self.make_key(key, version=version)
             client = self.get_server(key)
-        
+
         return super(ShardedRedisCache, self).delete(key=key, version=version, client=client)
 
     def delete_many(self, keys, version=None):
@@ -441,7 +441,7 @@ class ShardedRedisCache(RedisCache):
             key = self.make_key(key, version=version)
             client = self.get_server(key)
 
-        return super(ShardedRedisCache, self).incr_version(key=key, delta=delta, 
+        return super(ShardedRedisCache, self).incr_version(key=key, delta=delta,
                                                     version=version, client=client)
 
     def incr(self, key, delta=1, version=None, client=None):

@@ -12,6 +12,7 @@ Features:
 * Sharding supported in a single package.
 * Complete battery of tests (accepting improvements).
 * Used in production environments on several projects.
+* Can set keys with infinite timeout: ``cache.set('key', 'value', timeout=0)``
 
 Description.
 ------------
@@ -107,7 +108,7 @@ Modify your Django settings to use ``redis_cache`` ::
     }
 
 
-Optionally, with ``PARSER_CLASS="redis.connection.HiredisParser"``` you can set hiredis parser.
+Optionally, with ``PARSER_CLASS="redis.connection.HiredisParser"`` you can set hiredis parser.
 
 Exta methods add by ``django-redis`` to a standar django cache api: ``cache.keys(term)``. This uses
 a redis ``keys`` command to find a specific key or collection of keys with glob patterns.
