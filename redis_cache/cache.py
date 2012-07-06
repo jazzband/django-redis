@@ -206,6 +206,18 @@ class RedisCache(BaseCache):
 
         client.delete(self.make_key(key, version=version))
 
+    def delete_pattern(self, pattern, version=None, client=None):
+        """
+        Remove all keys matching pattern.
+        """
+
+        if client is None:
+            client = self._client
+
+        pattern = self.make_key(pattern, version=version)
+        keys = client.keys(pattern)
+        client.delete(*keys)
+
     def delete_many(self, keys, version=None):
         """
         Remove multiple keys at once.
@@ -311,7 +323,8 @@ class RedisCache(BaseCache):
 
     # Other not default and not standar methods.
     def keys(self, search):
-        return list(set(map(lambda x: x.split(":", 2)[2], self._client.keys(search))))
+        pattern = self.make_key(search)
+        return list(set(map(lambda x: x.split(":", 2)[2], self._client.keys(pattern))))
 
 
 from .hash_ring import HashRing

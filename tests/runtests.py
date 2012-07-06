@@ -111,7 +111,7 @@ if __name__ == "__main__":
         help='Python path to settings module, e.g. "myproject.settings". If '
              'this isn\'t provided, the DJANGO_SETTINGS_MODULE environment '
              'variable will be used.')
-    
+
     options, args = parser.parse_args()
     if options.settings:
         os.environ['DJANGO_SETTINGS_MODULE'] = options.settings

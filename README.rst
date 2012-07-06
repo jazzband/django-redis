@@ -34,29 +34,42 @@ communicating with the Redis server.
 
 This cache backend is full ready for `django-orm-extensions`_ orm cache.
 
+Changelog
+---------
 
-Coming from ``django-redis-cache``.
------------------------------------
+* 1.0 First version (fork from django-redis-cache) with ability to select pickle protocol version.
+* 1.1 Add stats application for view a server stats.
+* 1.2 Add keys method (non standard)
+* 1.3 Breaks compatibility with django < 1.3
+* 1.4 Now correct handling multiple connection pools.
+* 1.5 Bug fixes related with autentication and stats app.
+* 2.0 Refactor and initial implementation of client sharding. (testcase rewrite)
+* 2.1 Public release with client sharding.
+* 2.2 Add delete_pattern method. Useful for delete keys using wildcard syntax.
 
-Currently, for django versions ``>1.3``, migration is very easy, since there is no difference in connection APIs. 
+
+Coming from ``django-redis-cache``
+----------------------------------
+
+Currently, for django versions ``>1.3``, migration is very easy, since there is no difference in connection APIs.
 The main difference is that ``django-redis`` does not support django versions lower than ``1.3``.
 
 
-How to install.
----------------
+How to install
+--------------
 
-Run ``python setup.py install`` to install, 
+Run ``python setup.py install`` to install,
 or place ``redis_cache`` on your Python path.
 
 You can also install it with: ``pip install django-redis``
 
 
-Changes on 2.1 (2012-04-17)
----------------------------
+Client side sharding (available since 2.1)
+------------------------------------------
 
-Now implemented sharding feature. For use it, see this example config::
+Since version 2.1, is available client sharding. For use it, see this example config::
 
-    CACHES = { 
+    CACHES = {
         'default': {
             'BACKEND': 'redis_cache.cache.ShardedRedisCache',
             'LOCATION': [
@@ -67,8 +80,8 @@ Now implemented sharding feature. For use it, see this example config::
             # The OPTIONS parameter is optional
             'OPTIONS': {
                 'PARSER_CLASS': 'redis.connection.HiredisParser'
-            }   
-        }   
+            }
+        }
     }
 
 The syntax of a ``LOCATION`` array item is a ``<ip>:<port>:<db>`` or ``unix:<path>:db``.
@@ -100,7 +113,7 @@ Modify your Django settings to use ``redis_cache`` ::
             'LOCATION': '/path/to/socket/file',
             'OPTIONS': {
                 'DB': 1,
-                'PASSWORD': 'foopassword', 
+                'PASSWORD': 'foopassword',
                 'PICKLE_VERSION': -1,   # default
                 'PARSER_CLASS': 'redis.connection.HiredisParser'
             },
@@ -127,7 +140,7 @@ Usage redis_cache.stats django-app.
 1. Place ``redis_cache.stats`` on your INSTALLED_APPS.
 
 2. Add this url on your urls.py::
-    
+
     url(r'^redis/status/', include('redis_cache.stats.urls', namespace='redis_cache'))
 
 

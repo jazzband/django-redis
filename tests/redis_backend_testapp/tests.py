@@ -12,7 +12,7 @@ class DjangoRedisCacheTests(TestCase):
     def test_save_and_integer(self):
         self.cache.set("test_key", 2)
         res = self.cache.get("test_key", "Foo")
-    
+
         self.assertIsInstance(res, int)
         self.assertEqual(res, 2)
 
@@ -33,7 +33,7 @@ class DjangoRedisCacheTests(TestCase):
     def test_save_dict(self):
         now_dt = datetime.datetime.now()
         test_dict = {'id':1, 'date': now_dt, 'name': u'Foo'}
-        
+
         self.cache.set("test_key", test_dict)
         res = self.cache.get("test_key")
 
@@ -54,7 +54,7 @@ class DjangoRedisCacheTests(TestCase):
     def test_timeout(self):
         self.cache.set("test_key", 222, timeout=3)
         time.sleep(4)
-        
+
         res = self.cache.get("test_key", None)
         self.assertEqual(res, None)
 
@@ -102,7 +102,7 @@ class DjangoRedisCacheTests(TestCase):
     def test_incr(self):
         self.cache.set("num", 1)
 
-        self.cache.incr("num")
+        Self.cache.incr("num")
         res = self.cache.get("num")
         self.assertEqual(res, 2)
 
@@ -112,7 +112,7 @@ class DjangoRedisCacheTests(TestCase):
 
     def test_decr(self):
         self.cache.set("num", 20)
-        
+
         self.cache.decr("num")
         res = self.cache.get("num")
         self.assertEqual(res, 19)
@@ -138,3 +138,12 @@ class DjangoRedisCacheTests(TestCase):
 
         res = self.cache.get("keytest", version=2)
         self.assertEqual(res, 2)
+
+    def test_delete_pattern(self):
+        for key in ['foo-aa','foo-ab', 'foo-bb','foo-bc']:
+            self.cache.set(key, "foo")
+
+        self.cache.delete_pattern('*foo-a*')
+        keys = self.cache.keys("foo*")
+
+        self.assertEqual(set(keys), set(['foo-bb','foo-bc']))

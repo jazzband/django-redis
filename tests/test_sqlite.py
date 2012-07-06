@@ -28,7 +28,6 @@ CACHES = {
         'LOCATION': '127.0.0.1:6379',
         'OPTIONS': {
             'DB': 15,
-            'PARSER_CLASS': 'redis.connection.HiredisParser'
         }
     }
 }
