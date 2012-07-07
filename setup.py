@@ -11,7 +11,7 @@ setup(
     author_email = "niwi@niwi.be",
     version=':versiontools:redis_cache:',
     packages = [
-        "redis_cache", 
+        "redis_cache",
         "redis_cache.stats"
     ],
     description = description.strip(),

@@ -102,7 +102,7 @@ class DjangoRedisCacheTests(TestCase):
     def test_incr(self):
         self.cache.set("num", 1)
 
-        Self.cache.incr("num")
+        self.cache.incr("num")
         res = self.cache.get("num")
         self.assertEqual(res, 2)
 
