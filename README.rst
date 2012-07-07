@@ -123,15 +123,24 @@ Modify your Django settings to use ``redis_cache`` ::
 
 Optionally, with ``PARSER_CLASS="redis.connection.HiredisParser"`` you can set hiredis parser.
 
-Exta methods add by ``django-redis`` to a standar django cache api: ``cache.keys(term)``. This uses
-a redis ``keys`` command to find a specific key or collection of keys with glob patterns.
+
+Extra methods added by ``django-redis``
+---------------------------------------
+
+``django-redis`` provides 2 additional methods to the standard django-cache api interface:
+
+* ``cache.keys(wildcard_pattern)`` - Add abilite to retrieve a list of keys with wildcard pattern.
+* ``cache.delete_pattern`` - Same as ``keys``, but this delete all keys matching the wildcard pattern.
+
 
 Example::
 
     from django.core.cache import cache
-
     # this returns all keys starts with ``session_``
     result = cache.keys("session_*")
+
+    # delete all keys stats with ``session_``
+    cache.delete_pattern("session_*")
 
 
 Usage redis_cache.stats django-app.
