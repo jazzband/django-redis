@@ -29,7 +29,6 @@ class RedisCache(BaseCache):
         Connect to Redis, and set up cache backend.
         """
         self._init(server, params)
-        super(RedisCache, self).__init__(params)
 
     def _connect(self):
         unix_socket_path = None
@@ -287,7 +286,6 @@ class RedisCache(BaseCache):
             client = self._client
 
         key = self.make_key(key, version=version)
-        exists = client.exists(key)
 
         if not client.exists(key):
             raise ValueError("Key '%s' not found" % key)
@@ -422,7 +420,6 @@ class ShardedRedisCache(RedisCache):
         return super(ShardedRedisCache, self).set(key=key, value=value, timeout=timeout,
                                                         version=version, client=client)
 
-
     def set_many(self, data, timeout=None, version=None):
         """
         Set a bunch of values in the cache at once from a dict of key/value
@@ -464,7 +461,6 @@ class ShardedRedisCache(RedisCache):
 
         return super(ShardedRedisCache, self).incr(key=key, delta=delta,
                                         version=version, client=client)
-
 
     def decr(self, key, delta=1, version=None, client=None):
         if client is None:
