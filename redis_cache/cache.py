@@ -474,3 +474,10 @@ class ShardedRedisCache(RedisCache):
 
         return super(ShardedRedisCache, self).decr(key=key, delta=delta,
                                         version=version, client=client)
+
+
+    def delete_pattern(self, pattern, version=None, client=None):
+        """
+        Remove all keys matching pattern.
+        """
+        raise NotImplementedError
