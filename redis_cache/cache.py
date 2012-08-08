@@ -372,6 +372,11 @@ class ShardedRedisCache(RedisCache):
         name = self.ring.get_node(key)
         return name
 
+    def close(self):
+        for cli in self.connections.values():
+            for c in cli.connection_pool._available_connections:
+                c.disconnect()
+
     def get_server(self,key):
         name = self.get_server_name(key)
         return self.connections[name]
