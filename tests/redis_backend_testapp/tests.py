@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from django.test import TestCase
-from django.core.cache import cache
+from django.core.cache import cache, get_cache
 import time
 import datetime
 
@@ -145,5 +145,8 @@ class DjangoRedisCacheTests(TestCase):
 
         self.cache.delete_pattern('*foo-a*')
         keys = self.cache.keys("foo*")
-
         self.assertEqual(set(keys), set(['foo-bb','foo-bc']))
+
+    def test_close(self):
+        cache = get_cache('default')
+        cache.close()

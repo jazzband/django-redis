@@ -31,7 +31,7 @@ CACHES = {
         ],
         'OPTIONS': {
             'DB': 15,
-            'PARSER_CLASS': 'redis.connection.HiredisParser'
+            #'PARSER_CLASS': 'redis.connection.HiredisParser'
         }
     }
 }
