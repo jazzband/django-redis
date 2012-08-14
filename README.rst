@@ -14,6 +14,14 @@ Features:
 * Used in production environments on several projects.
 * Can set keys with infinite timeout: ``cache.set('key', 'value', timeout=0)``
 
+Coming soon with django-redis 3.0 (in development)
+--------------------------------------------------
+
+* Code refactor.
+* Master-slave connections.
+* Autofailover to other backends
+* Python 3 support.
+
 Description.
 ------------
 

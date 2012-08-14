@@ -22,12 +22,17 @@ DATABASES = {
 }
 
 SECRET_KEY = "django_tests_secret_key"
+
 CACHES = {
     'default': {
         'BACKEND': 'redis_cache.cache.RedisCache',
-        'LOCATION': '127.0.0.1:6379',
+        'LOCATION': '127.0.0.1:6379:1',
         'OPTIONS': {
-            'DB': 15,
+            'CLIENT_CLASS': 'redis_cache.client.DefaultClient',
+            'FALLBACK': 'my-fallback',
         }
+    },
+    'my-fallback': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
     }
 }

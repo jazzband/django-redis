@@ -1,6 +1,16 @@
 # -*- coding: utf-8 -*-
 
 from django.utils.encoding import smart_unicode, smart_str
+from django.core.exceptions import ImproperlyConfigured
+from django.conf import settings
+
+from redis import ConnectionPool as RedisConnectionPool
+from redis.connection import UnixDomainSocketConnection, Connection
+from redis.connection import DefaultParser
+
+from collections import defaultdict
+from importlib import import_module
+
 
 class CacheKey(object):
     """
@@ -32,48 +42,29 @@ class Singleton(type):
     def __init__(cls, name, bases, dct):
         cls.__instance = None
         type.__init__(cls, name, bases, dct)
- 
+
     def __call__(cls, *args, **kw):
         if cls.__instance is None:
             cls.__instance = type.__call__(cls, *args,**kw)
         return cls.__instance
 
 
-from collections import defaultdict
-from redis import ConnectionPool as RedisConnectionPool
-from redis.connection import UnixDomainSocketConnection, Connection
-from redis.connection import DefaultParser
+def load_class(path):
+    """
+    Load class from path.
+    """
+
+    try:
+        mod_name, klass_name = path.rsplit('.', 1)
+        mod = import_module(mod_name)
+    except AttributeError as e:
+        raise ImproperlyConfigured(u'Error importing %s: "%s"' % (mod_name, e))
+
+    try:
+        klass = getattr(mod, klass_name)
+    except AttributeError:
+        raise ImproperlyConfigured('Module "%s" does not define a "%s" class' % (mod_name, klass_name))
+
+    return klass
 
 
-class ConnectionPoolHandler(object):
-    __metaclass__ = Singleton
-    pools = {}
-
-    def key_for_kwargs(self, kwargs):
-        return ":".join([str(v) for v in kwargs.values()])
-
-    def connection_pool(self, parser_class=DefaultParser, **kwargs):
-        pool_key = self.key_for_kwargs(kwargs)
-
-        if pool_key in self.pools:
-            return self.pools[pool_key]
-
-        connection_class = kwargs['unix_socket_path'] \
-            and UnixDomainSocketConnection or Connection
-        
-        params = {
-            'connection_class': connection_class,
-            'parser_class': parser_class,
-            'db': kwargs['db'],
-            'password': kwargs['password']
-        }
-
-        # port 6379
-        if kwargs['unix_socket_path']:
-            params['path'] = kwargs['unix_socket_path']
-        else:
-            params['host'], params['port'] = kwargs['host'], kwargs['port']
-        
-        connection_pool = RedisConnectionPool(**params)
-        self.pools[pool_key] = connection_pool
-        return connection_pool

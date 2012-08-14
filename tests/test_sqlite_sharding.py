@@ -22,16 +22,20 @@ DATABASES = {
 }
 
 SECRET_KEY = "django_tests_secret_key"
+
 CACHES = {
     'default': {
-        'BACKEND': 'redis_cache.cache.ShardedRedisCache',
+        'BACKEND': 'redis_cache.cache.RedisCache',
         'LOCATION': [
             '127.0.0.1:6379:1',
             '127.0.0.1:6379:2',
         ],
         'OPTIONS': {
-            'DB': 15,
-            #'PARSER_CLASS': 'redis.connection.HiredisParser'
+            'CLIENT_CLASS': 'redis_cache.client.ShardClient',
+            'FALLBACK': 'my-fallback',
         }
+    },
+    'my-fallback': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
     }
 }
