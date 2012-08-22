@@ -72,7 +72,7 @@ Since version 2.1, is available client sharding. For use it, see this example co
     CACHES = {
         'default': {
             'BACKEND': 'redis_cache.cache.ShardedRedisCache',
-            'LOCATION': [
+            'LOCATIONS': [
                 '127.0.0.1:6379:1',
                 '127.0.0.1:6379:2',
                 'unix:/path/to/socket:3',
