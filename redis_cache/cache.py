@@ -215,7 +215,8 @@ class RedisCache(BaseCache):
 
         pattern = self.make_key(pattern, version=version)
         keys = client.keys(pattern)
-        client.delete(*keys)
+        if keys:
+            client.delete(*keys)
 
     def delete_many(self, keys, version=None):
         """
