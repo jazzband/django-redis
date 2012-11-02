@@ -475,6 +475,21 @@ class ShardClient(DefaultClient):
         for key, value in data.iteritems():
             self.set(key, value, timeout, version=version)
 
+    def has_key(self, key, version=None, client=None):
+        """
+        Test if key exists.
+        """
+
+        if client is None:
+            key = self.make_key(key, version=version)
+            client = self.get_server(key)
+
+        key = self.make_key(key, version=version)
+        try:
+            return client.exists(key)
+        except ConnectionError:
+            raise ConnectionInterrumped(connection=client)
+
     def delete(self, key, version=None, client=None):
         if client is None:
             key = self.make_key(key, version=version)
