@@ -49,11 +49,18 @@ class DefaultClient(object):
         self._client = _client
         return _client
 
+    @property
+    def parser_class(self):
+        cls = self._options.get('PARSER_CLASS', None)
+        if cls is None:
+            return DefaultParser
+
+        return load_class(cls)
+
     def parse_connection_string(self, constring):
         """
         Method that parse a connection string.
         """
-
         try:
             host, port, db = constring.split(":")
             port = int(port) if host != "unix" else port
