@@ -552,3 +552,6 @@ class ShardClient(DefaultClient):
         if keys:
             for server, connection in self._serverdict.items():
                 connection.delete(*keys)
+
+    def close(self):
+        pass
