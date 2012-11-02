@@ -385,7 +385,24 @@ class ShardClient(DefaultClient):
 
     def __init__(self, *args, **kwargs):
         super(ShardClient, self).__init__(*args, **kwargs)
-        self._ring = HashRing(self._nodes)
+
+        if not isinstance(self._server, (list, tuple)):
+            self._server = [self._server]
+
+        self._ring = HashRing(self._server)
+        self._serverdict = self.connect()
+
+    @property
+    def client(self):
+        raise NotImplementedError
+
+    def connect(self):
+        connection_dict = {}
+        for name in self._server:
+            host, port, db = self.parse_connection_string(name)
+            connection_dict[name] = self._connect(host, port, db)
+
+        return connection_dict
 
     def get_server_name(self, _key):
         key = str(_key)
