@@ -40,6 +40,9 @@ class DefaultClient(object):
         self._options = params.get('OPTIONS', {})
         self.setup_pickle_version()
 
+    def __contains__(self, key):
+        return self.has_key(key)
+
     @property
     def client(self):
         if hasattr(self, "_client"):
