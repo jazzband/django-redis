@@ -374,7 +374,9 @@ class DefaultClient(object):
         return key
 
     def close(self, **kwargs):
-        self.client.close()
+        for c in self.client.connection_pool._available_connections:
+            c.close()
+
         del self._client
 
 
