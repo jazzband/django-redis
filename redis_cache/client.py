@@ -3,7 +3,12 @@
 from __future__ import absolute_import, unicode_literals
 
 from django.core.exceptions import ImproperlyConfigured
-from django.utils.encoding import smart_unicode, smart_str
+
+try:
+    from django.utils.encoding import smart_bytes
+except ImportError:
+    from django.utils.encoding import smart_str as smart_bytes
+
 from django.utils.datastructures import SortedDict
 from django.utils import importlib
 
@@ -256,7 +261,7 @@ class DefaultClient(object):
         """
         Unpickles the given value.
         """
-        value = smart_str(value)
+        value = smart_bytes(value)
         return pickle.loads(value)
 
     def pickle(self, value):
@@ -278,11 +283,11 @@ class DefaultClient(object):
 
         recovered_data = SortedDict()
 
-        new_keys = map(lambda key: self.make_key(key, version=version), keys)
+        new_keys = list(map(lambda key: self.make_key(key, version=version), keys))
         map_keys = dict(zip(new_keys, keys))
 
         try:
-            results = client.mget(new_keys)
+            results = client.mget(*new_keys)
         except ConnectionError:
             raise ConnectionInterrumped(connection=client)
 
@@ -305,7 +310,7 @@ class DefaultClient(object):
 
         try:
             pipeline = client.pipeline()
-            for key, value in data.iteritems():
+            for key, value in data.items():
                 self.set(key, value, timeout, version=version, client=pipeline)
             pipeline.execute()
         except ConnectionError:
@@ -367,7 +372,8 @@ class DefaultClient(object):
 
         pattern = self.make_key(search)
         try:
-            return list(set(map(lambda x: x.split(":", 2)[2], client.keys(pattern))))
+            encoding_map = map(lambda x:  x.decode('utf-8'), client.keys(pattern))
+            return list(map(lambda x: x.split(":", 2)[2], encoding_map))
         except ConnectionError:
             raise ConnectionInterrumped(connection=client)
 
@@ -438,6 +444,7 @@ class ShardClient(DefaultClient):
     def get_many(self, keys, version=None):
         if not keys:
             return {}
+
 
         recovered_data = SortedDict()
         new_keys = map(lambda key: self.make_key(key, version=version), keys)

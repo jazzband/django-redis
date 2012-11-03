@@ -1,6 +1,18 @@
 # -*- coding: utf-8 -*-
 
-from django.utils.encoding import smart_unicode, smart_str
+from __future__ import absolute_import, unicode_literals
+import sys
+
+try:
+    from django.utils.encoding import smart_text
+except ImportError:
+    from django.utils.encoding import smart_unicode as smart_text
+
+try:
+    from django.utils.encoding import smart_bytes
+except ImportError:
+    from django.utils.encoding import smart_str as smart_bytes
+
 from django.core.exceptions import ImproperlyConfigured
 from django.conf import settings
 
@@ -19,17 +31,16 @@ class CacheKey(object):
     def __init__(self, key):
         self._key = key
 
-    def __eq__(self, other):
-        return self._key == other
+    if sys.version_info.major < 3:
+        def __str__(self):
+            return smart_bytes(self._key)
 
-    def __str__(self):
-        return self.__unicode__()
+        def __unicode__(self):
+            return smart_text(self._key)
 
-    def __repr__(self):
-        return self.__unicode__()
-
-    def __unicode__(self):
-        return smart_str(self._key)
+    else:
+        def __str__(self):
+            return smart_text(self._key)
 
     def original_key(self):
         _, key = self._key.rsplit(":", 1)

@@ -24,7 +24,7 @@ class HashRingTest(TestCase):
     def test_hashring(self):
         ids = []
 
-        for key in ["test{0}".format(x) for x in xrange(10)]:
+        for key in ["test{0}".format(x) for x in range(10)]:
             node = self.ring.get_node(key)
             ids.append(node.id)
 

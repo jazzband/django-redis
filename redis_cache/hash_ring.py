@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import absolute_import, unicode_literals
+
 import bisect
 import hashlib
+
 
 class HashRing(object):
     nodes = []
@@ -17,8 +20,10 @@ class HashRing(object):
     def add_node(self, node):
         self.nodes.append(node)
 
-        for x in xrange(self.replicas):
-            _hash = hashlib.sha256("%s:%d" % (node, x)).hexdigest()
+        for x in range(self.replicas):
+            _key = "{0}:{1}".format(node, x)
+            _hash = hashlib.sha256(_key.encode('utf-8')).hexdigest()
+
             self.ring[_hash] = node
             self.sorted_keys.append(_hash)
 
@@ -26,7 +31,7 @@ class HashRing(object):
 
     def remove_node(self, node):
         self.nodes.remove(node)
-        for x in xrange(self.replicas):
+        for x in range(self.replicas):
             _hash = hashlib.sha256("%s:%d" % (node, x)).hexdigest()
             self.ring.remove(_hash)
             self.sorted_keys.remove(_hash)
@@ -38,8 +43,8 @@ class HashRing(object):
     def get_node_pos(self, key):
         if len(self.ring) == 0:
             return (None, None)
-        
-        _hash = hashlib.sha256(key).hexdigest()
+
+        _hash = hashlib.sha256(key.encode('utf-8')).hexdigest()
         idx = bisect.bisect(self.sorted_keys, _hash)
         idx = min(idx, (self.replicas * len(self.nodes))-1)
         return (self.ring[self.sorted_keys[idx]], idx)
