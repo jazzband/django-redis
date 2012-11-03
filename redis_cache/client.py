@@ -445,9 +445,9 @@ class ShardClient(DefaultClient):
         if not keys:
             return {}
 
-
         recovered_data = SortedDict()
-        new_keys = map(lambda key: self.make_key(key, version=version), keys)
+
+        new_keys = [self.make_key(key, version=version) for key in keys]
         map_keys = dict(zip(new_keys, keys))
 
         for key in new_keys:
@@ -479,7 +479,7 @@ class ShardClient(DefaultClient):
         If timeout is given, that timeout will be used for the key; otherwise
         the default cache timeout will be used.
         """
-        for key, value in data.iteritems():
+        for key, value in data.items():
             self.set(key, value, timeout, version=version)
 
     def has_key(self, key, version=None, client=None):
@@ -536,6 +536,7 @@ class ShardClient(DefaultClient):
         return super(ShardClient, self)\
             .decr(key=key, delta=delta, version=version, client=client)
 
+
     def keys(self, search):
         pattern = self.make_key(search)
 
@@ -543,7 +544,11 @@ class ShardClient(DefaultClient):
         for server, connection in self._serverdict.items():
             keys.extend(connection.keys(pattern))
 
-        return list(set(map(lambda x: x.split(":", 2)[2], keys)))
+        try:
+            encoding_map = map(lambda x:  x.decode('utf-8'), keys)
+            return list(map(lambda x: x.split(":", 2)[2], encoding_map))
+        except ConnectionError:
+            raise ConnectionInterrumped(connection=client)
 
     def delete_pattern(self, pattern, version=None):
         """
