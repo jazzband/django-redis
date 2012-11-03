@@ -1,7 +1,7 @@
 from setuptools import setup
 
 description = """
-Redis Cache Backend for Django. (This is fork of django-redis-cache)
+Full featured redis cache backend for Django.
 """
 
 setup(
