@@ -1,6 +1,11 @@
 Changelog
 =========
 
+Version 3.1
+-----------
+
+- Helpers for access to raw redis connection.
+
 Version 3.0
 -----------
 

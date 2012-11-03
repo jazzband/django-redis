@@ -38,6 +38,7 @@ Features:
 * Python3 support with same codebase.
 * Same behavior as memcached backend with connection exceptions.
 * Supports Django: 1.3, 1.4 and 1.5
+* You can take advantage of the connection pool to directly access to the connection object of redis.
 
 
 Future plans/In developement
@@ -170,5 +171,27 @@ Example:
     # delete all keys stats with ``session_``
     cache.delete_pattern("session_*")
 
+
+Access to raw redis connection
+------------------------------
+
+And sometimes, our application requires direct access to redis, besides the standard cache.
+
+Instead of repeating the code 2 times and create multiple connection pool, ``django-redis`` exposes a simple API to access
+the redis client directly, bypassing the cache API. This allows an application that needs the cache API and direct access to redis,
+have everything in one.
+
+Example:
+
+.. code-block:: python
+
+    >>> from redis_cache import get_redis_connection
+    >>> con = get_redis_connection('default')
+    >>> con
+    <redis.client.Redis object at 0x2dc4510>
+
+
+**NOTE**: not all pluggable clients supports this feature. The simple example is a ShardClient, this does not supports
+access to raw redis connection.
 
 .. _redis-py: http://github.com/andymccurdy/redis-py/
