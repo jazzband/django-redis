@@ -1,9 +1,20 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import absolute_import, unicode_literals
+
 from django.test import TestCase
 from django.core.cache import cache, get_cache
 import time
 import datetime
+
+import sys
+if sys.version_info.major < 3:
+    text_type = unicode
+    bytes_type = str
+else:
+    text_type = str
+    bytes_type = bytes
+
 
 class DjangoRedisCacheTests(TestCase):
     def setUp(self):
@@ -20,26 +31,26 @@ class DjangoRedisCacheTests(TestCase):
         self.cache.set("test_key", "hello")
         res = self.cache.get("test_key")
 
-        self.assertIsInstance(res, str)
+        self.assertIsInstance(res, text_type)
         self.assertEqual(res, "hello")
 
     def test_save_unicode(self):
-        self.cache.set("test_key", u"heló")
+        self.cache.set("test_key", "heló")
         res = self.cache.get("test_key")
 
-        self.assertIsInstance(res, unicode)
-        self.assertEqual(res, u"heló")
+        self.assertIsInstance(res, text_type)
+        self.assertEqual(res, "heló")
 
     def test_save_dict(self):
         now_dt = datetime.datetime.now()
-        test_dict = {'id':1, 'date': now_dt, 'name': u'Foo'}
+        test_dict = {'id':1, 'date': now_dt, 'name': 'Foo'}
 
         self.cache.set("test_key", test_dict)
         res = self.cache.get("test_key")
 
         self.assertIsInstance(res, dict)
         self.assertEqual(res['id'], 1)
-        self.assertEqual(res['name'], u'Foo')
+        self.assertEqual(res['name'], 'Foo')
         self.assertEqual(res['date'], now_dt)
 
     def test_save_float(self):

@@ -16,18 +16,25 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3'
     },
-    'other': {
-        'ENGINE': 'django.db.backends.sqlite3',
-    }
 }
 
 SECRET_KEY = "django_tests_secret_key"
+TIME_ZONE = 'America/Chicago'
+LANGUAGE_CODE = 'en-us'
+ADMIN_MEDIA_PREFIX = '/static/admin/'
+STATICFILES_DIRS = ()
+
 CACHES = {
     'default': {
         'BACKEND': 'redis_cache.cache.RedisCache',
-        'LOCATION': '127.0.0.1:6379',
+        'LOCATION': '127.0.0.1:6379:1',
         'OPTIONS': {
-            'DB': 15,
+            'CLIENT_CLASS': 'redis_cache.client.DefaultClient',
         }
-    }
+    },
 }
+
+INSTALLED_APPS = (
+    'redis_backend_testapp',
+    'hashring_test',
+)
