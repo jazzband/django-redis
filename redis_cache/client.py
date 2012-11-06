@@ -384,8 +384,7 @@ class DefaultClient(object):
 
     def close(self, **kwargs):
         for c in self.client.connection_pool._available_connections:
-            c.close()
-
+            c.disconnect()
         del self._client
 
 

@@ -160,4 +160,5 @@ class DjangoRedisCacheTests(TestCase):
 
     def test_close(self):
         cache = get_cache('default')
+        cache.set("f", "1")
         cache.close()
