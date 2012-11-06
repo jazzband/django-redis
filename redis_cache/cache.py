@@ -61,6 +61,15 @@ class RedisCache(BaseCache):
         return self._client
 
     @property
+    def raw_client(self):
+        """
+        Return a raw redis client (connection). Not all
+        pluggable clients supports this feature. If not supports
+        this raises NotImplementedError
+        """
+        return self.client.client
+
+    @property
     def fallback_client(self):
         """
         Used in fallback mode on the primary client does not
