@@ -1,6 +1,12 @@
 Changelog
 =========
 
+Version 3.1.1
+-------------
+
+- Fixed incorrect exception message on LOCATION has wrong format.
+    (Thanks to Yoav Weiss)
+
 Version 3.1
 -----------
 

@@ -9,7 +9,7 @@ setup(
     url = "https://github.com/niwibe/django-redis",
     author = "Andrei Antoukh",
     author_email = "niwi@niwi.be",
-    version='3.1',
+    version='3.1.1',
     packages = [
         "redis_cache",
         "redis_cache.stats"
