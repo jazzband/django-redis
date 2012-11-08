@@ -75,7 +75,7 @@ class DefaultClient(object):
             db = int(db)
             return host, port, db
         except (ValueError, TypeError):
-            raise ImproperlyConfigured("Incorrect format '%s'" % (connection_string))
+            raise ImproperlyConfigured("Incorrect format '%s'" % (constring))
 
     def _connect(self, host, port, db):
         """
