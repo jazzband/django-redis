@@ -11,6 +11,7 @@ except ImportError:
 
 from django.utils.datastructures import SortedDict
 from django.utils import importlib
+from django.conf import settings
 
 try:
     import cPickle as pickle
@@ -383,9 +384,10 @@ class DefaultClient(object):
         return key
 
     def close(self, **kwargs):
-        for c in self.client.connection_pool._available_connections:
-            c.disconnect()
-        del self._client
+        if getattr(settings, "DJANGO_REDIS_CLOSE_CONNECTION", False):
+            for c in self.client.connection_pool._available_connections:
+                c.disconnect()
+            del self._client
 
 
 class ShardClient(DefaultClient):

@@ -1,6 +1,11 @@
 Changelog
 =========
 
+Version 3.1.2
+-------------
+
+- Now on call close() not disconnect all connection pool.
+
 Version 3.1.1
 -------------
 
