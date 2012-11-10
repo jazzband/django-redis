@@ -142,6 +142,7 @@ Some example:
 .. code-block:: python
 
     CACHES = {
+        "BACKEND": "redis_cache.cache.RedisCache",
         "LOCATION": [
             "127.0.0.1:6379:1",
             "127.0.0.1:6379:2",
