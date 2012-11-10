@@ -77,10 +77,12 @@ Old way (django-redis < 3.0):
 .. code-block:: python
 
     CACHES = {
-        #...
-        "LOCATION": "ip:port",
-        "OPTIONS": {
-            "DB": 1
+        "default": {
+            #...
+            "LOCATION": "ip:port",
+            "OPTIONS": {
+                "DB": 1
+            }
         }
     }
 
@@ -89,8 +91,10 @@ New way:
 .. code-block:: python
 
     CACHES = {
-        #...
-        "LOCATION": "ip:port:db",
+        "default": {
+            #...
+            "LOCATION": "ip:port:db",
+        }
     }
 
 
@@ -99,10 +103,12 @@ This is the complete example using a tcp connection:
 .. code-block:: python
 
     CACHES = {
-        "BACKEND": "redis_cache.cache.RedisCache",
-        "LOCATION": "127.0.0.1:6379:1",
-        "OPTIONS": {
-            "CLIENT_CLASS": "redis_cache.client.DefaultClient",
+        "default": {
+            "BACKEND": "redis_cache.cache.RedisCache",
+            "LOCATION": "127.0.0.1:6379:1",
+            "OPTIONS": {
+                "CLIENT_CLASS": "redis_cache.client.DefaultClient",
+            }
         }
     }
 
@@ -122,6 +128,7 @@ And this is a complete example using unix sockets:
                 'PASSWORD': 'foopassword',
                 'PICKLE_VERSION': -1,   # default
                 'PARSER_CLASS': 'redis.connection.HiredisParser'
+                'CLIENT_CLASS': 'redis_cache.client.DefaultClient',
             },
         },
     }
@@ -142,13 +149,15 @@ Some example:
 .. code-block:: python
 
     CACHES = {
-        "BACKEND": "redis_cache.cache.RedisCache",
-        "LOCATION": [
-            "127.0.0.1:6379:1",
-            "127.0.0.1:6379:2",
-        ],
-        "OPTIONS": {
-            "CLIENT_CLASS": "redis_cache.client.ShardClient",
+        "default": {
+            "BACKEND": "redis_cache.cache.RedisCache",
+            "LOCATION": [
+                "127.0.0.1:6379:1",
+                "127.0.0.1:6379:2",
+            ],
+            "OPTIONS": {
+                "CLIENT_CLASS": "redis_cache.client.ShardClient",
+            }
         }
     }
 
