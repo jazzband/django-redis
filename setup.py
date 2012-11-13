@@ -12,6 +12,7 @@ setup(
     version='3.1.2',
     packages = [
         "redis_cache",
+        "redis_cache.client",
         "redis_cache.stats"
     ],
     description = description.strip(),
