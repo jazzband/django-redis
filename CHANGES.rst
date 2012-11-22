@@ -1,6 +1,11 @@
 Changelog
 =========
 
+Version 3.1.3
+-------------
+
+- Fixed python 2.6 compatibility.
+
 Version 3.1.2
 -------------
 
