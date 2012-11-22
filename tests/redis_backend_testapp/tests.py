@@ -8,7 +8,7 @@ import time
 import datetime
 
 import sys
-if sys.version_info.major < 3:
+if sys.version_info[0] < 3:
     text_type = unicode
     bytes_type = str
 else:

@@ -21,7 +21,7 @@ from redis.connection import UnixDomainSocketConnection, Connection
 from redis.connection import DefaultParser
 
 from collections import defaultdict
-from importlib import import_module
+from django.utils.importlib import import_module
 
 
 class CacheKey(object):
@@ -31,7 +31,7 @@ class CacheKey(object):
     def __init__(self, key):
         self._key = key
 
-    if sys.version_info.major < 3:
+    if sys.version_info[0] < 3:
         def __str__(self):
             return smart_bytes(self._key)
 
