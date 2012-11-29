@@ -23,13 +23,13 @@ import functools
 import re
 
 from redis import Redis
-from redis import ConnectionPool
 from redis.exceptions import ConnectionError
 from redis.connection import DefaultParser
 from redis.connection import UnixDomainSocketConnection, Connection
 
 from ..util import CacheKey, load_class
 from ..exceptions import ConnectionInterrumped
+from ..pool import get_or_create_connection_pool
 
 
 class DefaultClient(object):
@@ -93,7 +93,7 @@ class DefaultClient(object):
         else:
             kwargs.update({'host': host, 'port': port, 'connection_class': Connection})
 
-        connection_pool = ConnectionPool(**kwargs)
+        connection_pool = get_or_create_connection_pool(**kwargs)
         connection = Redis(connection_pool=connection_pool)
         return connection
 

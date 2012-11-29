@@ -162,3 +162,15 @@ class DjangoRedisCacheTests(TestCase):
         cache = get_cache('default')
         cache.set("f", "1")
         cache.close()
+
+    def test_reuse_connection_pool(self):
+        try:
+            cache1 = get_cache('default')
+            cache2 = get_cache('default')
+
+            self.assertNotEqual(cache1, cache2)
+            self.assertNotEqual(cache1.raw_client, cache2.raw_client)
+            self.assertEqual(cache1.raw_client.connection_pool,
+                                cache2.raw_client.connection_pool)
+        except NotImplementedError:
+            pass

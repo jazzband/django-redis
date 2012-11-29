@@ -1,6 +1,11 @@
 Changelog
 =========
 
+Version 3.1.4
+-------------
+
+- Now reuse connection pool on masive use of `get_cache` method.
+
 Version 3.1.3
 -------------
 

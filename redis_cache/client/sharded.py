@@ -23,7 +23,6 @@ import functools
 import re
 
 from redis import Redis
-from redis import ConnectionPool
 from redis.exceptions import ConnectionError
 from redis.connection import DefaultParser
 from redis.connection import UnixDomainSocketConnection, Connection
@@ -31,6 +30,7 @@ from redis.connection import UnixDomainSocketConnection, Connection
 from ..util import CacheKey, load_class
 from ..hash_ring import HashRing
 from ..exceptions import ConnectionInterrumped
+from ..pool import get_or_create_connection_pool
 
 from .default import DefaultClient
 
