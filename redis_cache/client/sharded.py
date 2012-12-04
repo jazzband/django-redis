@@ -211,5 +211,8 @@ class ShardClient(DefaultClient):
             for server, connection in self._serverdict.items():
                 connection.delete(*keys)
 
-    def close(self):
-        pass
+    def close(self, **kwargs):
+        if getattr(settings, "DJANGO_REDIS_CLOSE_CONNECTION", False):
+            for client in self._serverdict.values():
+                for c in client.connection_pool._available_connections:
+                    c.disconnect()
