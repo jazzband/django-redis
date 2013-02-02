@@ -106,7 +106,7 @@ class ShardClient(DefaultClient):
             recovered_data[map_keys[key]] = value
         return recovered_data
 
-    def set(self, key, value, timeout=None, version=None, client=None):
+    def set(self, key, value, timeout=None, version=None, client=None, nx=False):
         """
         Persist a value to the cache, and set an optional expiration time.
         """
@@ -114,8 +114,9 @@ class ShardClient(DefaultClient):
             key = self.make_key(key, version=version)
             client = self.get_server(key)
 
-        return super(ShardClient, self)\
-            .set(key=key, value=value, timeout=timeout, version=version, client=client)
+        return super(ShardClient, self).set(
+                        key=key, value=value, timeout=timeout,
+                        version=version, client=client, nx=nx)
 
     def set_many(self, data, timeout=None, version=None):
         """
