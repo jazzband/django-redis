@@ -1,6 +1,16 @@
 Changelog
 =========
 
+Version 3.1.6
+-------------
+
+- Add nx argument on set method for both clients (thanks to Kirill Zaitsev)
+
+Version 3.1.5
+-------------
+
+- Bug fixes on sharded client.
+
 Version 3.1.4
 -------------
 

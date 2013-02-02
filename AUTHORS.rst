@@ -11,3 +11,4 @@ Ales Zoulek / aleszoulek <https://github.com/aleszoulek>
 James Aylett / jaylett <https://github.com/jaylett>
 Todd Boland / boland <https://github.com/boland>
 David Zderic / dzderic <https://github.com/dzderic>
+Kirill Zaitsev / teferi <https://github.com/teferi>
