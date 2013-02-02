@@ -184,7 +184,7 @@ Example:
 
 
 ``django-redis`` also provides an additional parameter to set method: ``nx``. If set to ``True`` django-redis will use
-redis's setnx instead of set. ``timeout`` is still suported and setting it will result in a call to redis's expire if the key was set.
+setnx instead of set. ``timeout`` is still suported and setting it will result in a call to expire if the key was set.
 
 
 Example:
