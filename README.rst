@@ -69,7 +69,7 @@ Usage of cache backend
 
 To start using ``django-redis``, you must change your django cache settings. ``django-redis`` implements the standard interface for django cache backends.
 
-With ``django-redis==3.0`` has introduced certain backwards incompatible changes, in part of redis connection settings (connection string). 
+With ``django-redis==3.0`` has introduced certain backwards incompatible changes, in part of redis connection settings (connection string).
 The ``LOCATION`` attr string must be have always three colons instead of two.
 
 Old way (django-redis < 3.0):
@@ -181,6 +181,21 @@ Example:
 
     # delete all keys stats with ``session_``
     cache.delete_pattern("session_*")
+
+
+
+Extra settings added by django-redis
+------------------------------------
+
+.. versionadded:: 3.0
+
+After django-redis, v3.0,
+
+After version 3.0, changed behavior related to connection failure exceptions. Now, the behavior is identical to memcached.
+If redis is offline, the operations with cache do not throw exception and just return None.
+
+To return to the previous behavior (if redis is offline, the cache operations throw an exception),
+put ``DJANGO_REDIS_IGNORE_EXCEPTIONS`` setting value to False.
 
 
 Access to raw redis connection
