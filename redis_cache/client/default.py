@@ -109,9 +109,10 @@ class DefaultClient(object):
             except (ValueError, TypeError):
                 raise ImproperlyConfigured("PICKLE_VERSION value must be an integer")
 
-    def set(self, key, value, timeout=None, version=None, client=None):
+    def set(self, key, value, timeout=None, version=None, client=None, nx=False):
         """
         Persist a value to the cache, and set an optional expiration time.
+        Also supports optional nx parameter. If set to True - will use redis setnx instead of set.
         """
 
         if not client:
@@ -124,9 +125,15 @@ class DefaultClient(object):
             timeout = self._backend.default_timeout
 
         try:
-            if timeout > 0:
-                return client.setex(key, value, int(timeout))
-            return client.set(key, value)
+            if nx:
+                res = client.setnx(key, value)
+                if res and timeout > 0:
+                    return client.expire(key, int(timeout))
+                return res
+            else:
+                if timeout > 0:
+                    return client.setex(key, value, int(timeout))
+                return client.set(key, value)
         except ConnectionError:
             raise ConnectionInterrumped(connection=client)
 

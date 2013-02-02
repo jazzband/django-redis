@@ -20,6 +20,45 @@ class DjangoRedisCacheTests(TestCase):
     def setUp(self):
         self.cache = cache
 
+    def test_setnx(self):
+        # we should ensure there is no test_key_nx in redis
+        self.cache.delete("test_key_nx")
+        res = self.cache.get("test_key_nx", None)
+        self.assertEqual(res, None)
+
+        res = self.cache.set("test_key_nx", 1, nx=True)
+        self.assertTrue(res)
+        # test that second set will have
+        res = self.cache.set("test_key_nx", 2, nx=True)
+        self.assertFalse(res)
+        res = self.cache.get("test_key_nx")
+        self.assertEqual(res, 1)
+
+        self.cache.delete("test_key_nx")
+        res = self.cache.get("test_key_nx", None)
+        self.assertEqual(res, None)
+
+
+    def test_setnx_timeout(self):
+        # test that timeout still works for nx=True
+        res = self.cache.set("test_key_nx", 1, timeout=2, nx=True)
+        self.assertTrue(res)
+        time.sleep(2)
+        res = self.cache.get("test_key_nx", None)
+        self.assertEqual(res, None)
+
+        # test that timeout will not affect key, if it was there
+        self.cache.set("test_key_nx", 1)
+        res = self.cache.set("test_key_nx", 1, timeout=2, nx=True)
+        self.assertFalse(res)
+        time.sleep(3)
+        res = self.cache.get("test_key_nx", None)
+        self.assertEqual(res, 1)
+
+        self.cache.delete("test_key_nx")
+        res = self.cache.get("test_key_nx", None)
+        self.assertEqual(res, None)
+
     def test_save_and_integer(self):
         self.cache.set("test_key", 2)
         res = self.cache.get("test_key", "Foo")
