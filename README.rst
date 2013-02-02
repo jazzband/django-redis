@@ -183,6 +183,22 @@ Example:
     cache.delete_pattern("session_*")
 
 
+``django-redis`` also provides an additional parameter to set method: ``nx``. If set to ``True`` django-redis will use
+setnx instead of set. ``timeout`` is still suported and setting it will result in a call to expire if the key was set.
+
+
+Example:
+
+.. code-block:: python
+
+    >>> from django.core.cache import cache
+    >>> cache.set("key", "value1", nx=True)
+    True
+    >>> cache.set("key", "value2", nx=True)
+    False
+    >>> cache.get("key")
+    "value1"
+
 
 Extra settings added by django-redis
 ------------------------------------
