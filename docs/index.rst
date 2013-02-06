@@ -121,7 +121,7 @@ And this is a complete example using unix sockets:
             'OPTIONS': {
                 'PASSWORD': 'foopassword',
                 'PICKLE_VERSION': -1,   # default
-                'PARSER_CLASS': 'redis.connection.HiredisParser'
+                'PARSER_CLASS': 'redis.connection.HiredisParser',
                 'CLIENT_CLASS': 'redis_cache.client.DefaultClient',
             },
         },
