@@ -27,7 +27,7 @@ from redis.exceptions import ConnectionError, ResponseError
 from redis.connection import DefaultParser
 from redis.connection import UnixDomainSocketConnection, Connection
 
-from ..util import CacheKey, load_class
+from ..util import CacheKey, load_class, integer_types
 from ..exceptions import ConnectionInterrumped
 from ..pool import get_or_create_connection_pool
 
@@ -279,7 +279,7 @@ class DefaultClient(object):
         """
         Pickle the given value.
         """
-        if isinstance(value, (int, long)):
+        if isinstance(value, integer_types):
             return value
 
         return pickle.dumps(value, self._pickle_version)

@@ -14,7 +14,7 @@ if sys.version_info[0] < 3:
 else:
     text_type = str
     bytes_type = bytes
-
+    long = int
 
 class DjangoRedisCacheTests(TestCase):
     def setUp(self):
@@ -177,7 +177,7 @@ class DjangoRedisCacheTests(TestCase):
         res = self.cache.get("num")
         self.assertEqual(res, 9223372036854775810)
 
-        self.cache.set("num", 3L)
+        self.cache.set("num", long(3))
 
         self.cache.incr("num", 2)
         res = self.cache.get("num")
@@ -194,11 +194,11 @@ class DjangoRedisCacheTests(TestCase):
         res = self.cache.get("num")
         self.assertEqual(res, -1)
 
-        self.cache.decr("num", 2L)
+        self.cache.decr("num", long(2))
         res = self.cache.get("num")
         self.assertEqual(res, -3)
 
-        self.cache.set("num", 20L)
+        self.cache.set("num", long(20))
 
         self.cache.decr("num")
         res = self.cache.get("num")
