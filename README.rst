@@ -19,9 +19,9 @@ Features:
 * Can set keys with infinite timeout: ``cache.set('key', 'value', timeout=0)``
 * Pluggable clients.
 * Python3 support with same codebase.
-* Same behavior as memcached backend with connection exceptions.
 * Supports Django: 1.3, 1.4 and 1.5
-* You can take advantage of the connection pool to directly access to the connection object of redis.
+* Can take advantage of the connection pool with directly access to the raw redis connection.
+* Can emulate memcached backend behavior with connection exceptions (see more :ref:`Settings <settings>`)
 
 
 Future plans/In developement
