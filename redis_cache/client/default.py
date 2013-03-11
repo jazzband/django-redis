@@ -334,12 +334,10 @@ class DefaultClient(object):
 
         key = self.make_key(key, version=version)
 
-        if not client.exists(key):
+        if not self.has_key(key, version=version, client=client):
             raise ValueError("Key '%s' not found" % key)
 
-        value = self.get(key, version=version, client=client) + delta
-        self.set(key, value, version=version, client=client)
-        return value
+        return client.incr(key, delta)
 
     def decr(self, key, delta=1, version=None, client=None):
         """
@@ -351,12 +349,10 @@ class DefaultClient(object):
 
         key = self.make_key(key, version=version)
 
-        if not self.has_key(key):
+        if not self.has_key(key, version=version, client=client):
             raise ValueError("Key '%s' not found" % key)
 
-        value = self.get(key, version=version, client=client) - delta
-        self.set(key, value, version=version, client=client)
-        return value
+        return client.incr(key, -delta)
 
     def has_key(self, key, version=None, client=None):
         """
