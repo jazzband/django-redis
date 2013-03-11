@@ -12,7 +12,7 @@ from .exceptions import ConnectionInterrumped
 import functools
 
 DJANGO_REDIS_IGNORE_EXCEPTIONS = getattr(settings,
-            'DJANGO_REDIS_IGNORE_EXCEPTIONS', True)
+            'DJANGO_REDIS_IGNORE_EXCEPTIONS', False)
 
 
 def omit_exception(method):
