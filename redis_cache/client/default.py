@@ -268,10 +268,11 @@ class DefaultClient(object):
         """
         Pickle the given value.
         """
-        if isinstance(value, integer_types):
-            return value
 
-        return pickle.dumps(value, self._pickle_version)
+        if isinstance(value, bool) or not isinstance(value, integer_types):
+            return pickle.dumps(value, self._pickle_version)
+
+        return value
 
     def get_many(self, keys, version=None, client=None):
         """
@@ -328,6 +329,7 @@ class DefaultClient(object):
         try:
             if not client.exists(key):
                 raise ValueError("Key '%s' not found" % key)
+
             try:
                 value = client.incr(key, delta)
             except ResponseError:

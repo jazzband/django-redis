@@ -183,6 +183,19 @@ class DjangoRedisCacheTests(TestCase):
         res = self.cache.get("num")
         self.assertEqual(res, 5)
 
+    def test_get_set_bool(self):
+        self.cache.set("bool", True)
+        res = self.cache.get("bool")
+
+        self.assertIsInstance(res, bool)
+        self.assertEqual(res, True)
+
+        self.cache.set("bool", False)
+        res = self.cache.get("bool")
+
+        self.assertIsInstance(res, bool)
+        self.assertEqual(res, False)
+
     def test_decr(self):
         self.cache.set("num", 20)
 
