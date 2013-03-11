@@ -1,6 +1,23 @@
 Changelog
 =========
 
+Version 3.2.0
+-------------
+
+- Changed default behavior of connection error exceptions: now by default
+    raises exception on connection error is occured.
+
+Thanks to Mümin Öztürk:
+
+- cache.add now uses setnx redis command (atomic operation)
+- cache.incr and cache.decr now uses redis incrby command (atomic operation)
+
+
+Version 3.1.7
+-------------
+
+- Fix python3 compatibility on utils module.
+
 Version 3.1.6
 -------------
 
