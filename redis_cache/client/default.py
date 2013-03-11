@@ -175,18 +175,7 @@ class DefaultClient(object):
 
         Returns ``True`` if the object was added, ``False`` if not.
         """
-        if client is None:
-            client = self.client
-
-        key = self.make_key(key, version=version)
-
-        try:
-            if client.exists(key):
-                return False
-        except ConnectionError:
-            raise ConnectionInterrumped(connection=client)
-
-        return self.set(key, value, timeout, client=client)
+        return self.set(key, value, timeout, client=client, nx=True)
 
     def get(self, key, default=None, version=None, client=None):
         """
