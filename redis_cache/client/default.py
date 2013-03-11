@@ -339,7 +339,7 @@ class DefaultClient(object):
                 # In this situations redis will throw ResponseError
 
                 # try to keep TTL of key
-                timeout = self.client.ttl(key)
+                timeout = client.ttl(key)
                 value = self.get(key, version=version, client=client) + delta
                 self.set(key, value, version=version, timeout=timeout,
                          client=client)
