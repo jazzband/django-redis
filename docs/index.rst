@@ -8,7 +8,7 @@ django-redis
 
 Release v\ |version|.
 
-django-redis is a :ref:`BSD LIcensed`, full featured redis cache backend for Django.
+django-redis is a :ref:`BSD Licensed`, full featured redis cache backend for Django.
 
 
 Features:
@@ -21,9 +21,9 @@ Features:
 * Can set keys with infinite timeout: ``cache.set('key', 'value', timeout=0)``
 * Pluggable clients.
 * Python3 support with same codebase.
-* Same behavior as memcached backend with connection exceptions.
 * Supports Django: 1.3, 1.4 and 1.5
-* You can take advantage of the connection pool to directly access to the connection object of redis.
+* Can take advantage of the connection pool with directly access to the raw redis connection.
+* Can emulate memcached backend behavior with connection exceptions (see more :ref:`Settings <settings>`)
 
 Redis cache allows you to use either a TCP connection or Unix domain
 socket to connect to your redis server.  Using a TCP connection is useful for
@@ -196,6 +196,8 @@ Example:
     "value1"
 
 
+.. _settings:
+
 Extra settings added by django-redis
 ------------------------------------
 
@@ -206,6 +208,11 @@ If redis is offline, the operations with cache do not throw exception and just r
 
 To return to the previous behavior (if redis is offline, the cache operations throw an exception),
 put ``DJANGO_REDIS_IGNORE_EXCEPTIONS`` setting value to False.
+
+.. versionchanged:: 3.2
+
+Now, on 3.2 version, the initial behavior is reverted, and if you would memcached behavior, you need set
+``DJANGO_REDIS_IGNORE_EXCEPTIONS`` to True (now, by default is False)
 
 
 Access to raw redis connection
