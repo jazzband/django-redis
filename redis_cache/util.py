@@ -23,6 +23,11 @@ from redis.connection import DefaultParser
 from collections import defaultdict
 from django.utils.importlib import import_module
 
+if sys.version_info[0] < 3:
+    integer_types = (int, long,)
+else:
+    integer_types = (int,)
+
 
 class CacheKey(object):
     """

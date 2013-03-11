@@ -14,7 +14,7 @@ if sys.version_info[0] < 3:
 else:
     text_type = str
     bytes_type = bytes
-
+    long = int
 
 class DjangoRedisCacheTests(TestCase):
     def setUp(self):
@@ -72,6 +72,12 @@ class DjangoRedisCacheTests(TestCase):
 
         self.assertIsInstance(res, text_type)
         self.assertEqual(res, "hello")
+
+        self.cache.set("test_key", "2")
+        res = self.cache.get("test_key")
+
+        self.assertIsInstance(res, text_type)
+        self.assertEqual(res, "2")
 
     def test_save_unicode(self):
         self.cache.set("test_key", "heló")
@@ -160,6 +166,23 @@ class DjangoRedisCacheTests(TestCase):
         res = self.cache.get("num")
         self.assertEqual(res, 12)
 
+        #max 64 bit signed int
+        self.cache.set("num", 9223372036854775807)
+
+        self.cache.incr("num")
+        res = self.cache.get("num")
+        self.assertEqual(res, 9223372036854775808)
+
+        self.cache.incr("num", 2)
+        res = self.cache.get("num")
+        self.assertEqual(res, 9223372036854775810)
+
+        self.cache.set("num", long(3))
+
+        self.cache.incr("num", 2)
+        res = self.cache.get("num")
+        self.assertEqual(res, 5)
+
     def test_decr(self):
         self.cache.set("num", 20)
 
@@ -170,6 +193,27 @@ class DjangoRedisCacheTests(TestCase):
         self.cache.decr("num", 20)
         res = self.cache.get("num")
         self.assertEqual(res, -1)
+
+        self.cache.decr("num", long(2))
+        res = self.cache.get("num")
+        self.assertEqual(res, -3)
+
+        self.cache.set("num", long(20))
+
+        self.cache.decr("num")
+        res = self.cache.get("num")
+        self.assertEqual(res, 19)
+
+        #max 64 bit signed int + 1
+        self.cache.set("num", 9223372036854775808)
+
+        self.cache.decr("num")
+        res = self.cache.get("num")
+        self.assertEqual(res, 9223372036854775807)
+
+        self.cache.decr("num", 2)
+        res = self.cache.get("num")
+        self.assertEqual(res, 9223372036854775805)
 
     def test_version(self):
         self.cache.set("keytest", 2, version=2)
