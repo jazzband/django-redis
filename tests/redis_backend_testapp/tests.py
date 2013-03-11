@@ -43,7 +43,7 @@ class DjangoRedisCacheTests(TestCase):
         # test that timeout still works for nx=True
         res = self.cache.set("test_key_nx", 1, timeout=2, nx=True)
         self.assertTrue(res)
-        time.sleep(2)
+        time.sleep(3)
         res = self.cache.get("test_key_nx", None)
         self.assertEqual(res, None)
 
