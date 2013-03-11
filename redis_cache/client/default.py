@@ -23,11 +23,11 @@ import functools
 import re
 
 from redis import Redis
-from redis.exceptions import ConnectionError
+from redis.exceptions import ConnectionError, ResponseError
 from redis.connection import DefaultParser
 from redis.connection import UnixDomainSocketConnection, Connection
 
-from ..util import CacheKey, load_class
+from ..util import CacheKey, load_class, integer_types
 from ..exceptions import ConnectionInterrumped
 from ..pool import get_or_create_connection_pool
 
@@ -257,13 +257,20 @@ class DefaultClient(object):
         """
         Unpickles the given value.
         """
-        value = smart_bytes(value)
-        return pickle.loads(value)
+        try:
+            value = int(value)
+        except (ValueError, TypeError):
+            value = smart_bytes(value)
+            value = pickle.loads(value)
+        return value
 
     def pickle(self, value):
         """
         Pickle the given value.
         """
+        if isinstance(value, integer_types):
+            return value
+
         return pickle.dumps(value, self._pickle_version)
 
     def get_many(self, keys, version=None, client=None):
@@ -312,40 +319,47 @@ class DefaultClient(object):
         except ConnectionError:
             raise ConnectionInterrumped(connection=client)
 
-    def incr(self, key, delta=1, version=None, client=None):
-        """
-        Add delta to value in the cache. If the key does not exist, raise a
-        ValueError exception.
-        """
-
+    def _incr(self, key, delta=1, version=None, client=None):
         if client is None:
             client = self.client
 
         key = self.make_key(key, version=version)
 
-        if not client.exists(key):
-            raise ValueError("Key '%s' not found" % key)
+        try:
+            if not client.exists(key):
+                raise ValueError("Key '%s' not found" % key)
+            try:
+                value = client.incr(key, delta)
+            except ResponseError:
+                # if cached value or total value is greater than 64 bit signed
+                # integer.
+                # elif int is pickled. so redis sees the data as string.
+                # In this situations redis will throw ResponseError
 
-        value = self.get(key, version=version, client=client) + delta
-        self.set(key, value, version=version, client=client)
+                # try to keep TTL of key
+                timeout = self.client.ttl(key)
+                value = self.get(key, version=version, client=client) + delta
+                self.set(key, value, version=version, timeout=timeout,
+                         client=client)
+        except ConnectionError:
+            raise ConnectionInterrumped(connection=client)
+
         return value
+
+    def incr(self, key, delta=1, version=None, client=None):
+        """
+        Add delta to value in the cache. If the key does not exist, raise a
+        ValueError exception.
+        """
+        return self._incr(key=key, delta=delta, version=version, client=client)
 
     def decr(self, key, delta=1, version=None, client=None):
         """
         Decreace delta to value in the cache. If the key does not exist, raise a
         ValueError exception.
         """
-        if client is None:
-            client = self.client
-
-        key = self.make_key(key, version=version)
-
-        if not self.has_key(key):
-            raise ValueError("Key '%s' not found" % key)
-
-        value = self.get(key, version=version, client=client) - delta
-        self.set(key, value, version=version, client=client)
-        return value
+        return self._incr(key=key, delta=delta * -1, version=version,
+                          client=client)
 
     def has_key(self, key, version=None, client=None):
         """
