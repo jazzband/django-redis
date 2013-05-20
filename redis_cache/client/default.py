@@ -92,6 +92,8 @@ class DefaultClient(object):
             kwargs.update({'path': port, 'connection_class': UnixDomainSocketConnection})
         else:
             kwargs.update({'host': host, 'port': port, 'connection_class': Connection})
+        if 'SOCKET_TIMEOUT' in self._options:
+            kwargs.update({'socket_timeout': int(self._options['SOCKET_TIMEOUT'])})
 
         connection_pool = get_or_create_connection_pool(**kwargs)
         connection = Redis(connection_pool=connection_pool)
