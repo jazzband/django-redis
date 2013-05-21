@@ -215,6 +215,30 @@ Now, on 3.2 version, the initial behavior is reverted, and if you would memcache
 ``DJANGO_REDIS_IGNORE_EXCEPTIONS`` to True (now, by default is False)
 
 
+Specifying a timeout for Redis operations
+-----------------------------------------
+
+You can optionally set a timeout for redis operations by specifying an integer or float value for
+``SOCKET_TIMEOUT`` in your ``CACHES`` entry:
+
+.. code-block:: python
+
+    CACHES = {
+        'default': {
+            ...
+            'OPTIONS': {
+                'SOCKET_TIMEOUT': 5,
+            },
+        },
+    }
+
+If set, redis will time out after ``SOCKET_TIMEOUT`` seconds. This can occur for multiple reasons, such as
+redis being down or unavailable, or Redis not returning quickly enough if your timeout is set too low.
+
+If you have ``DJANGO_REDIS_IGNORE_EXCEPTIONS`` set to ``True``, timeouts will silently return ``None``.
+Otherwise, an exception will be raised.
+
+
 Access to raw redis connection
 ------------------------------
 
