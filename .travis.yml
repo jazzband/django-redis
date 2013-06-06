@@ -1,11 +1,16 @@
 language: python
 python:
   - "2.7"
-  - "3.2"
+  - "3.3"
+env:
+  - DJANGO_VERSION=1.5.1
+  - DJANGO_VERSION=1.4.3
 install:
-  - pip install django redis --use-mirrors
+  - pip install django==$DJANGO_VERSION --use-mirrors
+  - pip install redis --use-mirrors
 script:
   - python runtests.py
+  - python runtests-sharded.py
 services:
   - redis-server
 notifications:
