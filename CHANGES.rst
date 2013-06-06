@@ -1,6 +1,11 @@
 Changelog
 =========
 
+Version 3.3.0
+-------------
+
+- Add SOCKET_TIMEOUT attribute to OPTIONS (thanks to @eclipticplane)
+
 Version 3.2.0
 -------------
 
