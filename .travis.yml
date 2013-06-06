@@ -5,7 +5,9 @@ python:
 install:
   - pip install django redis --use-mirrors
 script:
-  - cd testing; python runtests.py test
+  - python runtests.py
+services:
+  - redis-server
 notifications:
   email:
     recipients:

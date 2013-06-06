@@ -2,7 +2,7 @@
 
 import os, sys
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "test_sqlite")
-sys.path.insert(0, '..')
+sys.path.insert(0, 'tests')
 
 from django.core.management import call_command
 
