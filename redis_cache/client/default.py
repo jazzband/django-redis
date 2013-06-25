@@ -10,7 +10,6 @@ except ImportError:
     from django.utils.encoding import smart_str as smart_bytes
 
 from django.utils.datastructures import SortedDict
-from django.utils import importlib
 from django.conf import settings
 
 try:
@@ -18,17 +17,13 @@ try:
 except ImportError:
     import pickle
 
-from collections import defaultdict
-import functools
-import re
-
 from redis import Redis
 from redis.exceptions import ConnectionError, ResponseError
 from redis.connection import DefaultParser
 from redis.connection import UnixDomainSocketConnection, Connection
 
 from ..util import CacheKey, load_class, integer_types
-from ..exceptions import ConnectionInterrumped
+from ..exceptions import ConnectionInterrupted
 from ..pool import get_or_create_connection_pool
 
 
@@ -137,7 +132,7 @@ class DefaultClient(object):
                     return client.setex(key, value, int(timeout))
                 return client.set(key, value)
         except ConnectionError:
-            raise ConnectionInterrumped(connection=client)
+            raise ConnectionInterrupted(connection=client)
 
     def incr_version(self, key, delta=1, version=None, client=None):
         """
@@ -157,7 +152,7 @@ class DefaultClient(object):
         try:
             ttl = client.ttl(old_key)
         except ConnectionError:
-            raise ConnectionInterrumped(connection=client)
+            raise ConnectionInterrupted(connection=client)
 
         if value is None:
             raise ValueError("Key '%s' not found" % key)
@@ -193,7 +188,7 @@ class DefaultClient(object):
         try:
             value = client.get(key)
         except ConnectionError:
-            raise ConnectionInterrumped(connection=client)
+            raise ConnectionInterrupted(connection=client)
 
         if value is None:
             return default
@@ -210,7 +205,7 @@ class DefaultClient(object):
         try:
             client.delete(self.make_key(key, version=version))
         except ConnectionError:
-            raise ConnectionInterrumped(connection=client)
+            raise ConnectionInterrupted(connection=client)
 
     def delete_pattern(self, pattern, version=None, client=None):
         """
@@ -227,7 +222,7 @@ class DefaultClient(object):
             if keys:
                 client.delete(*keys)
         except ConnectionError:
-            raise ConnectionInterrumped(connection=client)
+            raise ConnectionInterrupted(connection=client)
 
     def delete_many(self, keys, version=None, client=None):
         """
@@ -244,7 +239,7 @@ class DefaultClient(object):
         try:
             client.delete(*keys)
         except ConnectionError:
-            raise ConnectionInterrumped(connection=client)
+            raise ConnectionInterrupted(connection=client)
 
     def clear(self, client=None):
         """
@@ -295,7 +290,7 @@ class DefaultClient(object):
         try:
             results = client.mget(*new_keys)
         except ConnectionError:
-            raise ConnectionInterrumped(connection=client)
+            raise ConnectionInterrupted(connection=client)
 
         for key, value in zip(new_keys, results):
             if value is None:
@@ -320,7 +315,7 @@ class DefaultClient(object):
                 self.set(key, value, timeout, version=version, client=pipeline)
             pipeline.execute()
         except ConnectionError:
-            raise ConnectionInterrumped(connection=client)
+            raise ConnectionInterrupted(connection=client)
 
     def _incr(self, key, delta=1, version=None, client=None):
         if client is None:
@@ -346,7 +341,7 @@ class DefaultClient(object):
                 self.set(key, value, version=version, timeout=timeout,
                          client=client)
         except ConnectionError:
-            raise ConnectionInterrumped(connection=client)
+            raise ConnectionInterrupted(connection=client)
 
         return value
 
@@ -377,9 +372,8 @@ class DefaultClient(object):
         try:
             return client.exists(key)
         except ConnectionError:
-            raise ConnectionInterrumped(connection=client)
+            raise ConnectionInterrupted(connection=client)
 
-    # Other not default and not standar methods.
     def keys(self, search, client=None):
         if client is None:
             client = self.client
@@ -389,7 +383,7 @@ class DefaultClient(object):
             encoding_map = map(lambda x:  x.decode('utf-8'), client.keys(pattern))
             return list(map(lambda x: x.split(":", 2)[2], encoding_map))
         except ConnectionError:
-            raise ConnectionInterrumped(connection=client)
+            raise ConnectionInterrupted(connection=client)
 
     def make_key(self, key, version=None):
         if not isinstance(key, CacheKey):
@@ -401,5 +395,3 @@ class DefaultClient(object):
             for c in self.client.connection_pool._available_connections:
                 c.disconnect()
             del self._client
-
-

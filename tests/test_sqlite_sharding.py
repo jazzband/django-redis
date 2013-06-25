@@ -19,6 +19,10 @@ DATABASES = {
 }
 
 SECRET_KEY = "django_tests_secret_key"
+TIME_ZONE = 'America/Chicago'
+LANGUAGE_CODE = 'en-us'
+ADMIN_MEDIA_PREFIX = '/static/admin/'
+STATICFILES_DIRS = ()
 
 CACHES = {
     'default': {
@@ -31,11 +35,17 @@ CACHES = {
             'CLIENT_CLASS': 'redis_cache.client.ShardClient',
         }
     },
+    'doesnotexist': {
+        'BACKEND': 'redis_cache.cache.RedisCache',
+        'LOCATION': [
+            '127.0.0.1:56379:1',
+            '127.0.0.1:56379:2',
+        ],
+        'OPTIONS': {
+            'CLIENT_CLASS': 'redis_cache.client.ShardClient',
+        }
+    },
 }
-TIME_ZONE = 'America/Chicago'
-LANGUAGE_CODE = 'en-us'
-ADMIN_MEDIA_PREFIX = '/static/admin/'
-STATICFILES_DIRS = ()
 
 INSTALLED_APPS = (
     'redis_backend_testapp',

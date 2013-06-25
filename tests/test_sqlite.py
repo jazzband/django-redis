@@ -32,6 +32,13 @@ CACHES = {
             'CLIENT_CLASS': 'redis_cache.client.DefaultClient',
         }
     },
+    'doesnotexist': {
+        'BACKEND': 'redis_cache.cache.RedisCache',
+        'LOCATION': '127.0.0.1:56379:1',
+        'OPTIONS': {
+            'CLIENT_CLASS': 'redis_cache.client.DefaultClient',
+        }
+    },
 }
 
 INSTALLED_APPS = (
