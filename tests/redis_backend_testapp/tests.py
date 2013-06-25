@@ -2,12 +2,14 @@
 
 from __future__ import absolute_import, unicode_literals
 
-from django.test import TestCase
-from django.core.cache import cache, get_cache
+import sys
 import time
 import datetime
 
-import sys
+from django.test import TestCase
+from django.core.cache import cache, get_cache
+import redis_cache.cache
+
 if sys.version_info[0] < 3:
     text_type = unicode
     bytes_type = str
@@ -267,6 +269,21 @@ class DjangoRedisCacheTests(TestCase):
             self.assertNotEqual(cache1, cache2)
             self.assertNotEqual(cache1.raw_client, cache2.raw_client)
             self.assertEqual(cache1.raw_client.connection_pool,
-                                cache2.raw_client.connection_pool)
+                             cache2.raw_client.connection_pool)
         except NotImplementedError:
             pass
+
+
+class DjangoOmitExceptionsTests(TestCase):
+    def setUp(self):
+        self._orig_setting = redis_cache.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS
+        redis_cache.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS = True
+        self.cache = get_cache('doesnotexist')
+
+    def tearDown(self):
+        redis_cache.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS = self._orig_setting
+
+    def test_get(self):
+        self.assertIsNone(self.cache.get('key'))
+        self.assertEqual(self.cache.get('key', 'default'), 'default')
+        self.assertEqual(self.cache.get('key', default='default'), 'default')

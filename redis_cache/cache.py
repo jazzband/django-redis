@@ -5,9 +5,8 @@ from django.core.cache.backends.base import BaseCache
 from django.core.exceptions import ImproperlyConfigured
 from django.core.cache import get_cache
 
-from redis.exceptions import ConnectionError
 from .util import load_class
-from .exceptions import ConnectionInterrumped
+from .exceptions import ConnectionInterrupted
 
 import functools
 
@@ -19,19 +18,19 @@ def omit_exception(method):
     """
     Simple decorator that intercepts connection
     errors and ignores these if settings specify this.
+
+    Note: this doesn't handle the `default` argument in .get().
     """
+
+    if not DJANGO_REDIS_IGNORE_EXCEPTIONS:
+        return method
 
     @functools.wraps(method)
     def _decorator(self, *args, **kwargs):
-        if DJANGO_REDIS_IGNORE_EXCEPTIONS:
-            try:
-                return method(self, *args, **kwargs)
-            except ConnectionInterrumped:
-                if "default" in kwargs:
-                    return kwargs["default"]
-                return None
-
-        return method(self, *args, **kwargs)
+        try:
+            return method(self, *args, **kwargs)
+        except ConnectionInterrupted:
+            return None
     return _decorator
 
 
@@ -96,8 +95,14 @@ class RedisCache(BaseCache):
         return self.client.add(*args, **kwargs)
 
     @omit_exception
-    def get(self, *args, **kwargs):
-        return self.client.get(*args, **kwargs)
+    def get(self, key, default=None, version=None, client=None):
+        try:
+            return self.client.get(key, default=default, version=version,
+                                   client=client)
+        except ConnectionInterrupted:
+            if DJANGO_REDIS_IGNORE_EXCEPTIONS:
+                return default
+            raise
 
     @omit_exception
     def delete(self, *args, **kwargs):
