@@ -2,7 +2,12 @@
 
 from __future__ import absolute_import, unicode_literals
 
-from django.core.exceptions import ImproperlyConfigured
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
+
+import random
 
 try:
     from django.utils.encoding import smart_bytes
@@ -10,17 +15,14 @@ except ImportError:
     from django.utils.encoding import smart_str as smart_bytes
 
 from django.utils.datastructures import SortedDict
+from django.core.exceptions import ImproperlyConfigured
 from django.conf import settings
-
-try:
-    import cPickle as pickle
-except ImportError:
-    import pickle
 
 from redis import Redis
 from redis.exceptions import ConnectionError, ResponseError
-from redis.connection import DefaultParser
-from redis.connection import UnixDomainSocketConnection, Connection
+from redis.connection import (Connection,
+                              DefaultParser,
+                              UnixDomainSocketConnection)
 
 from ..util import CacheKey, load_class, integer_types
 from ..exceptions import ConnectionInterrupted
@@ -37,20 +39,27 @@ class DefaultClient(object):
         if not self._server:
             raise ImproperlyConfigured("Missing connections string")
 
+        if not isinstance(self._server, (list, tuple, set)):
+            self._server = self._server.split(",")
+
+        self._clients = [None for x in range(len(self._server))]
         self._options = params.get('OPTIONS', {})
+
         self.setup_pickle_version()
 
     def __contains__(self, key):
         return self.has_key(key)
 
-    @property
-    def client(self):
-        if hasattr(self, "_client"):
-            return self._client
+    def get_client(self, write=True):
+        if write or len(self._server) == 1:
+            index = 0
+        else:
+            index = random.randint(1, len(self._server)-1)
 
-        _client = self.connect()
-        self._client = _client
-        return _client
+        if self._clients[index] is None:
+            self._clients[index] = self.connect(index)
+
+        return self._clients[index]
 
     @property
     def parser_class(self):
@@ -87,6 +96,7 @@ class DefaultClient(object):
             kwargs.update({'path': port, 'connection_class': UnixDomainSocketConnection})
         else:
             kwargs.update({'host': host, 'port': port, 'connection_class': Connection})
+
         if 'SOCKET_TIMEOUT' in self._options:
             kwargs.update({'socket_timeout': int(self._options['SOCKET_TIMEOUT'])})
 
@@ -94,8 +104,8 @@ class DefaultClient(object):
         connection = Redis(connection_pool=connection_pool)
         return connection
 
-    def connect(self):
-        host, port, db = self.parse_connection_string(self._server)
+    def connect(self, index=0):
+        host, port, db = self.parse_connection_string(self._server[index])
         connection = self._connect(host, port, db)
         return connection
 
@@ -113,7 +123,7 @@ class DefaultClient(object):
         """
 
         if not client:
-            client = self.client
+            client = self.get_client(write=True)
 
         key = self.make_key(key, version=version)
         value = self.pickle(value)
@@ -141,7 +151,7 @@ class DefaultClient(object):
         """
 
         if client is None:
-            client = self.client
+            client = self.get_client(write=True)
 
         if version is None:
             version = self._backend.version
@@ -181,7 +191,7 @@ class DefaultClient(object):
         Returns unpickled value if key is found, the default if not.
         """
         if client is None:
-            client = self.client
+            client = self.get_client(write=False)
 
         key = self.make_key(key, version=version)
 
@@ -200,7 +210,7 @@ class DefaultClient(object):
         Remove a key from the cache.
         """
         if client is None:
-            client = self.client
+            client = self.get_client(write=True)
 
         try:
             client.delete(self.make_key(key, version=version))
@@ -213,7 +223,7 @@ class DefaultClient(object):
         """
 
         if client is None:
-            client = self.client
+            client = self.get_client(write=True)
 
         pattern = self.make_key(pattern, version=version)
         try:
@@ -230,7 +240,7 @@ class DefaultClient(object):
         """
 
         if client is None:
-            client = self.client
+            client = self.get_client(write=True)
 
         if not keys:
             return
@@ -246,7 +256,7 @@ class DefaultClient(object):
         Flush all cache keys.
         """
         if client is None:
-            client = self.client
+            client = self.get_client(write=True)
 
         client.flushdb()
 
@@ -277,7 +287,7 @@ class DefaultClient(object):
         """
 
         if client is None:
-            client = self.client
+            client = self.get_client(write=False)
 
         if not keys:
             return {}
@@ -307,7 +317,7 @@ class DefaultClient(object):
         the default cache timeout will be used.
         """
         if client is None:
-            client = self.client
+            client = self.get_client(write=True)
 
         try:
             pipeline = client.pipeline()
@@ -319,7 +329,7 @@ class DefaultClient(object):
 
     def _incr(self, key, delta=1, version=None, client=None):
         if client is None:
-            client = self.client
+            client = self.get_client(write=True)
 
         key = self.make_key(key, version=version)
 
@@ -366,7 +376,7 @@ class DefaultClient(object):
         """
 
         if client is None:
-            client = self.client
+            client = self.get_client(write=False)
 
         key = self.make_key(key, version=version)
         try:
@@ -376,7 +386,7 @@ class DefaultClient(object):
 
     def keys(self, search, client=None):
         if client is None:
-            client = self.client
+            client = self.get_client(write=False)
 
         pattern = self.make_key(search)
         try:

@@ -26,8 +26,7 @@ class ShardClient(DefaultClient):
         self._ring = HashRing(self._server)
         self._serverdict = self.connect()
 
-    @property
-    def client(self):
+    def get_client(self, write=True):
         raise NotImplementedError
 
     def connect(self):

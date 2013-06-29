@@ -273,6 +273,29 @@ class DjangoRedisCacheTests(TestCase):
         except NotImplementedError:
             pass
 
+    def test_master_slave_switching(self):
+        try:
+            import random
+            random.seed(1)
+
+            cache = get_cache('sample')
+            client = cache.client
+            client._server = ["foo", "bar", "kk"]
+            client._clients = ["Foo", "Bar", "Kk"]
+
+            self.assertEqual(client.get_client(write=True), "Foo")
+            self.assertEqual(client.get_client(write=True), "Foo")
+            self.assertEqual(client.get_client(write=True), "Foo")
+
+            self.assertEqual(client.get_client(write=False), "Bar")
+            self.assertEqual(client.get_client(write=False), "Bar")
+            self.assertEqual(client.get_client(write=False), "Kk")
+            self.assertEqual(client.get_client(write=False), "Bar")
+            self.assertEqual(client.get_client(write=False), "Kk")
+            self.assertEqual(client.get_client(write=False), "Kk")
+        except NotImplementedError:
+            pass
+
 
 class DjangoOmitExceptionsTests(TestCase):
     def setUp(self):

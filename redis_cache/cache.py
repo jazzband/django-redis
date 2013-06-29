@@ -66,7 +66,7 @@ class RedisCache(BaseCache):
         pluggable clients supports this feature. If not supports
         this raises NotImplementedError
         """
-        return self.client.client
+        return self.client.get_client(write=True)
 
     @property
     def fallback_client(self):
