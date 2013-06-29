@@ -15,13 +15,15 @@ Features:
 ---------
 
 * In active development.
-* Sharding supported in a single package.
+* Master-Slave connec
+* Support for Master-Slave setup
+* Support client side Sharding setup
 * Complete battery of tests (accepting improvements).
 * Used in production environments on several projects.
 * Can set keys with infinite timeout: ``cache.set('key', 'value', timeout=0)``
 * Pluggable clients.
 * Python3 support with same codebase.
-* Supports Django: 1.3, 1.4 and 1.5
+* Supports Django: 1.3, 1.4, 1.5 and 1.6
 * Can take advantage of the connection pool with directly access to the raw redis connection.
 * Can emulate memcached backend behavior with connection exceptions (see more :ref:`Settings <settings>`)
 
@@ -61,36 +63,8 @@ You can also install it with: ``pip install django-redis``
 Usage of cache backend
 ----------------------
 
-To start using django-redis, you must change your django cache settings. django-redis implements the standard interface for django cache backends.
-
-With django-redis v3.x has introduced certain backwards incompatible changes, in part of redis connection settings (connection string).
-The ``LOCATION`` attr string must be have always three colons instead of two.
-
-Old way (django-redis < 3.0):
-
-.. code-block:: python
-
-    CACHES = {
-        "default": {
-            #...
-            "LOCATION": "ip:port",
-            "OPTIONS": {
-                "DB": 1
-            }
-        }
-    }
-
-New way:
-
-.. code-block:: python
-
-    CACHES = {
-        "default": {
-            #...
-            "LOCATION": "ip:port:db",
-        }
-    }
-
+To start using django-redis, you must change your django cache settings.
+django-redis implements the standard interface for django cache backends.
 
 This is the complete example using a tcp connection:
 
@@ -130,6 +104,22 @@ And this is a complete example using unix sockets:
 
 Optionally, with ``PARSER_CLASS="redis.connection.HiredisParser"`` you can set hiredis parser.
 
+django-redis 3.x has introduced a new more concise method way of specifying
+a connection configuration. If you are using a older version (< 3.0) you should use
+this connection parameters style:
+
+.. code-block:: python
+
+    CACHES = {
+        "default": {
+            #...
+            "LOCATION": "ip:port",
+            "OPTIONS": {
+                "DB": 1
+            }
+        }
+    }
+
 
 How to use client-side sharding pluggable client?
 -------------------------------------------------
@@ -152,6 +142,34 @@ Some example:
             "OPTIONS": {
                 "CLIENT_CLASS": "redis_cache.client.ShardClient",
             }
+        }
+    }
+
+
+How to use a Master-Slave setup?
+--------------------------------
+
+As previous example of sharded connecion, you should set LOCATION as list of
+connection strings (as python list or string with "," separation for each
+connection string)
+
+.. note::
+    This feature is still experimental because is not huge tested
+    in production environments.
+
+Example:
+
+.. code-block:: python
+
+    CACHES = {
+        "default": {
+            "BACKEND": "redis_cache.cache.RedisCache",
+            "LOCATION": [
+                "127.0.0.1:6379:1",
+                "127.0.0.1:6378:1",
+            ],
+            # Or:
+            # "LOCATION": "127.0.0.1:6379:1,127.0.0.1:6378:1"
         }
     }
 
