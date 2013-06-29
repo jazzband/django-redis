@@ -29,27 +29,24 @@ CACHES = {
         'BACKEND': 'redis_cache.cache.RedisCache',
         'LOCATION': [
             '127.0.0.1:6379:1',
-            '127.0.0.1:6379:2',
+            '127.0.0.1:6379:1',
         ],
         'OPTIONS': {
-            'CLIENT_CLASS': 'redis_cache.client.ShardClient',
+            'CLIENT_CLASS': 'redis_cache.client.HerdClient',
         }
     },
     'doesnotexist': {
         'BACKEND': 'redis_cache.cache.RedisCache',
-        'LOCATION': [
-            '127.0.0.1:56379:1',
-            '127.0.0.1:56379:2',
-        ],
+        'LOCATION': '127.0.0.1:56379:1',
         'OPTIONS': {
-            'CLIENT_CLASS': 'redis_cache.client.ShardClient',
+            'CLIENT_CLASS': 'redis_cache.client.HerdClient',
         }
     },
     'sample': {
         'BACKEND': 'redis_cache.cache.RedisCache',
         'LOCATION': '127.0.0.1:6379:1,127.0.0.1:6379:1',
         'OPTIONS': {
-            'CLIENT_CLASS': 'redis_cache.client.ShardClient',
+            'CLIENT_CLASS': 'redis_cache.client.HerdClient',
         }
     },
 }
