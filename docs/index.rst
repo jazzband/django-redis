@@ -15,7 +15,6 @@ Features:
 ---------
 
 * In active development.
-* Master-Slave connec
 * Support for Master-Slave setup
 * Support client side Sharding setup
 * Complete battery of tests (accepting improvements).
