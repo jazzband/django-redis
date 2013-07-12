@@ -47,6 +47,11 @@ class DefaultClient(object):
 
         self.setup_pickle_version()
 
+        self._pool_cls = self._options.get(
+            'CONNECTION_POOL_CLASS', 'redis.connection.ConnectionPool')
+        self._pool_cls = load_class(self._pool_cls)
+        self._pool_cls_kwargs = self._options.get('CONNECTION_POOL_KWARGS', {})
+
     def __contains__(self, key):
         return self.has_key(key)
 
@@ -100,7 +105,9 @@ class DefaultClient(object):
         if 'SOCKET_TIMEOUT' in self._options:
             kwargs.update({'socket_timeout': int(self._options['SOCKET_TIMEOUT'])})
 
-        connection_pool = get_or_create_connection_pool(**kwargs)
+        kwargs.update(self._pool_cls_kwargs)
+
+        connection_pool = get_or_create_connection_pool(self._pool_cls, **kwargs)
         connection = Redis(connection_pool=connection_pool)
         return connection
 
