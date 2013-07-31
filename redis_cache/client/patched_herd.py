@@ -1,15 +1,17 @@
 # -*- coding: utf-8 -*-
 
+import logging
+import os
+import random
 import time
 from redis.exceptions import ConnectionError
-from ..exceptions import ConnectionInterrupted
-import random
-import os
 from django.conf import settings
+from django.http import HttpResponse
 from django.utils.datastructures import SortedDict
 from django.utils.http import parse_http_date_safe
-
 from . import default
+from ..exceptions import ConnectionInterrupted
+logger = logging.getLogger(__name__)
 
 
 class Marker(object):
@@ -40,8 +42,11 @@ class HerdClient(default.DefaultClient):
         super(HerdClient, self).__init__(*args, **kwargs)
 
     def _pack(self, value, timeout):
-        herd_timeout = (timeout or self.default_timeout) + int(time.time())
-        last_modified = parse_http_date_safe(value._headers.get('Last-Modified'))
+        timenow = int(time.time())
+        herd_timeout = (timeout or self.default_timeout) + timenow
+        last_modified = timenow
+        if isinstance(value, HttpResponse):
+            last_modified = parse_http_date_safe(value._headers.get('Last-Modified'))
 
         return (self._marker, value, herd_timeout, last_modified)
 
@@ -49,6 +54,9 @@ class HerdClient(default.DefaultClient):
         try:
             marker, unpacked, herd_timeout, last_modified = value
         except (ValueError, TypeError):
+            logger.error('_unpack cached item did not get '
+                + 'the expected number of values in the tuple',
+                exc_info=True)
             return value, False
 
         if not isinstance(marker, Marker):
