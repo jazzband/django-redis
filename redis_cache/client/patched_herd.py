@@ -46,7 +46,8 @@ class HerdClient(default.DefaultClient):
         herd_timeout = (timeout or self.default_timeout) + timenow
         last_modified = timenow
         if isinstance(value, HttpResponse):
-            last_modified = parse_http_date_safe(value._headers.get('last-modified'))
+            last_modified = parse_http_date_safe(
+                value['Last-Modified'] if 'Last-Modified' in value else timenow)
 
         return (self._marker, value, herd_timeout, last_modified)
 
