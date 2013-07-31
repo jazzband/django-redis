@@ -47,19 +47,22 @@ class HerdClient(default.DefaultClient):
 
     def _unpack(self, value):
         try:
-            marker, unpacked, herd_timeout, last_mod = value
+            marker, unpacked, herd_timeout, last_modified = value
         except (ValueError, TypeError):
             return value, False
 
         if not isinstance(marker, Marker):
             return value, False
 
-        if os.environ.get('GLOBAL_CACHE_TIME', last_mod) > last_mod:
-            x = int(time.time()) - os.environ.get('GLOBAL_CACHE_TIME', last_mod)
+        now = int(time.time())
+        global_cache_time = os.environ.get('GLOBAL_CACHE_TIME', last_modified)
+
+        if global_cache_time > last_modified:
+            x = now - global_cache_time
             return unpacked, _is_expired(x)
 
-        if herd_timeout < int(time.time()):
-            x = int(time.time()) - herd_timeout
+        if herd_timeout < now:
+            x = now - herd_timeout
             return unpacked, _is_expired(x)
 
         return unpacked, False
