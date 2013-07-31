@@ -63,7 +63,7 @@ class HerdClient(default.DefaultClient):
             return value, False
 
         now = int(time.time())
-        global_cache_time = os.environ.get('GLOBAL_CACHE_TIME', last_modified)
+        global_cache_time = int(os.environ.get('GLOBAL_CACHE_TIME', last_modified))
 
         if global_cache_time > last_modified:
             x = now - global_cache_time
