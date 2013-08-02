@@ -55,9 +55,6 @@ class HerdClient(default.DefaultClient):
         try:
             marker, unpacked, herd_timeout, last_modified = value
         except (ValueError, TypeError):
-            logger.error('_unpack cached item did not get '
-                + 'the expected number of values in the tuple',
-                exc_info=True)
             return value, False
 
         if not isinstance(marker, Marker):
