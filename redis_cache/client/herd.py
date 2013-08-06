@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 
+import random
 import time
-
+from redis.exceptions import ConnectionError
 from django.conf import settings
 from django.utils.datastructures import SortedDict
-
 from . import default
+from ..exceptions import ConnectionInterrupted
 
 
 class Marker(object):
@@ -17,6 +18,17 @@ class Marker(object):
 
 
 CACHE_HERD_TIMEOUT = getattr(settings, 'CACHE_HERD_TIMEOUT', 60)
+
+
+def _is_expired(x):
+    if x >= CACHE_HERD_TIMEOUT:
+        return True
+    val = x + random.randint(1, CACHE_HERD_TIMEOUT)
+
+    if val >= CACHE_HERD_TIMEOUT:
+        return True
+    else:
+        return False
 
 
 class HerdClient(default.DefaultClient):
@@ -37,8 +49,10 @@ class HerdClient(default.DefaultClient):
         if not isinstance(marker, Marker):
             return value, False
 
-        if herd_timeout < int(time.time()):
-            return unpacked, True
+        now = int(time.time())
+        if herd_timeout < now:
+            x = now - herd_timeout
+            return unpacked, _is_expired(x)
 
         return unpacked, False
 
@@ -65,7 +79,6 @@ class HerdClient(default.DefaultClient):
         val, refresh = self._unpack(packed)
 
         if refresh:
-            super(HerdClient, self).set(key, val, CACHE_HERD_TIMEOUT)
             return default
 
         return val
@@ -87,8 +100,6 @@ class HerdClient(default.DefaultClient):
         except ConnectionError:
             raise ConnectionInterrupted(connection=client)
 
-        reinsert = {}
-
         for key, value in zip(new_keys, results):
             if value is None:
                 continue
@@ -96,12 +107,8 @@ class HerdClient(default.DefaultClient):
             val, refresh = self._unpack(self.unpickle(value))
             if refresh:
                 recovered_data[map_keys[key]] = None
-                reinsert[map_keys[key]] = val
             else:
                 recovered_data[map_keys[key]] = val
-
-        if reinsert:
-            self.set_many(reinsert, CACHE_HERD_TIMEOUT)
 
         return recovered_data
 
