@@ -117,8 +117,6 @@ class HerdClient(default.DefaultClient):
         except ConnectionError:
             raise ConnectionInterrupted(connection=client)
 
-        #reinsert = {}
-
         for key, value in zip(new_keys, results):
             if value is None:
                 continue
@@ -126,12 +124,8 @@ class HerdClient(default.DefaultClient):
             val, refresh = self._unpack(self.unpickle(value))
             if refresh:
                 recovered_data[map_keys[key]] = None
-                #reinsert[map_keys[key]] = val
             else:
                 recovered_data[map_keys[key]] = val
-
-        #if reinsert:
-            #self.set_many(reinsert, CACHE_HERD_TIMEOUT)
 
         return recovered_data
 
