@@ -18,6 +18,7 @@ else:
     bytes_type = bytes
     long = int
 
+
 class DjangoRedisCacheTests(TestCase):
     def setUp(self):
         self.cache = cache
@@ -309,3 +310,14 @@ class DjangoOmitExceptionsTests(TestCase):
         self.assertIsNone(self.cache.get('key'))
         self.assertEqual(self.cache.get('key', 'default'), 'default')
         self.assertEqual(self.cache.get('key', default='default'), 'default')
+
+
+from django.contrib.sessions.backends.cache import SessionStore as CacheSession
+from django.contrib.sessions.tests import SessionTestsMixin
+
+
+class SessionTests(SessionTestsMixin, TestCase):
+    backend = CacheSession
+
+    def test_actual_expiry(self):
+        pass
