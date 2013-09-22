@@ -16,6 +16,9 @@ Version 3.4.0
   client (it still experimental because is not tested in
   production environments).
 
+- Merged SimpleFailoverClient experimental client (only for
+  experiment with it, not ready for use in production)
+
 
 Version 3.3.0
 -------------

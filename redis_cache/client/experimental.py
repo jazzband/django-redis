@@ -133,4 +133,3 @@ class SimpleFailoverClient(DefaultClient):
     @auto_failover
     def close(self, **kwargs):
         super(SimpleFailoverClient, self).close(**kwargs)
-
