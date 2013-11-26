@@ -32,7 +32,7 @@ class RedisStatsView(View):
     
     def get_caches(self):
         caches = {}
-        for name, options in getattr(settings, 'CACHES').iteritems():
+        for name, options in getattr(settings, 'CACHES').items():
             if 'BACKEND' not in options or 'RedisCache' not in options['BACKEND']:
                 continue
 
@@ -70,7 +70,7 @@ class RedisStatsView(View):
 
         def parse_dbs(infoobject):
             dbs = {}
-            for key, value in infoobject.iteritems():
+            for key, value in infoobject.items():
                 rx_match = self.dbs_rx.match(key)
                 if rx_match:
                     dbs[str(rx_match.group(1))] = value
@@ -80,7 +80,7 @@ class RedisStatsView(View):
         global pools
 
         caches_info = {}
-        for name, options in self.caches.iteritems():
+        for name, options in self.caches.items():
             connection_pool = ConnectionPoolHandler()\
                 .connection_pool(parser_class=DefaultParser, **options)
             rclient = redis.Redis(connection_pool=connection_pool)
