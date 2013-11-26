@@ -36,7 +36,8 @@ class HerdClient(default.DefaultClient):
         super(HerdClient, self).__init__(*args, **kwargs)
 
     def _pack(self, value, timeout):
-        herd_timeout = (timeout or self.default_timeout) + int(time.time())
+        herd_timeout = ((timeout or self._backend.default_timeout)
+                        + int(time.time()))
         return (self._marker, value, herd_timeout)
 
     def _unpack(self, value):
