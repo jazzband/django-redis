@@ -267,7 +267,8 @@ class DefaultClient(object):
 
         client.flushdb()
 
-    def unpickle(self, value):
+    @staticmethod
+    def unpickle(value):
         """
         Unpickles the given value.
         """
