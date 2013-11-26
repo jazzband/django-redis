@@ -2,17 +2,15 @@
 # Copyright (c) 2011 Andrei Antoukh <niwi@niwi.be>
 
 from django.views.generic import View
-from django.shortcuts import render_to_response, get_object_or_404
-from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect
+from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 
-from redis.connection import UnixDomainSocketConnection, Connection
 from redis.connection import DefaultParser
+# FIXME: `ConnectionPoolHandler` is undefined!
 from ..util import ConnectionPoolHandler
 
 import redis, re
@@ -76,11 +74,12 @@ class RedisStatsView(View):
                     dbs[str(rx_match.group(1))] = value
 
             return dbs
-        
+
+        # FIXME: There is no `pools` in the outer scope.
         global pools
 
         caches_info = {}
-        for name, options in self.caches.items():
+        for name, options in self.caches.items():  # FIXME: `self.caches` is undefined!
             connection_pool = ConnectionPoolHandler()\
                 .connection_pool(parser_class=DefaultParser, **options)
             rclient = redis.Redis(connection_pool=connection_pool)
