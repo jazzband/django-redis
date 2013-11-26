@@ -252,7 +252,7 @@ class DefaultClient(object):
         if not keys:
             return
 
-        keys = map(lambda key: self.make_key(key, version=version), keys)
+        keys = [self.make_key(k, version=version) for k in keys]
         try:
             client.delete(*keys)
         except ConnectionError:
@@ -301,7 +301,7 @@ class DefaultClient(object):
 
         recovered_data = SortedDict()
 
-        new_keys = list(map(lambda key: self.make_key(key, version=version), keys))
+        new_keys = [self.make_key(k, version=version) for k in keys]
         map_keys = dict(zip(new_keys, keys))
 
         try:
@@ -397,8 +397,8 @@ class DefaultClient(object):
 
         pattern = self.make_key(search)
         try:
-            encoding_map = map(lambda x:  x.decode('utf-8'), client.keys(pattern))
-            return list(map(lambda x: x.split(":", 2)[2], encoding_map))
+            encoding_map = [k.decode('utf-8') for k in client.keys(pattern)]
+            return [k.split(":", 2)[2] for k in encoding_map]
         except ConnectionError:
             raise ConnectionInterrupted(connection=client)
 

@@ -133,7 +133,7 @@ class ShardClient(DefaultClient):
         """
         Remove multiple keys at once.
         """
-        for key in map(lambda key: self.make_key(key, version=version), keys):
+        for key in [self.make_key(k, version=version) for k in keys]:
             client = self.get_server(key)
             self.delete(key, client=client)
 
@@ -172,8 +172,8 @@ class ShardClient(DefaultClient):
             client = self.get_server(pattern)
             raise ConnectionInterrupted(connection=client)
 
-        decoded_keys = map(lambda x: x.decode('utf-8'), keys)
-        return list(map(lambda x: x.split(":", 2)[2], decoded_keys))
+        decoded_keys = [k.decode('utf-8') for k in keys]
+        return [k.split(":", 2)[2] for k in decoded_keys]
 
     def delete_pattern(self, pattern, version=None):
         """

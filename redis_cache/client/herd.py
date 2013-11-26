@@ -92,7 +92,7 @@ class HerdClient(default.DefaultClient):
 
         recovered_data = SortedDict()
 
-        new_keys = list(map(lambda key: self.make_key(key, version=version), keys))
+        new_keys = [self.make_key(key, version=version) for key in keys]
         map_keys = dict(zip(new_keys, keys))
 
         try:
