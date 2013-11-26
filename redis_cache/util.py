@@ -57,8 +57,9 @@ def load_class(path):
     Load class from path.
     """
 
+    mod_name, klass_name = path.rsplit('.', 1)
+
     try:
-        mod_name, klass_name = path.rsplit('.', 1)
         mod = import_module(mod_name)
     except AttributeError as e:
         raise ImproperlyConfigured('Error importing {0}: "{1}"'.format(mod_name, e))
