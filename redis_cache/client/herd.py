@@ -27,8 +27,7 @@ def _is_expired(x):
 
     if val >= CACHE_HERD_TIMEOUT:
         return True
-    else:
-        return False
+    return False
 
 
 class HerdClient(default.DefaultClient):
@@ -105,10 +104,7 @@ class HerdClient(default.DefaultClient):
                 continue
 
             val, refresh = self._unpack(self.unpickle(value))
-            if refresh:
-                recovered_data[map_keys[key]] = None
-            else:
-                recovered_data[map_keys[key]] = val
+            recovered_data[map_keys[key]] = None if refresh else val
 
         return recovered_data
 
@@ -124,10 +120,7 @@ class HerdClient(default.DefaultClient):
         if client is None:
             client = self.get_client(write=True)
 
-        if herd:
-            set_function = self.set
-        else:
-            set_function = super(HerdClient, self).set
+        set_function = self.set if herd else super(HerdClient, self).set
 
         try:
             pipeline = client.pipeline()

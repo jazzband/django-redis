@@ -48,7 +48,7 @@ class CacheKey(object):
             return smart_text(self._key)
 
     def original_key(self):
-        _, key = self._key.rsplit(":", 1)
+        key = self._key.rsplit(":", 1)[1]
         return key
 
 
