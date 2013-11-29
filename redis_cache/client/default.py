@@ -42,7 +42,7 @@ class DefaultClient(object):
         if not isinstance(self._server, (list, tuple, set)):
             self._server = self._server.split(",")
 
-        self._clients = [None for x in range(len(self._server))]
+        self._clients = [None] * len(self._server)
         self._options = params.get('OPTIONS', {})
 
         self.setup_pickle_version()
@@ -80,7 +80,7 @@ class DefaultClient(object):
         """
         try:
             host, port, db = constring.split(":")
-            port = int(port) if host != "unix" else port
+            port = port if host == "unix" else int(port)
             db = int(db)
             return host, port, db
         except (ValueError, TypeError):
@@ -252,7 +252,7 @@ class DefaultClient(object):
         if not keys:
             return
 
-        keys = map(lambda key: self.make_key(key, version=version), keys)
+        keys = [self.make_key(k, version=version) for k in keys]
         try:
             client.delete(*keys)
         except ConnectionError:
@@ -267,7 +267,8 @@ class DefaultClient(object):
 
         client.flushdb()
 
-    def unpickle(self, value):
+    @staticmethod
+    def unpickle(value):
         """
         Unpickles the given value.
         """
@@ -301,7 +302,7 @@ class DefaultClient(object):
 
         recovered_data = SortedDict()
 
-        new_keys = list(map(lambda key: self.make_key(key, version=version), keys))
+        new_keys = [self.make_key(k, version=version) for k in keys]
         map_keys = dict(zip(new_keys, keys))
 
         try:
@@ -374,7 +375,7 @@ class DefaultClient(object):
         Decreace delta to value in the cache. If the key does not exist, raise a
         ValueError exception.
         """
-        return self._incr(key=key, delta=delta * -1, version=version,
+        return self._incr(key=key, delta=-delta, version=version,
                           client=client)
 
     def has_key(self, key, version=None, client=None):
@@ -397,15 +398,15 @@ class DefaultClient(object):
 
         pattern = self.make_key(search)
         try:
-            encoding_map = map(lambda x:  x.decode('utf-8'), client.keys(pattern))
-            return list(map(lambda x: x.split(":", 2)[2], encoding_map))
+            encoding_map = [k.decode('utf-8') for k in client.keys(pattern)]
+            return [k.split(":", 2)[2] for k in encoding_map]
         except ConnectionError:
             raise ConnectionInterrupted(connection=client)
 
     def make_key(self, key, version=None):
-        if not isinstance(key, CacheKey):
-            key = CacheKey(self._backend.make_key(key, version))
-        return key
+        if isinstance(key, CacheKey):
+            return key
+        return CacheKey(self._backend.make_key(key, version))
 
     def close(self, **kwargs):
         if getattr(settings, "DJANGO_REDIS_CLOSE_CONNECTION", False):

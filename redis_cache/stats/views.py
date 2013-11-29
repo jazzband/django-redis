@@ -2,17 +2,15 @@
 # Copyright (c) 2011 Andrei Antoukh <niwi@niwi.be>
 
 from django.views.generic import View
-from django.shortcuts import render_to_response, get_object_or_404
-from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect
+from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 
-from redis.connection import UnixDomainSocketConnection, Connection
 from redis.connection import DefaultParser
+# FIXME: `ConnectionPoolHandler` is undefined!
 from ..util import ConnectionPoolHandler
 
 import redis, re
@@ -32,7 +30,7 @@ class RedisStatsView(View):
     
     def get_caches(self):
         caches = {}
-        for name, options in getattr(settings, 'CACHES').iteritems():
+        for name, options in getattr(settings, 'CACHES').items():
             if 'BACKEND' not in options or 'RedisCache' not in options['BACKEND']:
                 continue
 
@@ -70,17 +68,18 @@ class RedisStatsView(View):
 
         def parse_dbs(infoobject):
             dbs = {}
-            for key, value in infoobject.iteritems():
+            for key, value in infoobject.items():
                 rx_match = self.dbs_rx.match(key)
                 if rx_match:
                     dbs[str(rx_match.group(1))] = value
 
             return dbs
-        
+
+        # FIXME: There is no `pools` in the outer scope.
         global pools
 
         caches_info = {}
-        for name, options in self.caches.iteritems():
+        for name, options in self.caches.items():  # FIXME: `self.caches` is undefined!
             connection_pool = ConnectionPoolHandler()\
                 .connection_pool(parser_class=DefaultParser, **options)
             rclient = redis.Redis(connection_pool=connection_pool)
