@@ -123,7 +123,7 @@ class DefaultClient(object):
             except (ValueError, TypeError):
                 raise ImproperlyConfigured("PICKLE_VERSION value must be an integer")
 
-    def set(self, key, value, timeout=None, version=None, client=None, nx=False):
+    def set(self, key, value, timeout=None, version=None, client=None, nx=False, ex=None):
         """
         Persist a value to the cache, and set an optional expiration time.
         Also supports optional nx parameter. If set to True - will use redis setnx instead of set.
@@ -136,7 +136,7 @@ class DefaultClient(object):
         value = self.pickle(value)
 
         if timeout is None:
-            timeout = self._backend.default_timeout
+            timeout = ex or self._backend.default_timeout
 
         try:
             if nx:
