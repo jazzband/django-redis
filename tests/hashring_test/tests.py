@@ -32,7 +32,7 @@ class HashRingTest(TestCase):
             node = self.ring.get_node(key)
             ids.append(node.id)
 
-        self.assertEqual(ids, [0, 1, 2, 0, 2, 0, 2, 2, 0, 2])
+        self.assertEqual(ids, [0, 2, 1, 2, 2, 2, 2, 0, 1, 1])
 
     def test_hashring_brute_force(self):
         for key in ("test{0}".format(x) for x in range(10000)):
