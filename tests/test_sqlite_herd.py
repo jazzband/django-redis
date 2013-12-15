@@ -50,6 +50,8 @@ CACHES = {
     },
 }
 
+TEST_RUNNER = 'django.test.simple.DjangoTestSuiteRunner'
+
 INSTALLED_APPS = (
     'redis_backend_testapp',
     'hashring_test',
