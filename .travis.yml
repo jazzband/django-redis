@@ -11,6 +11,7 @@ install:
 script:
   - python runtests.py
   - python runtests-sharded.py
+  - python runtests-herd.py
 services:
   - redis-server
 notifications:
