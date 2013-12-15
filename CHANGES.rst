@@ -19,6 +19,11 @@ Version 3.4.0
 - Merged SimpleFailoverClient experimental client (only for
   experiment with it, not ready for use in production)
 
+- Django 1.6 cache changes compatibility. Explicitly passing in
+  timeout=None no longer results in using the default timeout.
+
+- Major code cleaning. (Thanks to Bertrand Bordage @BertrandBordage)
+
 
 Version 3.3.0
 -------------
