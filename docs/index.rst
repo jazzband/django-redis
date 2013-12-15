@@ -19,7 +19,7 @@ Features:
 * Support client side Sharding setup
 * Complete battery of tests (accepting improvements).
 * Used in production environments on several projects.
-* Can set keys with infinite timeout: ``cache.set('key', 'value', timeout=0)``
+* Can set keys with infinite timeouts.
 * Pluggable clients.
 * Python3 support with same codebase.
 * Supports Django: 1.3, 1.4, 1.5 and 1.6
@@ -171,6 +171,23 @@ Example:
             # "LOCATION": "127.0.0.1:6379:1,127.0.0.1:6378:1"
         }
     }
+
+
+Infinite timeouts
+-----------------
+
+.. versionchanged:: 3.4
+    Added django 1.6 behavior.
+
+django-redis, before django 1.6 has using a 0 timeout value for infinite timeouts. With changes introduced
+in django 1.6 we can now set infinite timeout with None as timeout value.
+
+Now, these calls are equivalents:
+
+.. code-block:: python
+
+    cache.set('key', 'value', timeout=0)
+    cache.set('key', 'value', timeout=None)
 
 
 Extra methods added by ``django-redis``
