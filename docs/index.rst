@@ -1,8 +1,3 @@
-.. django-redis documentation master file, created by
-   sphinx-quickstart on Sat Feb  2 20:14:51 2013.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 django-redis
 ============
 
@@ -11,8 +6,8 @@ Release v\ |version|.
 django-redis is a :ref:`BSD Licensed`, full featured redis cache backend for Django.
 
 
-Features:
----------
+Features
+--------
 
 * In active development.
 * Support for Master-Slave setup
@@ -59,8 +54,12 @@ or place ``redis_cache`` on your Python path.
 You can also install it with: ``pip install django-redis``
 
 
-Usage of cache backend
-----------------------
+Configure
+---------
+
+
+Quick setup
+~~~~~~~~~~~
 
 To start using django-redis, you must change your django cache settings.
 django-redis implements the standard interface for django cache backends.
@@ -120,12 +119,46 @@ this connection parameters style:
     }
 
 
-How to use client-side sharding pluggable client?
--------------------------------------------------
+Pluggable clients
+-----------------
 
-The configuration is same as a default with unique diference: the ``LOCATION`` attr must
-be a list of connection strings.
+Default client
+~~~~~~~~~~~~~~
 
+Additionally to previusly explained quick setup section, with default client you
+can setup master-slave configuration. For it, you should change LOCATION key from
+string to a list containing more that one connection string.
+A first entry identifies to master server, and next entries to slave servers.
+
+.. note::
+    Master-Slave setup is still experimental because is not huge tested
+    in production environments.
+
+Example:
+
+.. code-block:: python
+
+    CACHES = {
+        "default": {
+            "BACKEND": "redis_cache.cache.RedisCache",
+            "LOCATION": [
+                "127.0.0.1:6379:1",
+                "127.0.0.1:6378:1",
+            ],
+            # Or:
+            # "LOCATION": "127.0.0.1:6379:1,127.0.0.1:6378:1"
+        }
+    }
+
+Client-side sharding client
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Sharded client inherits most of functionality of default client, with differente that
+LOCATION list is used for build a hash ring.
+
+.. note::
+    This client is still experimental because is not huge tested
+    in production environments.
 
 Some example:
 
@@ -145,36 +178,79 @@ Some example:
     }
 
 
-How to use a Master-Slave setup?
---------------------------------
 
-As previous example of sharded connecion, you should set LOCATION as list of
-connection strings (as python list or string with "," separation for each
-connection string)
+Herd client
+~~~~~~~~~~~
 
-.. note::
-    This feature is still experimental because is not huge tested
-    in production environments.
+Helps for dealing with thundering herd problem. Can read more about on
+`wikipedia <http://en.wikipedia.org/wiki/Thundering_herd_problem>`_.
 
-Example:
+This inherits all functionality from default client but adds some additional
+checks on settings/gettings keys from cache.
+
+Sample setup:
 
 .. code-block:: python
 
     CACHES = {
         "default": {
             "BACKEND": "redis_cache.cache.RedisCache",
-            "LOCATION": [
-                "127.0.0.1:6379:1",
-                "127.0.0.1:6378:1",
-            ],
-            # Or:
-            # "LOCATION": "127.0.0.1:6379:1,127.0.0.1:6378:1"
+            "LOCATION": "127.0.0.1:6379:1",
+            "OPTIONS": {
+                "CLIENT_CLASS": "redis_cache.client.HerdClient",
+            }
         }
     }
 
 
+This pluggable client exposes additional settings:
+
+**CACHE_HERD_TIMEOUT**
+
+Set default cache herd timeout. Default value: 60 (seconds)
+
+
+Auto failover client
+~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 3.4
+
+.. note::
+    This client is still experimental because is not huge tested
+    in production environments.
+
+
+This pluggable client inherits all functionallity from default client
+but adds simple failover algorithm.
+
+The big difference is that each key on ``LOCATION`` list can contain two connection
+strings separated by "/". A secod connections string works as failover server.
+
+With this setup, on first server fails, django-redis automatically switches to the
+second.
+
+Sample setup:
+
+.. code-block:: python
+
+    CACHES = {
+        "default": {
+            "BACKEND": "redis_cache.cache.RedisCache",
+            "LOCATION": "127.0.0.1:6379:1/127.0.0.2:6379:1",
+            "OPTIONS": {
+                "CLIENT_CLASS": "redis_cache.client.SimpleFailoverClient",
+            }
+        }
+    }
+
+Additional features
+-------------------
+
+Also, django-redis comes with other minor features that aren't available on django
+cache backends or has distinct behavior.
+
 Infinite timeouts
------------------
+~~~~~~~~~~~~~~~~~
 
 .. versionchanged:: 3.4
     Added django 1.6 behavior.
@@ -190,8 +266,8 @@ Now, these calls are equivalents:
     cache.set('key', 'value', timeout=None)
 
 
-Extra methods added by ``django-redis``
----------------------------------------
+Extra backend methods
+~~~~~~~~~~~~~~~~~~~~~
 
 django-redis provides 2 additional methods to the standard django-cache api interface:
 
@@ -232,8 +308,9 @@ Example:
 
 .. _settings:
 
-Extra settings added by django-redis
-------------------------------------
+
+Extra settings
+~~~~~~~~~~~~~~
 
 .. versionadded:: 3.0
 
@@ -249,8 +326,10 @@ Now, on 3.2 version, the initial behavior is reverted, and if you would memcache
 ``DJANGO_REDIS_IGNORE_EXCEPTIONS`` to True (now, by default is False)
 
 
-Specifying a timeout for Redis operations
------------------------------------------
+Socket timeouts
+~~~~~~~~~~~~~~~
+
+.. versionadded:: 3.3
 
 You can optionally set a timeout for redis operations by specifying an integer or float value for
 ``SOCKET_TIMEOUT`` in your ``CACHES`` entry:
@@ -274,7 +353,7 @@ Otherwise, an exception will be raised.
 
 
 Access to raw redis connection
-------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. versionadded:: 3.1
 
