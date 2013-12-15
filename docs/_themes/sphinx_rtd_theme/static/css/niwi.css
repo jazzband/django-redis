@@ -1,0 +1,12 @@
+.rst-content tt {
+    border: 0px;
+    color: #666;
+    font-size: 85%;
+    font-weight: bold;
+    font-family: "Anonymous Pro","Incosolata","Consolata","Monaco",monospace;
+}
+
+div[class^='highlight'] pre {
+    font-family: "Anonymous Pro","Incosolata","Consolata","Monaco",monospace;
+    font-size: 15px;
+}
