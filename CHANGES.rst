@@ -24,6 +24,8 @@ Version 3.4.0
 
 - Major code cleaning. (Thanks to Bertrand Bordage @BertrandBordage)
 
+- Bugfixes related to some index error on hashring module.
+
 
 Version 3.3.0
 -------------
