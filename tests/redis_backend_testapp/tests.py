@@ -10,6 +10,11 @@ from django.test import TestCase
 from django.core.cache import cache, get_cache
 import redis_cache.cache
 
+
+from redis_cache.client import herd
+
+herd.CACHE_HERD_TIMEOUT = 2
+
 if sys.version_info[0] < 3:
     text_type = unicode
     bytes_type = str
@@ -22,6 +27,11 @@ else:
 class DjangoRedisCacheTests(TestCase):
     def setUp(self):
         self.cache = cache
+
+        try:
+            self.cache.clear()
+        except Exception:
+            pass
 
     def test_setnx(self):
         # we should ensure there is no test_key_nx in redis

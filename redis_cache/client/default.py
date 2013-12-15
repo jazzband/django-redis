@@ -316,7 +316,7 @@ class DefaultClient(object):
             recovered_data[map_keys[key]] = self.unpickle(value)
         return recovered_data
 
-    def set_many(self, data, timeout=None, version=None, client=None):
+    def set_many(self, data, timeout=True, version=None, client=None):
         """
         Set a bunch of values in the cache at once from a dict of key/value
         pairs. This is much more efficient than calling set() multiple times.
