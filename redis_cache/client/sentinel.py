@@ -1,0 +1,98 @@
+# -*- coding: utf-8 -*-
+
+from django.conf import settings
+try:
+    from django.utils.timezone import now as datetime_now
+    assert datetime_now
+except ImportError:
+    import datetime
+    datetime_now = datetime.datetime.now
+from redis import Redis
+from redis.sentinel import Sentinel
+from redis.connection import Connection
+from .default import DefaultClient
+from ..exceptions import ConnectionInterrupted
+from ..pool import get_or_create_connection_pool
+import functools
+import random
+
+
+class SentinelClient(DefaultClient):
+    def __init__(self, server, params, backend):
+        """
+        Slightly different logic than connection to multiple Redis servers. Reserve only one write and read
+        descriptors, as they will be closed on exit anyway.
+        """
+        super(SentinelClient, self).__init__(server, params, backend)
+        self._client_write = None
+        self._client_read = None
+        self._connection_string = server
+
+    def parse_connection_string(self, constring):
+        """
+        Parse connection string in format:
+            master_name/sentinel_server:port,sentinel_server:port/db_id
+        Returns master name, list of tuples with pair (host, port) and db_id
+        """
+        try:
+            connection_params = constring.split('/')
+            master_name = connection_params[0]
+            servers = [host_port.split(':') for host_port in connection_params[1].split(',')]
+            sentinel_hosts = [(host, int(port)) for host, port in servers]
+            db = connection_params[2]
+        except (ValueError, TypeError):
+            raise ImproperlyConfigured("Incorrect format '%s'" % (constring))
+        
+        return master_name, sentinel_hosts, db
+
+    def get_client(self, write=True):
+        if write:
+            if self._client_write is None:
+                self._client_write = self.connect(0, write)
+            
+            return self._client_write
+        
+        if self._client_read is None:
+            self._client_read = self.connect(0, write)
+        
+        return self._client_read
+
+    def connect(self, index=0, write=True):
+        """
+        Creates a redis connection with connection pool.
+        """
+        master_name, sentinel_hosts, db = self.parse_connection_string(self._connection_string)
+
+        sentinel_timeout = self._options.get('SENTINEL_TIMEOUT', 1)
+        sentinel = Sentinel(sentinel_hosts, socket_timeout=sentinel_timeout)
+
+        if write:
+            host, port = sentinel.discover_master(master_name)
+        else:
+            host, port = random.choice([sentinel.discover_master(master_name)] + sentinel.discover_slaves(master_name))
+
+        kwargs = {
+            "db": db,
+            "parser_class": self.parser_class,
+            "password": self._options.get('PASSWORD', None),
+        }
+
+        kwargs.update({'host': host, 'port': port, 'connection_class': Connection})
+
+        if 'SOCKET_TIMEOUT' in self._options:
+            kwargs.update({'socket_timeout': int(self._options['SOCKET_TIMEOUT'])})
+
+        kwargs.update(self._pool_cls_kwargs)
+
+        connection_pool = get_or_create_connection_pool(self._pool_cls, **kwargs)
+        connection = Redis(connection_pool=connection_pool)
+        return connection
+
+    def close(self, **kwargs):
+        """
+        Closing old connections, as master may change in time of inactivity.
+        """
+        del(self._client_write)
+        del(self._client_read)
+        self._client_write = None
+        self._client_read = None
