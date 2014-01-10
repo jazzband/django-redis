@@ -37,14 +37,6 @@ This cache backend requires the `redis-py`_ python client library for
 communicating with the Redis server.
 
 
-Coming from ``django-redis-cache``
-----------------------------------
-
-Currently, for django versions ``>1.3``, migration is very easy, since there is no
-significant difference in connection APIs. The only point is the connection string that
-since version 3.0 has changed slightly. You can look at the differences in the later sections.
-
-
 How to install
 --------------
 
