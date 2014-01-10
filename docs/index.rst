@@ -79,14 +79,14 @@ And this is a complete example using unix sockets:
     # Note: ``LOCATION`` needs to be the same as the ``unixsocket`` setting
     # in your redis.conf
     CACHES = {
-        'default': {
-            'BACKEND': 'redis_cache.cache.RedisCache',
-            'LOCATION': 'unix:/path/to/socket/file.sock:1',
-            'OPTIONS': {
-                'PASSWORD': 'foopassword',
-                'PICKLE_VERSION': -1,   # default
-                'PARSER_CLASS': 'redis.connection.HiredisParser',
-                'CLIENT_CLASS': 'redis_cache.client.DefaultClient',
+        "default": {
+            "BACKEND": "redis_cache.cache.RedisCache",
+            "LOCATION": "unix:/path/to/socket/file.sock:1",
+            "OPTIONS": {
+                "PASSWORD": "foopassword",
+                "PICKLE_VERSION": -1,   # default
+                "PARSER_CLASS": "redis.connection.HiredisParser",
+                "CLIENT_CLASS": "redis_cache.client.DefaultClient",
             },
         },
     }
