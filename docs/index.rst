@@ -49,7 +49,6 @@ You can also install it with: ``pip install django-redis``
 Configure
 ---------
 
-
 Quick setup
 ~~~~~~~~~~~
 
@@ -92,7 +91,8 @@ And this is a complete example using unix sockets:
     }
 
 
-Optionally, with ``PARSER_CLASS="redis.connection.HiredisParser"`` you can set hiredis parser.
+Optionally, with ``PARSER_CLASS="redis.connection.HiredisParser"`` you can set hiredis parser
+for improve performance for environments that requires it.
 
 django-redis 3.x has introduced a new more concise method way of specifying
 a connection configuration. If you are using a older version (< 3.0) you should use
@@ -123,7 +123,7 @@ string to a list containing more that one connection string.
 A first entry identifies to master server, and next entries to slave servers.
 
 .. note::
-    Master-Slave setup is still experimental because is not huge tested
+    master/slave setup is still experimental because is not huge tested
     in production environments.
 
 Example:
