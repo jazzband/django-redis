@@ -16,9 +16,13 @@ except ImportError:
     from django.utils.encoding import smart_str as smart_bytes
 
 from django.utils.datastructures import SortedDict
-from django.core.cache.backends.base import DEFAULT_TIMEOUT
 from django.core.exceptions import ImproperlyConfigured
 from django.conf import settings
+
+try:
+    from django.core.cache.backends.base import DEFAULT_TIMEOUT
+except ImportError:
+    DEFAULT_TIMEOUT = object()
 
 from redis import Redis
 from redis.exceptions import ConnectionError, ResponseError

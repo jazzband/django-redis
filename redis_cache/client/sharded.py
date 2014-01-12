@@ -9,12 +9,11 @@ from redis.exceptions import ConnectionError
 
 from django.conf import settings
 from django.utils.datastructures import SortedDict
-from django.core.cache.backends.base import DEFAULT_TIMEOUT
 
 from ..hash_ring import HashRing
 from ..exceptions import ConnectionInterrupted
 from ..util import CacheKey
-from .default import DefaultClient
+from .default import DefaultClient, DEFAULT_TIMEOUT
 
 
 class ShardClient(DefaultClient):

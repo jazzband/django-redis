@@ -7,10 +7,9 @@ import warnings
 from redis.exceptions import ConnectionError
 
 from django.conf import settings
-from django.core.cache.backends.base import DEFAULT_TIMEOUT
 from django.utils.datastructures import SortedDict
 
-from . import default
+from .default import DEFAULT_TIMEOUT, DefaultClient
 from ..exceptions import ConnectionInterrupted
 
 
@@ -35,7 +34,7 @@ def _is_expired(x):
     return False
 
 
-class HerdClient(default.DefaultClient):
+class HerdClient(DefaultClient):
     def __init__(self, *args, **kwargs):
         self._marker = Marker()
         super(HerdClient, self).__init__(*args, **kwargs)
