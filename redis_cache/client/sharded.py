@@ -55,7 +55,7 @@ class ShardClient(DefaultClient):
             client = self.get_server(key)
 
         return super(ShardClient, self)\
-            .add(key=key, value=value, version=version, client=client)
+            .add(key=key, value=value, version=version, client=client, timeout=timeout)
 
     def get(self,  key, default=None, version=None, client=None):
         if client is None:
