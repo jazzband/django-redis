@@ -1,20 +1,17 @@
 # -*- coding: utf-8 -*-
 
+import functools
+import random
+
 from django.conf import settings
-try:
-    from django.utils.timezone import now as datetime_now
-    assert datetime_now
-except ImportError:
-    import datetime
-    datetime_now = datetime.datetime.now
+
 from redis import Redis
 from redis.sentinel import Sentinel
 from redis.connection import Connection
+
 from .default import DefaultClient
 from ..exceptions import ConnectionInterrupted
 from ..pool import get_or_create_connection_pool
-import functools
-import random
 
 
 class SentinelClient(DefaultClient):
