@@ -42,19 +42,19 @@ class SentinelClient(DefaultClient):
             db = connection_params[2]
         except (ValueError, TypeError):
             raise ImproperlyConfigured("Incorrect format '%s'" % (constring))
-        
+
         return master_name, sentinel_hosts, db
 
     def get_client(self, write=True):
         if write:
             if self._client_write is None:
                 self._client_write = self.connect(0, write)
-            
+
             return self._client_write
-        
+
         if self._client_read is None:
             self._client_read = self.connect(0, write)
-        
+
         return self._client_read
 
     def connect(self, index=0, write=True):
