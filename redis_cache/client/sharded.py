@@ -13,6 +13,7 @@ from django.core.cache.backends.base import DEFAULT_TIMEOUT
 
 from ..hash_ring import HashRing
 from ..exceptions import ConnectionInterrupted
+from ..util import CacheKey
 from .default import DefaultClient
 
 
@@ -144,8 +145,28 @@ class ShardClient(DefaultClient):
             key = self.make_key(key, version=version)
             client = self.get_server(key)
 
-        return super(ShardClient, self)\
-            .incr_version(key=key, delta=delta, version=version, client=client)
+        if version is None:
+            version = self._backend.version
+
+        old_key = self.make_key(key, version)
+        value = self.get(old_key, version=version, client=client)
+
+        try:
+            ttl = client.ttl(old_key)
+        except ConnectionError:
+            raise ConnectionInterrupted(connection=client)
+
+        if value is None:
+            raise ValueError("Key '%s' not found" % key)
+
+        if isinstance(key, CacheKey):
+            new_key = self.make_key(key.original_key(), version=version + delta)
+        else:
+            new_key = self.make_key(key, version=version + delta)
+
+        self.set(new_key, value, timeout=ttl, client=self.get_server(new_key))
+        self.delete(old_key, client=client)
+        return version + delta
 
     def incr(self, key, delta=1, version=None, client=None):
         if client is None:
