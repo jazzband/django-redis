@@ -257,6 +257,9 @@ Now, these calls are equivalents:
     cache.set('key', 'value', timeout=0)
     cache.set('key', 'value', timeout=None)
 
+.. note::
+    This can be backward incompatible change with previous behavior if None is used explicitly in your code.
+
 
 Extra backend methods
 ~~~~~~~~~~~~~~~~~~~~~
