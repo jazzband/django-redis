@@ -3,11 +3,13 @@
 from __future__ import absolute_import, unicode_literals
 
 import re
+import warnings
 
-
-from django.utils.datastructures import SortedDict
-from django.conf import settings
 from redis.exceptions import ConnectionError
+
+from django.conf import settings
+from django.utils.datastructures import SortedDict
+from django.core.cache.backends.base import DEFAULT_TIMEOUT
 
 from ..hash_ring import HashRing
 from ..exceptions import ConnectionInterrupted
@@ -49,7 +51,7 @@ class ShardClient(DefaultClient):
         name = self.get_server_name(key)
         return self._serverdict[name]
 
-    def add(self,  key, value, timeout=None, version=None, client=None):
+    def add(self,  key, value, timeout=DEFAULT_TIMEOUT, version=None, client=None):
         if client is None:
             key = self.make_key(key, version=version)
             client = self.get_server(key)
@@ -84,7 +86,7 @@ class ShardClient(DefaultClient):
             recovered_data[map_keys[key]] = value
         return recovered_data
 
-    def set(self, key, value, timeout=True, version=None, client=None, nx=False):
+    def set(self, key, value, timeout=DEFAULT_TIMEOUT, version=None, client=None, nx=False):
         """
         Persist a value to the cache, and set an optional expiration time.
         """
@@ -96,7 +98,7 @@ class ShardClient(DefaultClient):
                         key=key, value=value, timeout=timeout,
                         version=version, client=client, nx=nx)
 
-    def set_many(self, data, timeout=True, version=None):
+    def set_many(self, data, timeout=DEFAULT_TIMEOUT, version=None):
         """
         Set a bunch of values in the cache at once from a dict of key/value
         pairs. This is much more efficient than calling set() multiple times.

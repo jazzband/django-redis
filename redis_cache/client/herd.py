@@ -2,9 +2,14 @@
 
 import random
 import time
+import warnings
+
 from redis.exceptions import ConnectionError
+
 from django.conf import settings
+from django.core.cache.backends.base import DEFAULT_TIMEOUT
 from django.utils.datastructures import SortedDict
+
 from . import default
 from ..exceptions import ConnectionInterrupted
 
@@ -56,7 +61,7 @@ class HerdClient(default.DefaultClient):
 
         return unpacked, False
 
-    def set(self, key, value, timeout=True, version=None,
+    def set(self, key, value, timeout=DEFAULT_TIMEOUT, version=None,
             client=None, nx=False):
 
         if timeout == 0 or timeout == None:
@@ -64,6 +69,10 @@ class HerdClient(default.DefaultClient):
                                                version=version, client=client,
                                                nx=nx)
         if timeout is True:
+            warnings.warn("Using True as timeout value, is now deprecated.", DeprecationWarning)
+            timeout = self._backend.default_timeout
+
+        if timeout == DEFAULT_TIMEOUT:
             timeout = self._backend.default_timeout
 
         packed = self._pack(value, timeout)
@@ -109,7 +118,7 @@ class HerdClient(default.DefaultClient):
 
         return recovered_data
 
-    def set_many(self, data, timeout=True, version=None, client=None,
+    def set_many(self, data, timeout=DEFAULT_TIMEOUT, version=None, client=None,
                  herd=True):
         """
         Set a bunch of values in the cache at once from a dict of key/value

@@ -8,6 +8,7 @@ except ImportError:
     import pickle
 
 import random
+import warnings
 
 try:
     from django.utils.encoding import smart_bytes
@@ -15,6 +16,7 @@ except ImportError:
     from django.utils.encoding import smart_str as smart_bytes
 
 from django.utils.datastructures import SortedDict
+from django.core.cache.backends.base import DEFAULT_TIMEOUT
 from django.core.exceptions import ImproperlyConfigured
 from django.conf import settings
 
@@ -123,7 +125,7 @@ class DefaultClient(object):
             except (ValueError, TypeError):
                 raise ImproperlyConfigured("PICKLE_VERSION value must be an integer")
 
-    def set(self, key, value, timeout=True, version=None, client=None, nx=False):
+    def set(self, key, value, timeout=DEFAULT_TIMEOUT, version=None, client=None, nx=False):
         """
         Persist a value to the cache, and set an optional expiration time.
         Also supports optional nx parameter. If set to True - will use redis setnx instead of set.
@@ -136,6 +138,10 @@ class DefaultClient(object):
         value = self.pickle(value)
 
         if timeout is True:
+            warnings.warn("Using True as timeout value, is now deprecated.", DeprecationWarning)
+            timeout = self._backend.default_timeout
+
+        if timeout == DEFAULT_TIMEOUT:
             timeout = self._backend.default_timeout
 
         try:
@@ -183,7 +189,7 @@ class DefaultClient(object):
         self.delete(old_key, client=client)
         return version + delta
 
-    def add(self, key, value, timeout=None, version=None, client=None):
+    def add(self, key, value, timeout=DEFAULT_TIMEOUT, version=None, client=None):
         """
         Add a value to the cache, failing if the key already exists.
 
@@ -316,7 +322,7 @@ class DefaultClient(object):
             recovered_data[map_keys[key]] = self.unpickle(value)
         return recovered_data
 
-    def set_many(self, data, timeout=True, version=None, client=None):
+    def set_many(self, data, timeout=DEFAULT_TIMEOUT, version=None, client=None):
         """
         Set a bunch of values in the cache at once from a dict of key/value
         pairs. This is much more efficient than calling set() multiple times.
