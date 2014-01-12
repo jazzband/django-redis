@@ -1,6 +1,16 @@
 Changelog
 =========
 
+Version 3.5.0
+-------------
+
+- New: experimentat client for add support to redis-sentinel.
+- Now uses a django DEFAULT_TIMEOUT constant instead of ``True``. Deprecation
+  warning added for code that now uses True (unlikely).
+- Fix wrong forward of timeout on sharded client.
+- Fix incr_version wrong behavior (wrong client used for set new key).
+
+
 Version 3.4.0
 -------------
 
