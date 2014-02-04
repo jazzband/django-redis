@@ -4,6 +4,7 @@ Changelog
 Version 3.5.0
 -------------
 
+- Removed: stats module (should be replaced with an other in future)
 - New: experimentat client for add support to redis-sentinel.
 - Now uses a django DEFAULT_TIMEOUT constant instead of ``True``. Deprecation
   warning added for code that now uses True (unlikely).
