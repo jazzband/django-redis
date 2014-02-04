@@ -16,3 +16,5 @@ versiontools*
 build*
 dist*
 *.swp
+\#*
+.\#*
