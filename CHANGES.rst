@@ -1,6 +1,12 @@
 Changelog
 =========
 
+Version 3.5.1
+-------------
+
+- Fixed redis-py < 2.9.0 incompatibilities
+- Fixed runtests error with django 1.7
+
 Version 3.5.0
 -------------
 
