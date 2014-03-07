@@ -13,7 +13,7 @@ development_settings.py
 .pydevproject
 .settings
 versiontools*
-build*
+_build*
 dist*
 *.swp
 \#*
