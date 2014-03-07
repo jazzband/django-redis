@@ -11,8 +11,7 @@ from .exceptions import ConnectionInterrupted
 import functools
 
 DJANGO_REDIS_IGNORE_EXCEPTIONS = getattr(settings,
-            'DJANGO_REDIS_IGNORE_EXCEPTIONS', False)
-
+            "DJANGO_REDIS_IGNORE_EXCEPTIONS", False)
 
 def omit_exception(method):
     """
@@ -40,8 +39,8 @@ class RedisCache(BaseCache):
         self._server = server
         self._params = params
 
-        options = params.get('OPTIONS', {})
-        self._client_cls = options.get('CLIENT_CLASS', 'redis_cache.client.DefaultClient')
+        options = params.get("OPTIONS", {})
+        self._client_cls = options.get("CLIENT_CLASS", "redis_cache.client.DefaultClient")
         self._client_cls = load_class(self._client_cls)
         self._client = None
 
