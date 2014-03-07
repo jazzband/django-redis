@@ -7,4 +7,5 @@ rm -rf *
 mv -fv /tmp/index.html .
 mv -fv /tmp/static .
 git add --all index.html
+git add --all static
 git commit -a -m "Update doc"
