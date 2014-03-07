@@ -5,6 +5,8 @@ Release v\ |version|.
 
 django-redis is a :ref:`BSD Licensed`, full featured redis cache backend for Django.
 
+**WARNING**: this documentation is deprecated in favour of http://niwibe.github.io/django-redis/
+
 
 Features
 --------
