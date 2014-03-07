@@ -21,15 +21,16 @@ def omit_exception(method):
     Note: this doesn't handle the `default` argument in .get().
     """
 
-    if not DJANGO_REDIS_IGNORE_EXCEPTIONS:
-        return method
-
     @functools.wraps(method)
     def _decorator(self, *args, **kwargs):
-        try:
+        if self._ignore_exceptions:
+            try:
+                return method(self, *args, **kwargs)
+            except ConnectionInterrupted:
+                return None
+        else:
             return method(self, *args, **kwargs)
-        except ConnectionInterrupted:
-            return None
+
     return _decorator
 
 
@@ -44,6 +45,7 @@ class RedisCache(BaseCache):
         self._client_cls = load_class(self._client_cls)
         self._client = None
 
+        self._ignore_exceptions = options.get("IGNORE_EXCEPTIONS", DJANGO_REDIS_IGNORE_EXCEPTIONS)
 
     @property
     def client(self):
