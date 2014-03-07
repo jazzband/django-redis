@@ -45,10 +45,6 @@ class RedisCache(BaseCache):
         self._client_cls = load_class(self._client_cls)
         self._client = None
 
-        self._fallback_name = options.get('FALLBACK', None)
-        self._fallback = None
-        self._fallback_counter = 0
-        self._on_fallback = False
 
     @property
     def client(self):
@@ -67,20 +63,6 @@ class RedisCache(BaseCache):
         this raises NotImplementedError
         """
         return self.client.get_client(write=True)
-
-    @property
-    def fallback_client(self):
-        """
-        Used in fallback mode on the primary client does not
-        connect to the server.
-        """
-
-        if self._fallback is None:
-            try:
-                self._fallback = get_cache(self._fallback_name)
-            except TypeError:
-                raise ImproperlyConfigured("%s cache backend is not configured" % (self._fallback_name))
-        return self._fallback
 
     @omit_exception
     def set(self, *args, **kwargs):
