@@ -131,6 +131,18 @@ class DjangoRedisCacheTests(TestCase):
         res = self.cache.get("test_key", None)
         self.assertEqual(res, 222)
 
+    def test_timeout_negative(self):
+        self.cache.set("test_key", 222, timeout=0)
+        self.cache.set("test_key", 222, timeout=-1)
+        res = self.cache.get("test_key", None)
+        self.assertIsNone(res)
+
+        # nx=True should not overwrite expire of key already in db
+        self.cache.set("test_key", 222, timeout=0)
+        self.cache.set("test_key", 222, timeout=-1, nx=True)
+        res = self.cache.get("test_key", None)
+        self.assertEqual(res, 222)
+
     def test_set_add(self):
         self.cache.set('add_key', 'Initial value')
         self.cache.add('add_key', 'New value')
