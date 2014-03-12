@@ -237,7 +237,7 @@ class DefaultClient(object):
             client = self.get_client(write=True)
 
         try:
-            client.delete(self.make_key(key, version=version))
+            return client.delete(self.make_key(key, version=version))
         except ConnectionError:
             raise ConnectionInterrupted(connection=client)
 
@@ -254,7 +254,7 @@ class DefaultClient(object):
             keys = client.keys(pattern)
 
             if keys:
-                client.delete(*keys)
+                return client.delete(*keys)
         except ConnectionError:
             raise ConnectionInterrupted(connection=client)
 
@@ -271,7 +271,7 @@ class DefaultClient(object):
 
         keys = [self.make_key(k, version=version) for k in keys]
         try:
-            client.delete(*keys)
+            return client.delete(*keys)
         except ConnectionError:
             raise ConnectionInterrupted(connection=client)
 
