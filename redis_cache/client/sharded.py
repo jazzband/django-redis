@@ -135,9 +135,11 @@ class ShardClient(DefaultClient):
         """
         Remove multiple keys at once.
         """
+        res = 0
         for key in [self.make_key(k, version=version) for k in keys]:
             client = self.get_server(key)
-            self.delete(key, client=client)
+            res += self.delete(key, client=client)
+        return res
 
     def incr_version(self, key, delta=1, version=None, client=None):
         if client is None:
@@ -208,9 +210,11 @@ class ShardClient(DefaultClient):
         for server, connection in self._serverdict.items():
             keys.extend(connection.keys(pattern))
 
+        res = 0
         if keys:
             for server, connection in self._serverdict.items():
-                connection.delete(*keys)
+                res += connection.delete(*keys)
+        return res
 
     def close(self, **kwargs):
         if getattr(settings, "DJANGO_REDIS_CLOSE_CONNECTION", False):

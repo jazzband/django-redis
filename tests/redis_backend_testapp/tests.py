@@ -173,16 +173,25 @@ class DjangoRedisCacheTests(TestCase):
 
     def test_delete(self):
         self.cache.set_many({'a': 1, 'b': 2, 'c': 3})
-        self.cache.delete('a')
+        res = self.cache.delete('a')
+        self.assertTrue(bool(res))
 
         res = self.cache.get_many(['a', 'b', 'c'])
         self.assertEqual(res, {'b': 2, 'c': 3})
 
+        res = self.cache.delete('a')
+        self.assertFalse(bool(res))
+
     def test_delete_many(self):
         self.cache.set_many({'a': 1, 'b': 2, 'c': 3})
-        self.cache.delete_many(['a','b'])
+        res = self.cache.delete_many(['a','b'])
+        self.assertTrue(bool(res))
+
         res = self.cache.get_many(['a', 'b', 'c'])
         self.assertEqual(res, {'c': 3})
+
+        res = self.cache.delete_many(['a','b'])
+        self.assertFalse(bool(res))
 
     def test_incr(self):
         try:
@@ -289,9 +298,14 @@ class DjangoRedisCacheTests(TestCase):
         for key in ['foo-aa','foo-ab', 'foo-bb','foo-bc']:
             self.cache.set(key, "foo")
 
-        self.cache.delete_pattern('*foo-a*')
+        res = self.cache.delete_pattern('*foo-a*')
+        self.assertTrue(bool(res))
+
         keys = self.cache.keys("foo*")
         self.assertEqual(set(keys), set(['foo-bb','foo-bc']))
+
+        res = self.cache.delete_pattern('*foo-a*')
+        self.assertFalse(bool(res))
 
     def test_close(self):
         cache = get_cache('default')
