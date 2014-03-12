@@ -132,6 +132,10 @@ class DjangoRedisCacheTests(TestCase):
         self.assertEqual(res, 222)
 
     def test_timeout_negative(self):
+        self.cache.set("test_key", 222, timeout=-1)
+        res = self.cache.get("test_key", None)
+        self.assertIsNone(res)
+
         self.cache.set("test_key", 222, timeout=0)
         self.cache.set("test_key", 222, timeout=-1)
         res = self.cache.get("test_key", None)
