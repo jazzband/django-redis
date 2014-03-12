@@ -61,7 +61,7 @@ class DjangoRedisCacheTests(TestCase):
 
         # test that timeout will not affect key, if it was there
         self.cache.set("test_key_nx", 1)
-        res = self.cache.set("test_key_nx", 1, timeout=2, nx=True)
+        res = self.cache.set("test_key_nx", 2, timeout=2, nx=True)
         self.assertFalse(res)
         time.sleep(3)
         res = self.cache.get("test_key_nx", None)
