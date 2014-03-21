@@ -35,7 +35,7 @@ Because it:
 How to install?
 ---------------
 
-The simples way for get django-redis on your project is using *pip*:
+The simplest way for get django-redis on your project is using *pip*:
 
 [source,text]
 ----
