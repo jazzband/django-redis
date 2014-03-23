@@ -32,7 +32,8 @@ from redis.connection import (Connection,
 
 from ..util import CacheKey, load_class, integer_types
 from ..exceptions import ConnectionInterrupted
-from ..pool import get_or_create_connection_pool
+
+from .. import pool
 
 
 class DefaultClient(object):
@@ -52,33 +53,39 @@ class DefaultClient(object):
         self._options = params.get('OPTIONS', {})
 
         self.setup_pickle_version()
-
-        self._pool_cls = self._options.get(
-            'CONNECTION_POOL_CLASS', 'redis.connection.ConnectionPool')
-        self._pool_cls = load_class(self._pool_cls)
-        self._pool_cls_kwargs = self._options.get('CONNECTION_POOL_KWARGS', {})
+        self.connection_factory = pool.get_connection_factory(options=self._options)
 
     def __contains__(self, key):
         return self.has_key(key)
 
-    def get_client(self, write=True):
+    def get_next_client_index(self, write=True):
+        """
+        Return a next index for read client.
+        This function implements a default behavior for
+        get a next read client for master-slave setup.
+
+        Overwrite this function if you want a specific
+        behavior.
+        """
         if write or len(self._server) == 1:
-            index = 0
-        else:
-            index = random.randint(1, len(self._server)-1)
+            return 0
+
+        return random.randint(1, len(self._server) - 1)
+
+    def get_client(self, write=True):
+        """
+        Method used for obtain a raw redis client.
+
+        This function is used by almost all cache backend
+        operations for obtain a native redis client/connection
+        instance.
+        """
+        index = self.get_next_client_index(write=write)
 
         if self._clients[index] is None:
             self._clients[index] = self.connect(index)
 
         return self._clients[index]
-
-    @property
-    def parser_class(self):
-        cls = self._options.get('PARSER_CLASS', None)
-        if cls is None:
-            return DefaultParser
-
-        return load_class(cls)
 
     def parse_connection_string(self, constring):
         """
@@ -92,35 +99,14 @@ class DefaultClient(object):
         except (ValueError, TypeError):
             raise ImproperlyConfigured("Incorrect format '%s'" % (constring))
 
-    def _connect(self, host, port, db):
-        """
-        Creates a redis connection with connection pool.
-        """
-
-        kwargs = {
-            "db": db,
-            "parser_class": self.parser_class,
-            "password": self._options.get('PASSWORD', None),
-        }
-
-        if host == "unix":
-            kwargs.update({'path': port, 'connection_class': UnixDomainSocketConnection})
-        else:
-            kwargs.update({'host': host, 'port': port, 'connection_class': Connection})
-
-        if 'SOCKET_TIMEOUT' in self._options:
-            kwargs.update({'socket_timeout': int(self._options['SOCKET_TIMEOUT'])})
-
-        kwargs.update(self._pool_cls_kwargs)
-
-        connection_pool = get_or_create_connection_pool(self._pool_cls, **kwargs)
-        connection = Redis(connection_pool=connection_pool)
-        return connection
-
     def connect(self, index=0):
+        """
+        Given a connection index, returns a new raw redis client/connection
+        instance. Index is used for master/slave setups and indicates that
+        connection string should be used. In normal setups, index is 0.
+        """
         host, port, db = self.parse_connection_string(self._server[index])
-        connection = self._connect(host, port, db)
-        return connection
+        return self.connection_factory.connect(host, port, db)
 
     def setup_pickle_version(self):
         if "PICKLE_VERSION" in self._options:
