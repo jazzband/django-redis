@@ -35,8 +35,7 @@ class ShardClient(DefaultClient):
         connection_dict = {}
         for name in self._server:
             host, port, db = self.parse_connection_string(name)
-            connection_dict[name] = self._connect(host, port, db)
-
+            connection_dict[name] = self.connection_factory.connect(host, port, db)
         return connection_dict
 
     def get_server_name(self, _key):
