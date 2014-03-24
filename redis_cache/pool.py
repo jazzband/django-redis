@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import copy
-
 from django.conf import settings
 
 from redis import Redis
@@ -57,7 +55,7 @@ class ConnectionFactory(object):
         Reimplement this method if you want distinct
         connection pool instance caching behavior.
         """
-        key = str(params)
+        key = frozenset((k, repr(v)) for (k, v) in params.items())
         if key not in self._pools:
             self._pools[key] = self.get_connection_pool(params)
         return self._pools[key]
@@ -70,7 +68,7 @@ class ConnectionFactory(object):
         Overwrite this method if you want a custom
         behavior on creating connection pool.
         """
-        cp_params = copy.copy(params)
+        cp_params = dict(params)
         cp_params.update(self.pool_cls_kwargs)
         return self.pool_cls(**cp_params)
 
