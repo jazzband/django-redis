@@ -20,11 +20,12 @@ class ConnectionFactory(object):
 
         self._pools = {}
 
-    def connect(self, host, port, db):
+    def make_connection_params(self, host, port, db):
         """
-        Given a basic connection parameters,
-        return a new connection.
+        Given a main connection parameters, build a complete
+        dict of connection parameters.
         """
+
         kwargs = {
             "db": db,
             "parser_class": self.get_parser_cls(),
@@ -39,7 +40,25 @@ class ConnectionFactory(object):
         if 'SOCKET_TIMEOUT' in self.options:
             kwargs['socket_timeout'] = int(self.options['SOCKET_TIMEOUT'])
 
-        return Redis(connection_pool=self.get_or_create_connection_pool(kwargs))
+        return kwargs
+
+    def connect(self, host, port, db):
+        """
+        Given a basic connection parameters,
+        return a new connection.
+        """
+        params = self.make_connection_params(host, port, db)
+        return self.get_connection(params)
+
+    def get_connection(self, params):
+        """
+        Given a now preformated params, return a
+        new connection.
+
+        The default implementation uses a cached pools
+        for create new connection.
+        """
+        return Redis(connection_pool=self.get_or_create_connection_pool(params))
 
     def get_parser_cls(self):
         cls = self.options.get('PARSER_CLASS', None)
