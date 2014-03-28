@@ -67,7 +67,7 @@ CACHES = {
 ----
 
 On this example, we are using standard tcp/ip sockets connection to localhost redis and using database 1.
-In `OPTIONS`, we have especified the plugable client that we want use; in this case the default. You can ommit 
+In `OPTIONS`, we have especified the plugable client that we want use; in this case the default. You can ommit
 this part because that client is used by default if no one is specified.
 
 NOTE: If you want use unix sockets, change the `LOCATION` value to something like `"unix:/path/to/socket:1"`.
@@ -194,8 +194,8 @@ Raw client access
 ~~~~~~~~~~~~~~~~~
 
 In some situations, your application should require access to raw redis client for use some other advanced
-features that aren't exposed by django cache interface. For avoid store an other settings for creating a raw 
-connection, *django-redis* exposes functions with that you can obtain a raw client reusing cache connection 
+features that aren't exposed by django cache interface. For avoid store an other settings for creating a raw
+connection, *django-redis* exposes functions with that you can obtain a raw client reusing cache connection
 string: `get_redis_connection(alias)`.
 
 [source, python]
@@ -208,6 +208,106 @@ string: `get_redis_connection(alias)`.
 
 WARNING: Not all plugable clients have support this feature.
 
+Connection pools
+~~~~~~~~~~~~~~~~
+
+django-redis, behind the scenes uses redis-py connection pool implementation, and exposes a simple way to
+configure it or directly customize a connection/connection pool creation for backend.
+
+Configure default connection pool
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The default connection pool is very simple and you only can customize the maximum number of connections
+for the pool.
+
+You can do it, using **CONNECTION_POOL_KWARGS** parameter on chache options dict:
+
+[source,python]
+----
+"OPTIONS": {
+    "CONNECTION_POOL_KWARGS": {"max_connections": 100}
+}
+----
+
+Use your own connection pool subclass
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Also, in some momments you want put your own subclass of connection pool. It is also possible with
+django-redis using **CONNECTION_POOL_CLASS** parameter on the backend options.
+
+._myproj/mypool.py_
+[source,python]
+----
+from redis.connection import ConnectionPool
+
+class MyOwnPool(ConnectionPool):
+    # Just doing nothing, only for example purpose
+    pass
+----
+
+._settings.py_
+[source,python]
+----
+# Omiting all backend declaration for remove boilerplate code.
+
+"OPTIONS": {
+    "CONNECTION_POOL_CLASS": "myproj.mypool.MyOwnPool"
+}
+----
+
+Customize connection factory
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If no one of the previously methos satisfies you, you can get in the middle of django-redis connection
+factory process and customize it or completely rewrite.
+
+django-redis by default creates connection throught `redis_cache.pool.ConnectionFactory` class that is specifid
+throught **DJANGO_REDIS_CONNECTION_FACTORY** global django setting.
+
+.Partial interface of `ConnectionFactory` class
+[source,python]
+----
+# Note: using python3 notations for code documentation ;)
+
+class ConnectionFactory(object):
+    def get_connection_pool(self, params:dict):
+        # Given a connection parameters on `params` argument
+        # return new connection pool.
+        # It should be overwrited if you want do something
+        # before/after create connection pool or return your
+        # own connection pool.
+        pass
+
+    def get_connection(self, params:dict):
+        # Given a connection parameters on `params` argument
+        # return a new connection.
+        # It should be overwrited if you want do something
+        # before/after create new connection.
+        # The default implementation uses `get_connection_pool`
+        # for obtain a pool and create new connection from
+        # newly obtained pool.
+        pass
+
+    def get_or_create_connection_pool(self, params:dict):
+        # This is a high layer on top of get_connection_pool for
+        # implement a cache of created connection pools.
+        # You should reimplement it if you want change the default
+        # behavior.
+        pass
+
+    def make_connection_params(self, host:str, port:int, db:int) -> dict:
+        # The resposability of this function is conver basic connection
+        # parameters and other settings to fully connection pool ready
+        # connection parameters
+        pass
+
+    def connect(self, host:str, port:int, db:int):
+        # This is a really public api and entry point of this
+        # factory class. This encapsulates the main logic of creating
+        # the previously mentioned `params` using a `make_connection_params`
+        # and creating a new connection using `get_connection` method.
+        pass
+----
 
 Plugable parsers
 ~~~~~~~~~~~~~~~~
