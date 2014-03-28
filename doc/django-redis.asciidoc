@@ -258,7 +258,7 @@ class MyOwnPool(ConnectionPool):
 Customize connection factory
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-If no one of the previously methos satisfies you, you can get in the middle of django-redis connection
+If no one of the previously methods satisfies you, you can get in the middle of django-redis connection
 factory process and customize it or completely rewrite.
 
 django-redis by default creates connection throught `redis_cache.pool.ConnectionFactory` class that is specifid
