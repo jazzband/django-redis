@@ -66,7 +66,7 @@ CACHES = {
 }
 ----
 
-On this example, we are using standard tcp/ip sockets connection to localhost redis and using database 1.
+On this example, we are using standard TCP/IP sockets connection to localhost redis and using database 1.
 In `OPTIONS`, we have especified the plugable client that we want use; in this case the default. You can ommit
 this part because that client is used by default if no one is specified.
 
@@ -211,22 +211,42 @@ WARNING: Not all plugable clients have support this feature.
 Connection pools
 ~~~~~~~~~~~~~~~~
 
-django-redis, behind the scenes uses redis-py connection pool implementation, and exposes a simple way to
+django-redis, behind the scenes uses underlying redis-py connection pool implementation, and exposes a simple way to
 configure it or directly customize a connection/connection pool creation for backend.
+
+The default redis-py behavior is not to close connections and recycle them when possible.
 
 Configure default connection pool
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The default connection pool is very simple and you only can customize the maximum number of connections
+The default connection pool is simple. You only can customize the maximum number of connections
 for the pool.
 
-You can do it, using **CONNECTION_POOL_KWARGS** parameter on chache options dict:
+You can do it, using **CONNECTION_POOL_KWARGS** parameter in settings CACHES:
 
 [source,python]
 ----
-"OPTIONS": {
-    "CONNECTION_POOL_KWARGS": {"max_connections": 100}
+CACHES = {
+    "default": {
+        "BACKEND": "redis_cache.cache.RedisCache",
+        ...
+        "OPTIONS": {
+            "CONNECTION_POOL_KWARGS": {"max_connections": 100}
+        }
+    }
 }
+
+----
+
+You can verify how many connections the pool has opened with the following snippet:
+
+[source,python]
+----
+from django.core.cache import get_cache
+redis_cache = get_cache("default")  # Use name you define for Redis in settings.CACHES
+redis = redis_cache.raw_client
+connection_pool = redis.connection_pool
+print("Created connections thus far %d" % connection_pool._created_connections)
 ----
 
 Use your own connection pool subclass
