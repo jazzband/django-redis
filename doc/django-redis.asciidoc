@@ -1,7 +1,7 @@
 django-redis documentation
 ==========================
 Andrey Antukh, <niwi@niwi.be>
-3.5.2, 2014-03-07
+3.6.0, 2014-04-09
 
 :toc:
 :numbered:
@@ -41,6 +41,10 @@ The simplest way for get django-redis on your project is using *pip*:
 ----
 pip install django-redis
 ----
+
+Last stable version: *3.6.0*
+
+Previous stable version: *3.5.2*
 
 
 User guide
