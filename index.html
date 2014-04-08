@@ -106,7 +106,7 @@ Plugable parsers.
 <div class="sect1">
 <h2 id="_how_to_install">3. How to install?</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>The simples way for get django-redis on your project is using <strong>pip</strong>:</p></div>
+<div class="paragraph"><p>The simplest way for get django-redis on your project is using <strong>pip</strong>:</p></div>
 <div class="listingblock">
 <div class="content"><div class="highlight"><pre>pip install django-redis
 </pre></div></div></div>
@@ -131,7 +131,7 @@ like this:</p></div>
     <span class="p">}</span>
 <span class="p">}</span>
 </pre></div></div></div>
-<div class="paragraph"><p>On this example, we are using standard tcp/ip sockets connection to localhost redis and using database 1.
+<div class="paragraph"><p>On this example, we are using standard TCP/IP sockets connection to localhost redis and using database 1.
 In <span class="monospaced">OPTIONS</span>, we have especified the plugable client that we want use; in this case the default. You can ommit
 this part because that client is used by default if no one is specified.</p></div>
 <div class="admonitionblock">
@@ -265,7 +265,109 @@ string: <span class="monospaced">get_redis_connection(alias)</span>.</p></div>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_plugable_parsers">5.8. Plugable parsers</h3>
+<h3 id="_connection_pools">5.8. Connection pools</h3>
+<div class="paragraph"><p>django-redis, behind the scenes uses underlying redis-py connection pool implementation, and exposes a simple way to
+configure it or directly customize a connection/connection pool creation for backend.</p></div>
+<div class="paragraph"><p>The default redis-py behavior is not to close connections and recycle them when possible.</p></div>
+<div class="sect3">
+<h4 id="_configure_default_connection_pool">5.8.1. Configure default connection pool</h4>
+<div class="paragraph"><p>The default connection pool is simple. You only can customize the maximum number of connections
+for the pool.</p></div>
+<div class="paragraph"><p>You can do it, using <strong>CONNECTION_POOL_KWARGS</strong> parameter in settings CACHES:</p></div>
+<div class="listingblock">
+<div class="content"><div class="highlight"><pre><span class="n">CACHES</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&quot;default&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s">&quot;BACKEND&quot;</span><span class="p">:</span> <span class="s">&quot;redis_cache.cache.RedisCache&quot;</span><span class="p">,</span>
+        <span class="o">...</span>
+        <span class="s">&quot;OPTIONS&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s">&quot;CONNECTION_POOL_KWARGS&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s">&quot;max_connections&quot;</span><span class="p">:</span> <span class="mi">100</span><span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div></div></div>
+<div class="paragraph"><p>You can verify how many connections the pool has opened with the following snippet:</p></div>
+<div class="listingblock">
+<div class="content"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">django.core.cache</span> <span class="kn">import</span> <span class="n">get_cache</span>
+<span class="n">redis_cache</span> <span class="o">=</span> <span class="n">get_cache</span><span class="p">(</span><span class="s">&quot;default&quot;</span><span class="p">)</span>  <span class="c"># Use name you define for Redis in settings.CACHES</span>
+<span class="n">redis</span> <span class="o">=</span> <span class="n">redis_cache</span><span class="o">.</span><span class="n">raw_client</span>
+<span class="n">connection_pool</span> <span class="o">=</span> <span class="n">redis</span><span class="o">.</span><span class="n">connection_pool</span>
+<span class="k">print</span><span class="p">(</span><span class="s">&quot;Created connections thus far </span><span class="si">%d</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">connection_pool</span><span class="o">.</span><span class="n">_created_connections</span><span class="p">)</span>
+</pre></div></div></div>
+</div>
+<div class="sect3">
+<h4 id="_use_your_own_connection_pool_subclass">5.8.2. Use your own connection pool subclass</h4>
+<div class="paragraph"><p>Also, in some momments you want put your own subclass of connection pool. It is also possible with
+django-redis using <strong>CONNECTION_POOL_CLASS</strong> parameter on the backend options.</p></div>
+<div class="listingblock">
+<div class="title"><em>myproj/mypool.py</em></div>
+<div class="content"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">redis.connection</span> <span class="kn">import</span> <span class="n">ConnectionPool</span>
+
+<span class="k">class</span> <span class="nc">MyOwnPool</span><span class="p">(</span><span class="n">ConnectionPool</span><span class="p">):</span>
+    <span class="c"># Just doing nothing, only for example purpose</span>
+    <span class="k">pass</span>
+</pre></div></div></div>
+<div class="listingblock">
+<div class="title"><em>settings.py</em></div>
+<div class="content"><div class="highlight"><pre><span class="c"># Omiting all backend declaration for remove boilerplate code.</span>
+
+<span class="s">&quot;OPTIONS&quot;</span><span class="p">:</span> <span class="p">{</span>
+    <span class="s">&quot;CONNECTION_POOL_CLASS&quot;</span><span class="p">:</span> <span class="s">&quot;myproj.mypool.MyOwnPool&quot;</span>
+<span class="p">}</span>
+</pre></div></div></div>
+</div>
+<div class="sect3">
+<h4 id="_customize_connection_factory">5.8.3. Customize connection factory</h4>
+<div class="paragraph"><p>If no one of the previously methods satisfies you, you can get in the middle of django-redis connection
+factory process and customize it or completely rewrite.</p></div>
+<div class="paragraph"><p>django-redis by default creates connection throught <span class="monospaced">redis_cache.pool.ConnectionFactory</span> class that is specifid
+throught <strong>DJANGO_REDIS_CONNECTION_FACTORY</strong> global django setting.</p></div>
+<div class="listingblock">
+<div class="title">Partial interface of <span class="monospaced">ConnectionFactory</span> class</div>
+<div class="content"><div class="highlight"><pre><span class="c"># Note: using python3 notations for code documentation ;)</span>
+
+<span class="k">class</span> <span class="nc">ConnectionFactory</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">get_connection_pool</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span><span class="nb">dict</span><span class="p">):</span>
+        <span class="c"># Given a connection parameters on `params` argument</span>
+        <span class="c"># return new connection pool.</span>
+        <span class="c"># It should be overwrited if you want do something</span>
+        <span class="c"># before/after create connection pool or return your</span>
+        <span class="c"># own connection pool.</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">get_connection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span><span class="nb">dict</span><span class="p">):</span>
+        <span class="c"># Given a connection parameters on `params` argument</span>
+        <span class="c"># return a new connection.</span>
+        <span class="c"># It should be overwrited if you want do something</span>
+        <span class="c"># before/after create new connection.</span>
+        <span class="c"># The default implementation uses `get_connection_pool`</span>
+        <span class="c"># for obtain a pool and create new connection from</span>
+        <span class="c"># newly obtained pool.</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">get_or_create_connection_pool</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span><span class="nb">dict</span><span class="p">):</span>
+        <span class="c"># This is a high layer on top of get_connection_pool for</span>
+        <span class="c"># implement a cache of created connection pools.</span>
+        <span class="c"># You should reimplement it if you want change the default</span>
+        <span class="c"># behavior.</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">make_connection_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">host</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="n">port</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span> <span class="n">db</span><span class="p">:</span><span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="c"># The resposability of this function is conver basic connection</span>
+        <span class="c"># parameters and other settings to fully connection pool ready</span>
+        <span class="c"># connection parameters</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">connect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">host</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="n">port</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span> <span class="n">db</span><span class="p">:</span><span class="nb">int</span><span class="p">):</span>
+        <span class="c"># This is a really public api and entry point of this</span>
+        <span class="c"># factory class. This encapsulates the main logic of creating</span>
+        <span class="c"># the previously mentioned `params` using a `make_connection_params`</span>
+        <span class="c"># and creating a new connection using `get_connection` method.</span>
+        <span class="k">pass</span>
+</pre></div></div></div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_plugable_parsers">5.9. Plugable parsers</h3>
 <div class="paragraph"><p>redis-py (python redis client used by django-redis) comes with pure python redis parser that works very
 well for al most common task, but if you want some performance boost, you can use <strong>hiredis</strong>.</p></div>
 <div class="paragraph"><p><strong>hiredis</strong> is a redis client writen in C and it has it own parser that can be used with <strong>django-redis</strong>.</p></div>
@@ -276,9 +378,9 @@ well for al most common task, but if you want some performance boost, you can us
 </pre></div></div></div>
 </div>
 <div class="sect2">
-<h3 id="_pluggable_clients">5.9. Pluggable clients</h3>
+<h3 id="_pluggable_clients">5.10. Pluggable clients</h3>
 <div class="sect3">
-<h4 id="_default_client">5.9.1. Default client</h4>
+<h4 id="_default_client">5.10.1. Default client</h4>
 <div class="paragraph"><p>Additionally to previously explained, default client comes with master-slave connection support. For
 use master-slave configuration on your project, you should change you <strong>LOCATION</strong> value to something like this:</p></div>
 <div class="listingblock">
@@ -297,7 +399,7 @@ use master-slave configuration on your project, you should change you <strong>LO
 </div>
 </div>
 <div class="sect3">
-<h4 id="_shard_client">5.9.2. Shard client</h4>
+<h4 id="_shard_client">5.10.2. Shard client</h4>
 <div class="paragraph"><p>This plugable client implements client-side sharding. It inherits almost all functionality from
 the default client. For use it, you change your cache settings to something like this:</p></div>
 <div class="listingblock">
@@ -324,7 +426,7 @@ the default client. For use it, you change your cache settings to something like
 </div>
 </div>
 <div class="sect3">
-<h4 id="_herd_client">5.9.3. Herd client</h4>
+<h4 id="_herd_client">5.10.3. Herd client</h4>
 <div class="paragraph"><p>This plugable client helps with dealing with thundering herd problem. You can read more about it
 on <a href="http://en.wikipedia.org/wiki/Thundering_herd_problem">Wikipedia</a>.</p></div>
 <div class="paragraph"><p>As previous plugable client, it inherits all functionality from default client, adding some additional
@@ -351,7 +453,7 @@ login for get/set keys.</p></div>
 </ul></div>
 </div>
 <div class="sect3">
-<h4 id="_auto_failover_client">5.9.4. Auto Failover client</h4>
+<h4 id="_auto_failover_client">5.10.4. Auto Failover client</h4>
 <div class="paragraph"><p>This plugable experimental client offers simple failover algorithm if the main redis server turns down.</p></div>
 <div class="paragraph"><p>For setup, you should change your cache settings to somethin like this:</p></div>
 <div class="listingblock">
@@ -409,7 +511,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 <div id="footer">
 <div id="footer-text">
 Version 3.5.2<br>
-Last updated 2014-03-07 21:19:49 CET
+Last updated 2014-04-09 00:01:18 CEST
 </div>
 </div>
 </body>
