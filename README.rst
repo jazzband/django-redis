@@ -29,7 +29,10 @@ or place ``redis_cache`` on your Python path.
 You can also install it with: ``pip install django-redis``
 
 
-.. image:: https://d2weczhvl823v0.cloudfront.net/niwibe/django-redis/trend.png
-   :alt: Bitdeli badge
-   :target: https://bitdeli.com/free
+Build Doc
+---------
 
+For build documentation, you should have installed: asciidoc, gnu make and pygments.
+
+Having all dependencies installed, for build documentation you should execute ``make``
+on ``doc/`` directory.
