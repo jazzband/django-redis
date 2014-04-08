@@ -1,6 +1,14 @@
 Changelog
 =========
 
+Version 3.6.0
+-------------
+
+- Add pluggable connection factory.
+- Negative timeouts now works as expected.
+- delete operation now returns a number of deleted items instead of None.
+
+
 Version 3.5.1
 -------------
 
