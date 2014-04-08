@@ -68,22 +68,7 @@ class SentinelClient(DefaultClient):
         else:
             host, port = random.choice([sentinel.discover_master(master_name)] + sentinel.discover_slaves(master_name))
 
-        kwargs = {
-            "db": db,
-            "parser_class": self.parser_class,
-            "password": self._options.get('PASSWORD', None),
-        }
-
-        kwargs.update({'host': host, 'port': port, 'connection_class': Connection})
-
-        if 'SOCKET_TIMEOUT' in self._options:
-            kwargs.update({'socket_timeout': int(self._options['SOCKET_TIMEOUT'])})
-
-        kwargs.update(self._pool_cls_kwargs)
-
-        connection_pool = get_or_create_connection_pool(self._pool_cls, **kwargs)
-        connection = Redis(connection_pool=connection_pool)
-        return connection
+        return self.connection_factory.connect(host, port, db)
 
     def close(self, **kwargs):
         """
