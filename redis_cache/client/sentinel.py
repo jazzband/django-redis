@@ -11,7 +11,6 @@ from redis.connection import Connection
 
 from .default import DefaultClient
 from ..exceptions import ConnectionInterrupted
-from ..pool import get_or_create_connection_pool
 
 
 class SentinelClient(DefaultClient):
