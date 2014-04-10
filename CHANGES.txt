@@ -1,6 +1,11 @@
 Changelog
 =========
 
+Version 3.6.1
+-------------
+
+- Fix wrong import on sentinel client.
+
 Version 3.6.0
 -------------
 
