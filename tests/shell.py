@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 
 import os, sys
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "test_sqlite_failover")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "test_sqlite")
 sys.path.insert(0, '..')
 
-from django.core.management import call_command
-
 if __name__ == "__main__":
-    args = sys.argv[1:]
-    call_command("shell")
+    from django.core.management import execute_from_command_line
+    args = sys.argv
+    args.insert(1, "shell")
+
+    execute_from_command_line(args)
