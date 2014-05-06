@@ -3,12 +3,16 @@
 from __future__ import absolute_import, unicode_literals
 
 import re
-import warnings
 
 from redis.exceptions import ConnectionError
 
 from django.conf import settings
 from django.utils.datastructures import SortedDict
+
+try:
+    from django.utils.encoding import smart_text
+except ImportError:
+    from django.utils.encoding import smart_unicode as smart_text
 
 from ..hash_ring import HashRing
 from ..exceptions import ConnectionInterrupted
@@ -184,8 +188,11 @@ class ShardClient(DefaultClient):
         return super(ShardClient, self)\
             .decr(key=key, delta=delta, version=version, client=client)
 
-    def keys(self, search):
-        pattern = self.make_key(search)
+    def iter_keys(self, key, version=None):
+        raise NotImplementedError("iter_keys not supported on sharded client")
+
+    def keys(self, search, version=None):
+        pattern = self.make_key(search, version=version)
         keys = []
         try:
             for server, connection in self._serverdict.items():
@@ -195,7 +202,7 @@ class ShardClient(DefaultClient):
             client = self.get_server(pattern)
             raise ConnectionInterrupted(connection=client)
 
-        decoded_keys = [k.decode('utf-8') for k in keys]
+        decoded_keys = (smart_text(k) for k in keys)
         return [k.split(":", 2)[2] for k in decoded_keys]
 
     def delete_pattern(self, pattern, version=None):

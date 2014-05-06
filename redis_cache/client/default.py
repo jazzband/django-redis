@@ -12,8 +12,10 @@ import warnings
 
 try:
     from django.utils.encoding import smart_bytes
+    from django.utils.encoding import smart_text
 except ImportError:
     from django.utils.encoding import smart_str as smart_bytes
+    from django.utils.encoding import smart_unicode as smart_text
 
 from django.utils.datastructures import SortedDict
 from django.core.exceptions import ImproperlyConfigured
@@ -407,6 +409,28 @@ class DefaultClient(object):
             return client.exists(key)
         except ConnectionError:
             raise ConnectionInterrupted(connection=client)
+
+    def iter_keys(self, search, itersize=None, client=None, version=None):
+        """
+        Same as keys, but uses redis >= 2.8 cursors
+        for make memory efficient keys iteration.
+        """
+
+        if client is None:
+            client = self.get_client(write=False)
+
+        pattern = self.make_key(search, version=version)
+        cursor = b"0"
+
+        while True:
+            cursor, data = client.scan(cursor, match=pattern, count=itersize)
+
+            for item in data:
+                item = smart_text(item)
+                yield item.split(":", 2)[2]
+
+            if cursor == b"0":
+                break
 
     def keys(self, search, client=None):
         if client is None:

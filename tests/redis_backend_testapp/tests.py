@@ -350,6 +350,31 @@ class DjangoRedisCacheTests(TestCase):
         ttl = cache.ttl("not-existent-key")
         self.assertEqual(ttl, 0)
 
+    def test_iter_keys(self):
+        cache = get_cache("default")
+        _params = cache._params
+        _is_shard = (_params["OPTIONS"]["CLIENT_CLASS"] ==
+                    "redis_cache.client.ShardClient")
+
+        if _is_shard:
+            return
+
+        cache.set("foo1", 1)
+        cache.set("foo2", 1)
+        cache.set("foo3", 1)
+
+        # Test simple result
+        result = set(cache.iter_keys("foo*"))
+        self.assertEqual(result, set(["foo1", "foo2", "foo3"]))
+
+        # Test limited result
+        result = list(cache.iter_keys("foo*", itersize=2))
+        self.assertEqual(len(result), 3)
+
+        # Test generator object
+        result = cache.iter_keys("foo*")
+        self.assertNotEqual(next(result), None)
+
     def test_master_slave_switching(self):
         try:
             cache = get_cache("sample")

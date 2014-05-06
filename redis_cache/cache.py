@@ -128,6 +128,10 @@ class RedisCache(BaseCache):
         return self.client.keys(*args, **kwargs)
 
     @omit_exception
+    def iter_keys(self, *args, **kwargs):
+        return self.client.iter_keys(*args, **kwargs)
+
+    @omit_exception
     def ttl(self, *args, **kwargs):
         return self.client.ttl(*args, **kwargs)
 
