@@ -316,6 +316,39 @@ class DjangoRedisCacheTests(TestCase):
         cache.set("f", "1")
         cache.close()
 
+    def test_ttl(self):
+        cache = get_cache("default")
+        _params = cache._params
+        _is_herd = (_params["OPTIONS"]["CLIENT_CLASS"] ==
+                    "redis_cache.client.HerdClient")
+        _is_shard = (_params["OPTIONS"]["CLIENT_CLASS"] ==
+                    "redis_cache.client.ShardClient")
+
+        # Not supported for shard client.
+        if _is_shard:
+            return
+
+        # Test ttl
+        cache.set("foo", "bar", 10)
+        ttl = cache.ttl("foo")
+
+        if _is_herd:
+            self.assertAlmostEqual(ttl, 12)
+        else:
+            self.assertAlmostEqual(ttl, 10)
+
+        # Test ttl None
+        cache.set("foo", "foo", timeout=None)
+        ttl = cache.ttl("foo")
+        self.assertEqual(ttl, None)
+
+        # Test ttl with expired key
+        cache.set("foo", "foo", timeout=-1)
+        ttl = cache.ttl("foo")
+
+        # Test ttl with not existent key
+        ttl = cache.ttl("not-existent-key")
+        self.assertEqual(ttl, 0)
 
     def test_master_slave_switching(self):
         try:

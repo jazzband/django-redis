@@ -381,6 +381,19 @@ class DefaultClient(object):
         return self._incr(key=key, delta=-delta, version=version,
                           client=client)
 
+    def ttl(self, key, version=None, client=None):
+        """
+        Executes TTL redis command and return the "time-to-live" of specified key.
+        If key is a non volatile key, it returns None.
+        """
+        if client is None:
+            client = self.get_client(write=False)
+
+        key = self.make_key(key, version=version)
+        if not client.exists(key):
+            return 0
+        return client.ttl(key)
+
     def has_key(self, key, version=None, client=None):
         """
         Test if key exists.
