@@ -100,15 +100,15 @@ class DjangoRedisCacheTests(TestCase):
 
     def test_save_dict(self):
         now_dt = datetime.datetime.now()
-        test_dict = {'id':1, 'date': now_dt, 'name': 'Foo'}
+        test_dict = {"id":1, "date": now_dt, "name": "Foo"}
 
         self.cache.set("test_key", test_dict)
         res = self.cache.get("test_key")
 
         self.assertIsInstance(res, dict)
-        self.assertEqual(res['id'], 1)
-        self.assertEqual(res['name'], 'Foo')
-        self.assertEqual(res['date'], now_dt)
+        self.assertEqual(res["id"], 1)
+        self.assertEqual(res["name"], "Foo")
+        self.assertEqual(res["date"], now_dt)
 
     def test_save_float(self):
         float_val = 1.345620002
@@ -148,53 +148,53 @@ class DjangoRedisCacheTests(TestCase):
         self.assertEqual(res, 222)
 
     def test_set_add(self):
-        self.cache.set('add_key', 'Initial value')
-        self.cache.add('add_key', 'New value')
-        res = cache.get('add_key')
+        self.cache.set("add_key", "Initial value")
+        self.cache.add("add_key", "New value")
+        res = cache.get("add_key")
 
-        self.assertEqual(res, 'Initial value')
+        self.assertEqual(res, "Initial value")
 
     def test_get_many(self):
-        self.cache.set('a', 1)
-        self.cache.set('b', 2)
-        self.cache.set('c', 3)
+        self.cache.set("a", 1)
+        self.cache.set("b", 2)
+        self.cache.set("c", 3)
 
-        res = self.cache.get_many(['a','b','c'])
-        self.assertEqual(res, {'a': 1, 'b': 2, 'c': 3})
+        res = self.cache.get_many(["a","b","c"])
+        self.assertEqual(res, {"a": 1, "b": 2, "c": 3})
 
     def test_get_many_unicode(self):
-        self.cache.set('a', '1')
-        self.cache.set('b', '2')
-        self.cache.set('c', '3')
+        self.cache.set("a", "1")
+        self.cache.set("b", "2")
+        self.cache.set("c", "3")
 
-        res = self.cache.get_many(['a','b','c'])
-        self.assertEqual(res, {'a': '1', 'b': '2', 'c': '3'})
+        res = self.cache.get_many(["a","b","c"])
+        self.assertEqual(res, {"a": "1", "b": "2", "c": "3"})
 
     def test_set_many(self):
-        self.cache.set_many({'a': 1, 'b': 2, 'c': 3})
-        res = self.cache.get_many(['a', 'b', 'c'])
-        self.assertEqual(res, {'a': 1, 'b': 2, 'c': 3})
+        self.cache.set_many({"a": 1, "b": 2, "c": 3})
+        res = self.cache.get_many(["a", "b", "c"])
+        self.assertEqual(res, {"a": 1, "b": 2, "c": 3})
 
     def test_delete(self):
-        self.cache.set_many({'a': 1, 'b': 2, 'c': 3})
-        res = self.cache.delete('a')
+        self.cache.set_many({"a": 1, "b": 2, "c": 3})
+        res = self.cache.delete("a")
         self.assertTrue(bool(res))
 
-        res = self.cache.get_many(['a', 'b', 'c'])
-        self.assertEqual(res, {'b': 2, 'c': 3})
+        res = self.cache.get_many(["a", "b", "c"])
+        self.assertEqual(res, {"b": 2, "c": 3})
 
-        res = self.cache.delete('a')
+        res = self.cache.delete("a")
         self.assertFalse(bool(res))
 
     def test_delete_many(self):
-        self.cache.set_many({'a': 1, 'b': 2, 'c': 3})
-        res = self.cache.delete_many(['a','b'])
+        self.cache.set_many({"a": 1, "b": 2, "c": 3})
+        res = self.cache.delete_many(["a","b"])
         self.assertTrue(bool(res))
 
-        res = self.cache.get_many(['a', 'b', 'c'])
-        self.assertEqual(res, {'c': 3})
+        res = self.cache.get_many(["a", "b", "c"])
+        self.assertEqual(res, {"c": 3})
 
-        res = self.cache.delete_many(['a','b'])
+        res = self.cache.delete_many(["a","b"])
         self.assertFalse(bool(res))
 
     def test_incr(self):
@@ -299,20 +299,20 @@ class DjangoRedisCacheTests(TestCase):
             print(e)
 
     def test_delete_pattern(self):
-        for key in ['foo-aa','foo-ab', 'foo-bb','foo-bc']:
+        for key in ["foo-aa","foo-ab", "foo-bb","foo-bc"]:
             self.cache.set(key, "foo")
 
-        res = self.cache.delete_pattern('*foo-a*')
+        res = self.cache.delete_pattern("*foo-a*")
         self.assertTrue(bool(res))
 
         keys = self.cache.keys("foo*")
-        self.assertEqual(set(keys), set(['foo-bb','foo-bc']))
+        self.assertEqual(set(keys), set(["foo-bb","foo-bc"]))
 
-        res = self.cache.delete_pattern('*foo-a*')
+        res = self.cache.delete_pattern("*foo-a*")
         self.assertFalse(bool(res))
 
     def test_close(self):
-        cache = get_cache('default')
+        cache = get_cache("default")
         cache.set("f", "1")
         cache.close()
 
@@ -331,7 +331,7 @@ class DjangoRedisCacheTests(TestCase):
 
     def test_master_slave_switching(self):
         try:
-            cache = get_cache('sample')
+            cache = get_cache("sample")
             client = cache.client
             client._server = ["foo", "bar",]
             client._clients = ["Foo", "Bar"]
@@ -346,15 +346,15 @@ class DjangoOmitExceptionsTests(TestCase):
     def setUp(self):
         self._orig_setting = redis_cache.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS
         redis_cache.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS = True
-        self.cache = get_cache('doesnotexist')
+        self.cache = get_cache("doesnotexist")
 
     def tearDown(self):
         redis_cache.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS = self._orig_setting
 
     def test_get(self):
-        self.assertIsNone(self.cache.get('key'))
-        self.assertEqual(self.cache.get('key', 'default'), 'default')
-        self.assertEqual(self.cache.get('key', default='default'), 'default')
+        self.assertIsNone(self.cache.get("key"))
+        self.assertEqual(self.cache.get("key", "default"), "default")
+        self.assertEqual(self.cache.get("key", default="default"), "default")
 
 
 from django.contrib.sessions.backends.cache import SessionStore as CacheSession
