@@ -1,17 +1,26 @@
 Changelog
 =========
 
+Version 3.6.2
+-------------
+
+- Add ttl method purposed to be included in django core.
+- Add iter_keys method that uses redis scan methods for memmory efficient keys retrieval.
+- Add version keyword parameter to keys.
+- Deprecate django 1.3.x support.
+
 Version 3.6.1
 -------------
 
 - Fix wrong import on sentinel client.
+
 
 Version 3.6.0
 -------------
 
 - Add pluggable connection factory.
 - Negative timeouts now works as expected.
-- delete operation now returns a number of deleted items instead of None.
+- Delete operation now returns a number of deleted items instead of None.
 
 
 Version 3.5.1
@@ -19,6 +28,7 @@ Version 3.5.1
 
 - Fixed redis-py < 2.9.0 incompatibilities
 - Fixed runtests error with django 1.7
+
 
 Version 3.5.0
 -------------
