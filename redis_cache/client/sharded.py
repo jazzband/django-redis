@@ -54,7 +54,7 @@ class ShardClient(DefaultClient):
         name = self.get_server_name(key)
         return self._serverdict[name]
 
-    def add(self,  key, value, timeout=DEFAULT_TIMEOUT, version=None, client=None):
+    def add(self, key, value, timeout=DEFAULT_TIMEOUT, version=None, client=None):
         if client is None:
             key = self.make_key(key, version=version)
             client = self.get_server(key)
@@ -62,7 +62,7 @@ class ShardClient(DefaultClient):
         return super(ShardClient, self)\
             .add(key=key, value=value, version=version, client=client, timeout=timeout)
 
-    def get(self,  key, default=None, version=None, client=None):
+    def get(self, key, default=None, version=None, client=None):
         if client is None:
             key = self.make_key(key, version=version)
             client = self.get_server(key)
@@ -97,9 +97,9 @@ class ShardClient(DefaultClient):
             key = self.make_key(key, version=version)
             client = self.get_server(key)
 
-        return super(ShardClient, self).set(
-                        key=key, value=value, timeout=timeout,
-                        version=version, client=client, nx=nx)
+        return super(ShardClient, self).set(key=key, value=value,
+                                            timeout=timeout, version=version,
+                                            client=client, nx=nx)
 
     def set_many(self, data, timeout=DEFAULT_TIMEOUT, version=None):
         """
