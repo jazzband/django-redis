@@ -1,17 +1,16 @@
 # -*- coding: utf-8 -*-
 
+import functools
+
 from django.conf import settings
 from django.core.cache.backends.base import BaseCache
-from django.core.exceptions import ImproperlyConfigured
-from django.core.cache import get_cache
 
 from .util import load_class
 from .exceptions import ConnectionInterrupted
 
-import functools
 
-DJANGO_REDIS_IGNORE_EXCEPTIONS = getattr(settings,
-            "DJANGO_REDIS_IGNORE_EXCEPTIONS", False)
+DJANGO_REDIS_IGNORE_EXCEPTIONS = getattr(settings, "DJANGO_REDIS_IGNORE_EXCEPTIONS", False)
+
 
 def omit_exception(method):
     """
