@@ -63,7 +63,7 @@ class HerdClient(DefaultClient):
     def set(self, key, value, timeout=DEFAULT_TIMEOUT, version=None,
             client=None, nx=False):
 
-        if timeout == 0 or timeout == None:
+        if timeout == 0 or timeout is None:
             return super(HerdClient, self).set(key, value, timeout=timeout,
                                                version=version, client=client,
                                                nx=nx)
@@ -83,7 +83,7 @@ class HerdClient(DefaultClient):
 
     def get(self, key, default=None, version=None, client=None):
         packed = super(HerdClient, self).get(key, default=default,
-                                            version=version, client=client)
+                                             version=version, client=client)
         val, refresh = self._unpack(packed)
 
         if refresh:
