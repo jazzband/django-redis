@@ -433,13 +433,20 @@ class DefaultClient(object):
             if cursor == b"0":
                 break
 
-    def keys(self, search, client=None):
+    def keys(self, search, version=None, client=None):
+        """
+        Execute KEYS command and return matched results.
+        Warning: this can return huge number of results, in
+        this case, it strongly recommended use iter_keys
+        for it.
+        """
+
         if client is None:
             client = self.get_client(write=False)
 
-        pattern = self.make_key(search)
+        pattern = self.make_key(search, version=version)
         try:
-            encoding_map = [k.decode('utf-8') for k in client.keys(pattern)]
+            encoding_map = [smart_text(k) for k in client.keys(pattern)]
             return [k.split(":", 2)[2] for k in encoding_map]
         except ConnectionError:
             raise ConnectionInterrupted(connection=client)
