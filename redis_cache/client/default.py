@@ -2,6 +2,10 @@
 
 from __future__ import absolute_import, unicode_literals
 
+# Import the fastest implementation of
+# pickle package. This should be removed
+# when python3 come the unique supported
+# python version
 try:
     import cPickle as pickle
 except ImportError:
@@ -26,16 +30,13 @@ try:
 except ImportError:
     DEFAULT_TIMEOUT = object()
 
-from redis import Redis
-from redis.exceptions import ConnectionError, ResponseError
-from redis.connection import (Connection,
-                              DefaultParser,
-                              UnixDomainSocketConnection)
+from redis.exceptions import ConnectionError
+from redis.exceptions import ResponseError
 
-from ..util import CacheKey, load_class, integer_types
-from ..exceptions import ConnectionInterrupted
-
-from .. import pool
+from redis_cache.util import CacheKey
+from redis_cache.util import integer_types
+from redis_cache.exceptions import ConnectionInterrupted
+from redis_cache import pool
 
 
 class DefaultClient(object):
