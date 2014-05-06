@@ -104,4 +104,3 @@ def get_connection_factory(path=None, options=None):
 
     cls = util.load_class(path)
     return cls(options or {})
-
