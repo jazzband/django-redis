@@ -14,7 +14,7 @@ _django-redis_ is a xref:license[BSD Licensed], full featured Redis cache/sessio
 
 
 Why use django-redis?
----------------------
+~~~~~~~~~~~~~~~~~~~~~
 
 Because:
 
@@ -25,15 +25,32 @@ Because:
 - Used in production in several projects as cache and session storage.
 - Supports infinite timeouts.
 - Python 3 support in same code base.
-- Wide range of Django version support: 1.3-1.7
 - Facilities for raw access to Redis client/connection pool.
 - Highly configurable (can emulate memcached exception behavior, for example).
 - Unix sockets supported by default.
 - Pluggable parsers.
 
 
-How to install?
----------------
+Supported versions
+~~~~~~~~~~~~~~~~~~
+
+- Latest stable version: *3.6.1*
+- Previous stable version: *3.5.2*
+
+
+Requirements
+~~~~~~~~~~~~
+
+- Python 2.7, 3.3 or 3.4
+- Django 1.4, 1.5, 1.6 and 1.7
+- redis-py >= 2.9.0
+
+
+User guide
+----------
+
+Installation
+~~~~~~~~~~~~
 
 The simplest way to use *django-redis* in your project is to install it with *pip*:
 
@@ -41,14 +58,6 @@ The simplest way to use *django-redis* in your project is to install it with *pi
 ----
 pip install django-redis
 ----
-
-Latest stable version: *3.6.1*
-
-Previous stable version: *3.5.2*
-
-
-User guide
-----------
 
 Configure as cache backend
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
