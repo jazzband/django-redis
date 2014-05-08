@@ -115,6 +115,7 @@ in `OPTIONS`:
 }
 ----
 
+
 Socket timeout
 ~~~~~~~~~~~~~~
 
@@ -126,6 +127,7 @@ You can set socket timeout using the `SOCKET_TIMEOUT` key in the `OPTIONS` dict:
     'SOCKET_TIMEOUT': 5,  # in seconds
 }
 ----
+
 
 Memcached exceptions behavior
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -145,6 +147,7 @@ Additionally, you can set it individually for each client in their `OPTIONS` dic
 }
 ----
 
+
 Infinite timeout
 ~~~~~~~~~~~~~~~~
 
@@ -160,21 +163,60 @@ cache.set('key', 'value', timeout=0)
 cache.set('key', 'value', timeout=None)
 ----
 
-Additional methods
-~~~~~~~~~~~~~~~~~~
 
-*django-redis* comes with some additions to the default Django backend interface with two new methods:
+Get ttl (time-to-live) from key
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- `keys(wildcard_pattern)`: Retrieve keys matching glob pattern.
-- `delete_pattern(wildcard_pattern)`: Remove keys matching glob pattern.
+With redis, you can access to ttl of any stored key, for it, django-redis exposes `ttl` function.
 
-.Example use of keys
-[source, python]
+It returns:
+
+- ttl value for any volatile key (any key that has expiration)
+- 0 for expired and not existent keys
+- None for keys that does not have expiration
+
+.Simple search keys by pattern
+[source,pycon]
+----
+>>> from django.core.cache import cache
+>>> cache.set('foo', 'value', timeout=25)
+>>> cache.ttl('foo')
+25
+>>> cache.ttl('not-existent')
+0
+----
+
+
+Scan & Delete keys in bulk
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+*django-redis* comes with some additions methods that hels for search or delete keys
+using glob patterns.
+
+.Simple search keys by pattern
+[source,pycon]
 ----
 >>> from django.core.cache import cache
 >>> cache.keys('foo_*')
-['value1', 'value2']
+['foo_1', 'foo_2']
 ----
+
+On simple, search it return all matched values, in databases with big amount of keys
+this isn't suitable method. For it, you can use `iter_keys` function that works like 
+`keys` function but uses redis>=2.8 server side cursors.
+
+.Search using server side cursors
+[source,pycon]
+----
+>>> from django.core.cache import cache
+>>> cache.iter_keys('foo_*')
+<generator object algo at 0x7ffa9c2713a8>
+>>> next(cache.iter_keys('foo_*'))
+"foo_1"
+----
+
+For delete keys, you should use `delete_pattern` that has the same glob pattern syntax
+like `keys` function and returns a number of deleted keys.
 
 .Example use of delete_pattern
 [source, python]
@@ -182,6 +224,7 @@ Additional methods
 >>> from django.core.cache import cache
 >>> cache.delete_pattern('foo_*')
 ----
+
 
 Redis native commands
 ~~~~~~~~~~~~~~~~~~~~~
@@ -201,6 +244,9 @@ False
 >>> cache.get('key')
 'value1'
 ----
+
+Also, `incr` and `decr` methods uses redis atomic operations when value that contains a key is suitable
+for it.
 
 Raw client access
 ~~~~~~~~~~~~~~~~~
