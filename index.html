@@ -21,8 +21,8 @@ asciidoc.install(2);
 <h1>django-redis documentation</h1>
 <span id="author">Andrey Antukh,</span><br>
 <span id="email" class="monospaced">&lt;<a href="mailto:niwi@niwi.be">niwi@niwi.be</a>&gt;</span><br>
-<span id="revnumber">version 3.6.1,</span>
-<span id="revdate">2014-04-10</span>
+<span id="revnumber">version 3.6.2,</span>
+<span id="revdate">2014-05-09</span>
 <div id="toc">
   <div id="toctitle">Table of Contents</div>
   <noscript><p><b>JavaScript must be enabled in your browser to display the table of contents.</b></p></noscript>
@@ -33,11 +33,8 @@ asciidoc.install(2);
 <h2 id="_introduction">1. Introduction</h2>
 <div class="sectionbody">
 <div class="paragraph"><p><em>django-redis</em> is a <a href="#license">BSD Licensed</a>, full featured Redis cache/session backend for Django.</p></div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_why_use_django_redis">2. Why use django-redis?</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_why_use_django_redis">1.1. Why use django-redis?</h3>
 <div class="paragraph"><p>Because:</p></div>
 <div class="ulist"><ul>
 <li>
@@ -77,11 +74,6 @@ Python 3 support in same code base.
 </li>
 <li>
 <p>
-Wide range of Django version support: 1.3-1.7
-</p>
-</li>
-<li>
-<p>
 Facilities for raw access to Redis client/connection pool.
 </p>
 </li>
@@ -102,23 +94,55 @@ Pluggable parsers.
 </li>
 </ul></div>
 </div>
+<div class="sect2">
+<h3 id="_supported_versions">1.2. Supported versions</h3>
+<div class="ulist"><ul>
+<li>
+<p>
+Latest stable version: <strong>3.6.2</strong>
+</p>
+</li>
+<li>
+<p>
+Previous stable version: <strong>3.5.2</strong>
+</p>
+</li>
+</ul></div>
+</div>
+<div class="sect2">
+<h3 id="_requirements">1.3. Requirements</h3>
+<div class="ulist"><ul>
+<li>
+<p>
+Python 2.7, 3.3 or 3.4
+</p>
+</li>
+<li>
+<p>
+Django 1.4, 1.5, 1.6 and 1.7
+</p>
+</li>
+<li>
+<p>
+redis-py &gt;= 2.9.0
+</p>
+</li>
+</ul></div>
+</div>
+</div>
 </div>
 <div class="sect1">
-<h2 id="_how_to_install">3. How to install?</h2>
+<h2 id="_user_guide">2. User guide</h2>
 <div class="sectionbody">
+<div class="sect2">
+<h3 id="_installation">2.1. Installation</h3>
 <div class="paragraph"><p>The simplest way to use <strong>django-redis</strong> in your project is to install it with <strong>pip</strong>:</p></div>
 <div class="listingblock">
 <div class="content"><div class="highlight"><pre>pip install django-redis
 </pre></div></div></div>
-<div class="paragraph"><p>Latest stable version: <strong>3.6.1</strong></p></div>
-<div class="paragraph"><p>Previous stable version: <strong>3.5.2</strong></p></div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="_user_guide">4. User guide</h2>
-<div class="sectionbody">
 <div class="sect2">
-<h3 id="_configure_as_cache_backend">4.1. Configure as cache backend</h3>
+<h3 id="_configure_as_cache_backend">2.2. Configure as cache backend</h3>
 <div class="paragraph"><p>To start using <strong>django-redis</strong>, you should change your Django cache settings to something like:</p></div>
 <div class="listingblock">
 <div class="content"><div class="highlight"><pre><span class="n">CACHES</span> <span class="o">=</span> <span class="p">{</span>
@@ -145,7 +169,7 @@ this part since that client is used by default if one is not specified.</p></div
 </div>
 </div>
 <div class="sect2">
-<h3 id="_configure_as_session_backend">4.2. Configure as session backend</h3>
+<h3 id="_configure_as_session_backend">2.3. Configure as session backend</h3>
 <div class="paragraph"><p>Django can by default use any cache backend as session backend and you benefit from that by using <strong>django-redis</strong>
 as backend for session storage without installing any additional and unnecesary backends:</p></div>
 <div class="listingblock">
@@ -156,10 +180,10 @@ as backend for session storage without installing any additional and unnecesary 
 </div>
 </div>
 <div class="sect1">
-<h2 id="_advanced_usage">5. Advanced usage</h2>
+<h2 id="_advanced_usage">3. Advanced usage</h2>
 <div class="sectionbody">
 <div class="sect2">
-<h3 id="_pickle_version">5.1. Pickle version</h3>
+<h3 id="_pickle_version">3.1. Pickle version</h3>
 <div class="paragraph"><p>For almost all values, <strong>django-redis</strong> uses pickle to serialize objects and by default uses the
 latest pickle protocol version. If you want set a custom version you can do it with the <span class="monospaced">PICKLE_VERSION</span> key
 in <span class="monospaced">OPTIONS</span>:</p></div>
@@ -170,7 +194,7 @@ in <span class="monospaced">OPTIONS</span>:</p></div>
 </pre></div></div></div>
 </div>
 <div class="sect2">
-<h3 id="_socket_timeout">5.2. Socket timeout</h3>
+<h3 id="_socket_timeout">3.2. Socket timeout</h3>
 <div class="paragraph"><p>You can set socket timeout using the <span class="monospaced">SOCKET_TIMEOUT</span> key in the <span class="monospaced">OPTIONS</span> dict:</p></div>
 <div class="listingblock">
 <div class="content"><div class="highlight"><pre><span class="s">&#39;OPTIONS&#39;</span><span class="p">:</span> <span class="p">{</span>
@@ -179,7 +203,7 @@ in <span class="monospaced">OPTIONS</span>:</p></div>
 </pre></div></div></div>
 </div>
 <div class="sect2">
-<h3 id="_memcached_exceptions_behavior">5.3. Memcached exceptions behavior</h3>
+<h3 id="_memcached_exceptions_behavior">3.3. Memcached exceptions behavior</h3>
 <div class="paragraph"><p>In some situations, when Redis is only used for cache, you do not want exceptions when Redis is down. This is
 default behavior in the memcached backend and it can be emulated in <strong>django-redis</strong>.</p></div>
 <div class="paragraph"><p>You can ignore exceptions globally (for all configured Redis cache clients) by setting <span class="monospaced">DJANGO_REDIS_IGNORE_EXCEPTIONS</span>
@@ -192,7 +216,7 @@ to <span class="monospaced">True</span> in your settings.</p></div>
 </pre></div></div></div>
 </div>
 <div class="sect2">
-<h3 id="_infinite_timeout">5.4. Infinite timeout</h3>
+<h3 id="_infinite_timeout">3.4. Infinite timeout</h3>
 <div class="paragraph"><p><strong>django-redis</strong> comes with infinite timeouts support, since before Django added it in version 1.6.</p></div>
 <div class="paragraph"><p>If used with Django before version 1.6, <strong>django-redis</strong> interprets a <span class="monospaced">0</span> timeout value as infinite. In Django &gt;= 1.6 it also supports
 <span class="monospaced">None</span> as timeout value.</p></div>
@@ -203,26 +227,59 @@ to <span class="monospaced">True</span> in your settings.</p></div>
 </pre></div></div></div>
 </div>
 <div class="sect2">
-<h3 id="_additional_methods">5.5. Additional methods</h3>
-<div class="paragraph"><p><strong>django-redis</strong> comes with some additions to the default Django backend interface with two new methods:</p></div>
+<h3 id="_get_ttl_time_to_live_from_key">3.5. Get ttl (time-to-live) from key</h3>
+<div class="paragraph"><p>With redis, you can access to ttl of any stored key, for it, django-redis exposes <span class="monospaced">ttl</span> function.</p></div>
+<div class="paragraph"><p>It returns:</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
-<span class="monospaced">keys(wildcard_pattern)</span>: Retrieve keys matching glob pattern.
+ttl value for any volatile key (any key that has expiration)
 </p>
 </li>
 <li>
 <p>
-<span class="monospaced">delete_pattern(wildcard_pattern)</span>: Remove keys matching glob pattern.
+0 for expired and not existent keys
+</p>
+</li>
+<li>
+<p>
+None for keys that does not have expiration
 </p>
 </li>
 </ul></div>
 <div class="listingblock">
-<div class="title">Example use of keys</div>
-<div class="content"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">django.core.cache</span> <span class="kn">import</span> <span class="n">cache</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="n">cache</span><span class="o">.</span><span class="n">keys</span><span class="p">(</span><span class="s">&#39;foo_*&#39;</span><span class="p">)</span>
-<span class="p">[</span><span class="s">&#39;value1&#39;</span><span class="p">,</span> <span class="s">&#39;value2&#39;</span><span class="p">]</span>
+<div class="title">Simple search keys by pattern</div>
+<div class="content"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">django.core.cache</span> <span class="kn">import</span> <span class="n">cache</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cache</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s">&#39;foo&#39;</span><span class="p">,</span> <span class="s">&#39;value&#39;</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">25</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cache</span><span class="o">.</span><span class="n">ttl</span><span class="p">(</span><span class="s">&#39;foo&#39;</span><span class="p">)</span>
+<span class="go">25</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cache</span><span class="o">.</span><span class="n">ttl</span><span class="p">(</span><span class="s">&#39;not-existent&#39;</span><span class="p">)</span>
+<span class="go">0</span>
 </pre></div></div></div>
+</div>
+<div class="sect2">
+<h3 id="_scan_amp_delete_keys_in_bulk">3.6. Scan &amp; Delete keys in bulk</h3>
+<div class="paragraph"><p><strong>django-redis</strong> comes with some additions methods that hels for search or delete keys
+using glob patterns.</p></div>
+<div class="listingblock">
+<div class="title">Simple search keys by pattern</div>
+<div class="content"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">django.core.cache</span> <span class="kn">import</span> <span class="n">cache</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cache</span><span class="o">.</span><span class="n">keys</span><span class="p">(</span><span class="s">&#39;foo_*&#39;</span><span class="p">)</span>
+<span class="go">[&#39;foo_1&#39;, &#39;foo_2&#39;]</span>
+</pre></div></div></div>
+<div class="paragraph"><p>On simple, search it return all matched values, in databases with big amount of keys
+this isn&#8217;t suitable method. For it, you can use <span class="monospaced">iter_keys</span> function that works like
+<span class="monospaced">keys</span> function but uses redis&gt;=2.8 server side cursors.</p></div>
+<div class="listingblock">
+<div class="title">Search using server side cursors</div>
+<div class="content"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">django.core.cache</span> <span class="kn">import</span> <span class="n">cache</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cache</span><span class="o">.</span><span class="n">iter_keys</span><span class="p">(</span><span class="s">&#39;foo_*&#39;</span><span class="p">)</span>
+<span class="go">&lt;generator object algo at 0x7ffa9c2713a8&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">next</span><span class="p">(</span><span class="n">cache</span><span class="o">.</span><span class="n">iter_keys</span><span class="p">(</span><span class="s">&#39;foo_*&#39;</span><span class="p">))</span>
+<span class="go">&quot;foo_1&quot;</span>
+</pre></div></div></div>
+<div class="paragraph"><p>For delete keys, you should use <span class="monospaced">delete_pattern</span> that has the same glob pattern syntax
+like <span class="monospaced">keys</span> function and returns a number of deleted keys.</p></div>
 <div class="listingblock">
 <div class="title">Example use of delete_pattern</div>
 <div class="content"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">django.core.cache</span> <span class="kn">import</span> <span class="n">cache</span>
@@ -230,7 +287,7 @@ to <span class="monospaced">True</span> in your settings.</p></div>
 </pre></div></div></div>
 </div>
 <div class="sect2">
-<h3 id="_redis_native_commands">5.6. Redis native commands</h3>
+<h3 id="_redis_native_commands">3.7. Redis native commands</h3>
 <div class="paragraph"><p><strong>django-redis</strong> has limited support for some Redis atomic operations, such as the commands <span class="monospaced">SETNX</span> and <span class="monospaced">INCR</span>.</p></div>
 <div class="paragraph"><p>You can use the <span class="monospaced">SETNX command through the backend `set()</span> method with the <span class="monospaced">nx</span> parameter:</p></div>
 <div class="listingblock">
@@ -243,9 +300,11 @@ to <span class="monospaced">True</span> in your settings.</p></div>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">cache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;key&#39;</span><span class="p">)</span>
 <span class="s">&#39;value1&#39;</span>
 </pre></div></div></div>
+<div class="paragraph"><p>Also, <span class="monospaced">incr</span> and <span class="monospaced">decr</span> methods uses redis atomic operations when value that contains a key is suitable
+for it.</p></div>
 </div>
 <div class="sect2">
-<h3 id="_raw_client_access">5.7. Raw client access</h3>
+<h3 id="_raw_client_access">3.8. Raw client access</h3>
 <div class="paragraph"><p>In some situations your application requires access to a raw Redis client to use some advanced
 features that aren&#8217;t exposed by the Django cache interface. To avoid storing another setting for creating a raw
 connection, <strong>django-redis</strong> exposes functions with which you can obtain a raw client reusing the cache connection
@@ -266,12 +325,12 @@ string: <span class="monospaced">get_redis_connection(alias)</span>.</p></div>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_connection_pools">5.8. Connection pools</h3>
+<h3 id="_connection_pools">3.9. Connection pools</h3>
 <div class="paragraph"><p>Behind the scenes, <strong>django-redis</strong> uses the underlying <strong>redis-py</strong> connection pool implementation, and exposes a simple way to
 configure it or directly customize a connection/connection pool creation for backend.</p></div>
 <div class="paragraph"><p>The default <strong>redis-py</strong> behavior is to not close connections, recycling them when possible.</p></div>
 <div class="sect3">
-<h4 id="_configure_default_connection_pool">5.8.1. Configure default connection pool</h4>
+<h4 id="_configure_default_connection_pool">3.9.1. Configure default connection pool</h4>
 <div class="paragraph"><p>The default connection pool is simple. You can only customize the maximum number of connections
 in the pool, by setting <span class="monospaced">CONNECTION_POOL_KWARGS</span> in the <span class="monospaced">CACHES</span> setting:</p></div>
 <div class="listingblock">
@@ -295,7 +354,7 @@ in the pool, by setting <span class="monospaced">CONNECTION_POOL_KWARGS</span> i
 </pre></div></div></div>
 </div>
 <div class="sect3">
-<h4 id="_use_your_own_connection_pool_subclass">5.8.2. Use your own connection pool subclass</h4>
+<h4 id="_use_your_own_connection_pool_subclass">3.9.2. Use your own connection pool subclass</h4>
 <div class="paragraph"><p>Sometimes you want to use your own subclass of the connection pool. This is possible with
 <strong>django-redis</strong> using the <span class="monospaced">CONNECTION_POOL_CLASS</span> parameter in the backend options.</p></div>
 <div class="listingblock">
@@ -316,7 +375,7 @@ in the pool, by setting <span class="monospaced">CONNECTION_POOL_KWARGS</span> i
 </pre></div></div></div>
 </div>
 <div class="sect3">
-<h4 id="_customize_connection_factory">5.8.3. Customize connection factory</h4>
+<h4 id="_customize_connection_factory">3.9.3. Customize connection factory</h4>
 <div class="paragraph"><p>If none of the previous methods satisfies you, you can get in the middle of the <strong>django-redis</strong> connection
 factory process and customize or completely rewrite it.</p></div>
 <div class="paragraph"><p>By default, <strong>django-redis</strong> creates connections through the <span class="monospaced">redis_cache.pool.ConnectionFactory</span> class that is specified
@@ -367,7 +426,7 @@ in the global Django setting <span class="monospaced">DJANGO_REDIS_CONNECTION_FA
 </div>
 </div>
 <div class="sect2">
-<h3 id="_pluggable_parsers">5.9. Pluggable parsers</h3>
+<h3 id="_pluggable_parsers">3.10. Pluggable parsers</h3>
 <div class="paragraph"><p><strong>redis-py</strong> (the Python Redis client used by <strong>django-redis</strong>) comes with a pure Python Redis parser that works very
 well for most common task, but if you want some performance boost, you can use <strong>hiredis</strong>.</p></div>
 <div class="paragraph"><p><strong>hiredis</strong> is a Redis client written in C and it has its own parser that can be used with <strong>django-redis</strong>.</p></div>
@@ -378,9 +437,9 @@ well for most common task, but if you want some performance boost, you can use <
 </pre></div></div></div>
 </div>
 <div class="sect2">
-<h3 id="_pluggable_clients">5.10. Pluggable clients</h3>
+<h3 id="_pluggable_clients">3.11. Pluggable clients</h3>
 <div class="sect3">
-<h4 id="_default_client">5.10.1. Default client</h4>
+<h4 id="_default_client">3.11.1. Default client</h4>
 <div class="paragraph"><p>In addition to what has been explained previously, the default client comes with master-slave connection support. To
 use master-slave configuration in your project, you should change your <span class="monospaced">LOCATION</span> value to something like this:</p></div>
 <div class="listingblock">
@@ -399,7 +458,7 @@ use master-slave configuration in your project, you should change your <span cla
 </div>
 </div>
 <div class="sect3">
-<h4 id="_shard_client">5.10.2. Shard client</h4>
+<h4 id="_shard_client">3.11.2. Shard client</h4>
 <div class="paragraph"><p>This pluggable client implements client-side sharding. It inherits almost all functionality from
 the default client. To use it, change your cache settings to something like this:</p></div>
 <div class="listingblock">
@@ -426,7 +485,7 @@ the default client. To use it, change your cache settings to something like this
 </div>
 </div>
 <div class="sect3">
-<h4 id="_herd_client">5.10.3. Herd client</h4>
+<h4 id="_herd_client">3.11.3. Herd client</h4>
 <div class="paragraph"><p>This pluggable client helps dealing with the thundering herd problem. You can read more about it
 on <a href="http://en.wikipedia.org/wiki/Thundering_herd_problem">Wikipedia</a>.</p></div>
 <div class="paragraph"><p>As with previous pluggable clients, it inherits all functionality from the default client, adding some additional
@@ -453,7 +512,7 @@ methods for getting/setting keys.</p></div>
 </ul></div>
 </div>
 <div class="sect3">
-<h4 id="_auto_failover_client">5.10.4. Auto Failover client</h4>
+<h4 id="_auto_failover_client">3.11.4. Auto Failover client</h4>
 <div class="paragraph"><p>This pluggable experimental client offers a simple failover algorithm if the main Redis server is down.</p></div>
 <div class="paragraph"><p>To use it, you should change your cache settings to something like this:</p></div>
 <div class="listingblock">
@@ -474,7 +533,7 @@ separated by "/". A second connection string works as a failover server.</p></di
 </div>
 </div>
 <div class="sect1">
-<h2 id="license">6. License</h2>
+<h2 id="license">4. License</h2>
 <div class="sectionbody">
 <div class="listingblock">
 <div class="content"><div class="highlight"><pre>Copyright (c) 2011-2014 Andrei Antoukh &lt;niwi@niwi.be&gt;
@@ -510,8 +569,8 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 <div id="footnotes"><hr></div>
 <div id="footer">
 <div id="footer-text">
-Version 3.6.1<br>
-Last updated 2014-04-19 23:00:19 CEST
+Version 3.6.2<br>
+Last updated 2014-05-09 22:30:18 CEST
 </div>
 </div>
 </body>
