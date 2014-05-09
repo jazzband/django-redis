@@ -1,7 +1,7 @@
 django-redis documentation
 ==========================
 Andrey Antukh, <niwi@niwi.be>
-3.6.1, 2014-04-10
+3.6.2, 2014-05-09
 
 :toc:
 :numbered:
@@ -34,7 +34,7 @@ Because:
 Supported versions
 ~~~~~~~~~~~~~~~~~~
 
-- Latest stable version: *3.6.1*
+- Latest stable version: *3.6.2*
 - Previous stable version: *3.5.2*
 
 
