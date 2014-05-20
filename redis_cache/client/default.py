@@ -33,8 +33,7 @@ except ImportError:
 from redis.exceptions import ConnectionError
 from redis.exceptions import ResponseError
 
-from redis_cache.util import CacheKey
-from redis_cache.util import integer_types
+from redis_cache.util import CacheKey, integer_types, reverse_key
 from redis_cache.exceptions import ConnectionInterrupted
 from redis_cache import pool
 
@@ -428,7 +427,7 @@ class DefaultClient(object):
 
             for item in data:
                 item = smart_text(item)
-                yield item.split(":", 2)[2]
+                yield reverse_key(item)
 
             if cursor == b"0":
                 break
@@ -447,7 +446,7 @@ class DefaultClient(object):
         pattern = self.make_key(search, version=version)
         try:
             encoding_map = [smart_text(k) for k in client.keys(pattern)]
-            return [k.split(":", 2)[2] for k in encoding_map]
+            return [reverse_key(k) for k in encoding_map]
         except ConnectionError:
             raise ConnectionInterrupted(connection=client)
 
