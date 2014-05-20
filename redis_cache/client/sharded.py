@@ -16,7 +16,7 @@ except ImportError:
 
 from ..hash_ring import HashRing
 from ..exceptions import ConnectionInterrupted
-from ..util import CacheKey, reverse_key
+from ..util import CacheKey
 from .default import DefaultClient, DEFAULT_TIMEOUT
 
 
@@ -203,7 +203,7 @@ class ShardClient(DefaultClient):
             raise ConnectionInterrupted(connection=client)
 
         decoded_keys = (smart_text(k) for k in keys)
-        return [reverse_key(k) for k in decoded_keys]
+        return [self.reverse_key(k) for k in decoded_keys]
 
     def delete_pattern(self, pattern, version=None):
         """

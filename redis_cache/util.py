@@ -75,11 +75,8 @@ def load_class(path):
 def default_reverse_key(key):
     return key.split(':', 2)[2]
 
-def get_revese_key_function():
-    reverse_key = getattr(settings, 'REVERSE_KEY_FUNCTION', default_reverse_key)
-    if callable(reverse_key):
-        return reverse_key
+def get_revese_key_function(path=None):
+    if path is None:
+        return default_reverse_key
     # Will raise Improperly configured in case of import errors
-    return import_by_path(reverse_key)
-
-reverse_key = get_revese_key_function()
+    return import_by_path(path)
