@@ -43,7 +43,9 @@ class ConnectionFactory(object):
             kwargs.update({'host': host, 'port': port, 'connection_class': Connection})
 
         if 'SOCKET_TIMEOUT' in self.options:
-            kwargs['socket_timeout'] = int(self.options['SOCKET_TIMEOUT'])
+            timeout = self.options['SOCKET_TIMEOUT']
+            assert isinstance(timeout, (int, float)), "Socket timeout should be float or integer"
+            kwargs['socket_timeout'] = timeout
 
         return kwargs
 
