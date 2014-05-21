@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import functools
+import functools,warnings
 
 from django.conf import settings
 from django.core.cache.backends.base import BaseCache
@@ -62,8 +62,9 @@ class RedisCache(BaseCache):
         pluggable clients supports this feature. If not supports
         this raises NotImplementedError
         """
-        write_condition = self._params.get("WRITE",{})
-        return self.client.get_client(write=write_condition)
+        warnings.warn("raw_client is deprecated. use self.client.get_client instead",
+                                  DeprecationWarning, stacklevel=2)
+        return self.client.get_client(write=True)
 
     @omit_exception
     def set(self, *args, **kwargs):
