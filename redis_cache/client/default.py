@@ -21,9 +21,10 @@ except ImportError:
     from django.utils.encoding import smart_str as smart_bytes
     from django.utils.encoding import smart_unicode as smart_text
 
-from django.utils.datastructures import SortedDict
-from django.core.exceptions import ImproperlyConfigured
 from django.conf import settings
+from django.core.cache.backends.base import get_key_func
+from django.core.exceptions import ImproperlyConfigured
+from django.utils.datastructures import SortedDict
 
 try:
     from django.core.cache.backends.base import DEFAULT_TIMEOUT
@@ -33,7 +34,7 @@ except ImportError:
 from redis.exceptions import ConnectionError
 from redis.exceptions import ResponseError
 
-from redis_cache.util import CacheKey, integer_types, get_revese_key_function
+from redis_cache.util import CacheKey, integer_types
 from redis_cache.exceptions import ConnectionInterrupted
 from redis_cache import pool
 
@@ -45,9 +46,7 @@ class DefaultClient(object):
         self._server = server
         self._params = params
 
-        self.reverse_key = get_revese_key_function(
-            params.get('REVERSE_KEY_FUNCTION')
-        )
+        self.reverse_key = get_key_func(params.get('REVERSE_KEY_FUNCTION') or 'redis_cache.util.default_reverse_key')
 
         if not self._server:
             raise ImproperlyConfigured("Missing connections string")

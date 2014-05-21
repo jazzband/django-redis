@@ -15,7 +15,7 @@ except ImportError:
 
 from django.core.exceptions import ImproperlyConfigured
 from django.conf import settings
-from django.utils.module_loading import import_by_path
+from django.core.cache.backends.base import get_key_func
 
 from redis import ConnectionPool as RedisConnectionPool
 from redis.connection import UnixDomainSocketConnection, Connection
@@ -74,9 +74,3 @@ def load_class(path):
 
 def default_reverse_key(key):
     return key.split(':', 2)[2]
-
-def get_revese_key_function(path=None):
-    if path is None:
-        return default_reverse_key
-    # Will raise Improperly configured in case of import errors
-    return import_by_path(path)

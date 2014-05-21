@@ -6,12 +6,13 @@ import sys
 import time
 import datetime
 
-from django.test import TestCase
+from django.conf import settings
 from django.core.cache import cache, get_cache
+from django.test import TestCase
 import redis_cache.cache
 
-
 from redis_cache.client import herd
+
 
 herd.CACHE_HERD_TIMEOUT = 2
 
@@ -22,6 +23,48 @@ else:
     text_type = str
     bytes_type = bytes
     long = int
+
+
+def make_key(key, prefix, version):
+    return "{}#{}#{}".format(prefix, version, key)
+
+def reverse_key(key):
+    return key.split("#", 2)[2]
+
+class DjangoRedisCacheTestCustomKeyFunction(TestCase):
+    def setUp(self):
+        self.old_kf = settings.CACHES['default'].get('KEY_FUNCTION')
+        self.old_rkf = settings.CACHES['default'].get('REVERSE_KEY_FUNCTION')
+        settings.CACHES['default']['KEY_FUNCTION'] = 'redis_backend_testapp.tests.make_key'
+        settings.CACHES['default']['REVERSE_KEY_FUNCTION'] = 'redis_backend_testapp.tests.reverse_key'
+
+        self.cache = get_cache('default')
+        try:
+            self.cache.clear()
+        except Exception:
+            pass
+
+
+    def test_custom_key_function(self):
+        for key in ["foo-aa","foo-ab", "foo-bb","foo-bc"]:
+            self.cache.set(key, "foo")
+
+        res = self.cache.delete_pattern("*foo-a*")
+        self.assertTrue(bool(res))
+
+        keys = self.cache.keys("foo*")
+        self.assertEqual(set(keys), set(["foo-bb","foo-bc"]))
+        # ensure our custom function was actually called
+        try:
+            self.assertEqual(set(k.decode('utf-8') for k in self.cache.raw_client.keys('*')),
+                set(['#1#foo-bc', '#1#foo-bb']))
+        except NotImplementedError:
+            # not all clients support .keys()
+            pass
+
+    def tearDown(self):
+        settings.CACHES['default']['KEY_FUNCTION'] = self.old_kf
+        settings.CACHES['default']['REVERSE_KEY_FUNCTION'] = self.old_rkf
 
 
 class DjangoRedisCacheTests(TestCase):
