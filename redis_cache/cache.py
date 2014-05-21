@@ -62,7 +62,8 @@ class RedisCache(BaseCache):
         pluggable clients supports this feature. If not supports
         this raises NotImplementedError
         """
-        return self.client.get_client(write=True)
+        write_condition = self._params.get("WRITE",{})
+        return self.client.get_client(write=write_condition)
 
     @omit_exception
     def set(self, *args, **kwargs):
