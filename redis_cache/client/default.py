@@ -21,9 +21,10 @@ except ImportError:
     from django.utils.encoding import smart_str as smart_bytes
     from django.utils.encoding import smart_unicode as smart_text
 
-from django.utils.datastructures import SortedDict
-from django.core.exceptions import ImproperlyConfigured
 from django.conf import settings
+from django.core.cache.backends.base import get_key_func
+from django.core.exceptions import ImproperlyConfigured
+from django.utils.datastructures import SortedDict
 
 try:
     from django.core.cache.backends.base import DEFAULT_TIMEOUT
@@ -33,8 +34,7 @@ except ImportError:
 from redis.exceptions import ConnectionError
 from redis.exceptions import ResponseError
 
-from redis_cache.util import CacheKey
-from redis_cache.util import integer_types
+from redis_cache.util import CacheKey, integer_types
 from redis_cache.exceptions import ConnectionInterrupted
 from redis_cache import pool
 
@@ -45,6 +45,8 @@ class DefaultClient(object):
         self._backend = backend
         self._server = server
         self._params = params
+
+        self.reverse_key = get_key_func(params.get('REVERSE_KEY_FUNCTION') or 'redis_cache.util.default_reverse_key')
 
         if not self._server:
             raise ImproperlyConfigured("Missing connections string")
@@ -428,7 +430,7 @@ class DefaultClient(object):
 
             for item in data:
                 item = smart_text(item)
-                yield item.split(":", 2)[2]
+                yield self.reverse_key(item)
 
             if cursor == b"0":
                 break
@@ -447,7 +449,7 @@ class DefaultClient(object):
         pattern = self.make_key(search, version=version)
         try:
             encoding_map = [smart_text(k) for k in client.keys(pattern)]
-            return [k.split(":", 2)[2] for k in encoding_map]
+            return [self.reverse_key(k) for k in encoding_map]
         except ConnectionError:
             raise ConnectionInterrupted(connection=client)
 

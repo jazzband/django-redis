@@ -203,7 +203,7 @@ class ShardClient(DefaultClient):
             raise ConnectionInterrupted(connection=client)
 
         decoded_keys = (smart_text(k) for k in keys)
-        return [k.split(":", 2)[2] for k in decoded_keys]
+        return [self.reverse_key(k) for k in decoded_keys]
 
     def delete_pattern(self, pattern, version=None):
         """
