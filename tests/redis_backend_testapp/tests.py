@@ -13,7 +13,6 @@ import redis_cache.cache
 
 from redis_cache.client import herd
 
-
 herd.CACHE_HERD_TIMEOUT = 2
 
 if sys.version_info[0] < 3:
@@ -31,6 +30,7 @@ def make_key(key, prefix, version):
 def reverse_key(key):
     return key.split("#", 2)[2]
 
+
 class DjangoRedisCacheTestCustomKeyFunction(TestCase):
     def setUp(self):
         self.old_kf = settings.CACHES['default'].get('KEY_FUNCTION')
@@ -43,7 +43,6 @@ class DjangoRedisCacheTestCustomKeyFunction(TestCase):
             self.cache.clear()
         except Exception:
             pass
-
 
     def test_custom_key_function(self):
         for key in ["foo-aa","foo-ab", "foo-bb","foo-bc"]:
@@ -75,6 +74,13 @@ class DjangoRedisCacheTests(TestCase):
             self.cache.clear()
         except Exception:
             pass
+
+
+    def test_exceptions(self):
+        from redis.exceptions import ConnectionError
+        with self.assertRaises(ConnectionError):
+            cache = get_cache("doesnotexist")
+            cache.get("foo")
 
     def test_setnx(self):
         # we should ensure there is no test_key_nx in redis
