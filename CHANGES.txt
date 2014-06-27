@@ -1,6 +1,14 @@
 Changelog
 =========
 
+Versiom 3.7.0
+-------------
+
+- Add support for django's `KEY_FUNCTION` and `REVERSE_KEY_FUNCTION` (by @teferi)
+- Accept float value for socket timeout.
+- Fix wrong behavior of `DJANGO_REDIS_IGNORE_EXCEPTIONS` with socket timeouts.
+- Backward incompatible change: now raises original exceptions instead of self defined.
+
 Version 3.6.2
 -------------
 
