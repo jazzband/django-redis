@@ -22,13 +22,13 @@ def omit_exception(method):
 
     @functools.wraps(method)
     def _decorator(self, *args, **kwargs):
-        if self._ignore_exceptions:
-            try:
-                return method(self, *args, **kwargs)
-            except ConnectionInterrupted:
-                return None
-        else:
+        try:
             return method(self, *args, **kwargs)
+        except ConnectionInterrupted as e:
+            if self._ignore_exceptions:
+                return None
+
+            raise e.parent
 
     return _decorator
 
