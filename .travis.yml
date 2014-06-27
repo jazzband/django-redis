@@ -20,7 +20,7 @@ matrix:
 
 install:
   - pip install $DJANGO --use-mirrors
-  - pip install redis --use-mirrors
+  - pip install redis==2.9.0 --use-mirrors
 
 script:
   - python runtests.py
