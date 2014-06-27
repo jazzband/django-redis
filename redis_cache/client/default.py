@@ -34,10 +34,19 @@ except ImportError:
 from redis.exceptions import ConnectionError
 from redis.exceptions import ResponseError
 
+# Compatibility with redis-py 2.10.x+
+
+import socket
+
+try:
+    from redis.exceptions import TimeoutError
+    _main_exceptions = (TimeoutError, ConnectionError, socket.timeout)
+except ImportError:
+    _main_exceptions = (ConnectionError, socket.timeout)
+
 from redis_cache.util import CacheKey, integer_types
 from redis_cache.exceptions import ConnectionInterrupted
 from redis_cache import pool
-
 
 class DefaultClient(object):
     def __init__(self, server, params, backend):
@@ -156,8 +165,8 @@ class DefaultClient(object):
                         return self.delete(key, client=client)
 
                 return client.set(key, value)
-        except ConnectionError:
-            raise ConnectionInterrupted(connection=client)
+        except _main_exceptions as e:
+            raise ConnectionInterrupted(connection=client, parent=e)
 
     def incr_version(self, key, delta=1, version=None, client=None):
         """
@@ -176,8 +185,8 @@ class DefaultClient(object):
 
         try:
             ttl = client.ttl(old_key)
-        except ConnectionError:
-            raise ConnectionInterrupted(connection=client)
+        except _main_exceptions as e:
+            raise ConnectionInterrupted(connection=client, parent=e)
 
         if value is None:
             raise ValueError("Key '%s' not found" % key)
@@ -212,8 +221,8 @@ class DefaultClient(object):
 
         try:
             value = client.get(key)
-        except ConnectionError:
-            raise ConnectionInterrupted(connection=client)
+        except _main_exceptions as e:
+            raise ConnectionInterrupted(connection=client, parent=e)
 
         if value is None:
             return default
@@ -229,8 +238,8 @@ class DefaultClient(object):
 
         try:
             return client.delete(self.make_key(key, version=version))
-        except ConnectionError:
-            raise ConnectionInterrupted(connection=client)
+        except _main_exceptions as e:
+            raise ConnectionInterrupted(connection=client, parent=e)
 
     def delete_pattern(self, pattern, version=None, client=None):
         """
@@ -246,8 +255,8 @@ class DefaultClient(object):
 
             if keys:
                 return client.delete(*keys)
-        except ConnectionError:
-            raise ConnectionInterrupted(connection=client)
+        except _main_exceptions as e:
+            raise ConnectionInterrupted(connection=client, parent=e)
 
     def delete_many(self, keys, version=None, client=None):
         """
@@ -263,8 +272,8 @@ class DefaultClient(object):
         keys = [self.make_key(k, version=version) for k in keys]
         try:
             return client.delete(*keys)
-        except ConnectionError:
-            raise ConnectionInterrupted(connection=client)
+        except _main_exceptions as e:
+            raise ConnectionInterrupted(connection=client, parent=e)
 
     def clear(self, client=None):
         """
@@ -315,8 +324,8 @@ class DefaultClient(object):
 
         try:
             results = client.mget(*new_keys)
-        except ConnectionError:
-            raise ConnectionInterrupted(connection=client)
+        except _main_exceptions as e:
+            raise ConnectionInterrupted(connection=client, parent=e)
 
         for key, value in zip(new_keys, results):
             if value is None:
@@ -340,8 +349,8 @@ class DefaultClient(object):
             for key, value in data.items():
                 self.set(key, value, timeout, version=version, client=pipeline)
             pipeline.execute()
-        except ConnectionError:
-            raise ConnectionInterrupted(connection=client)
+        except _main_exceptions as e:
+            raise ConnectionInterrupted(connection=client, parent=e)
 
     def _incr(self, key, delta=1, version=None, client=None):
         if client is None:
@@ -366,8 +375,8 @@ class DefaultClient(object):
                 value = self.get(key, version=version, client=client) + delta
                 self.set(key, value, version=version, timeout=timeout,
                          client=client)
-        except ConnectionError:
-            raise ConnectionInterrupted(connection=client)
+        except _main_exceptions as e:
+            raise ConnectionInterrupted(connection=client, parent=e)
 
         return value
 
@@ -410,8 +419,8 @@ class DefaultClient(object):
         key = self.make_key(key, version=version)
         try:
             return client.exists(key)
-        except ConnectionError:
-            raise ConnectionInterrupted(connection=client)
+        except _main_exceptions as e:
+            raise ConnectionInterrupted(connection=client, parent=e)
 
     def iter_keys(self, search, itersize=None, client=None, version=None):
         """
@@ -450,8 +459,8 @@ class DefaultClient(object):
         try:
             encoding_map = [smart_text(k) for k in client.keys(pattern)]
             return [self.reverse_key(k) for k in encoding_map]
-        except ConnectionError:
-            raise ConnectionInterrupted(connection=client)
+        except _main_exceptions as e:
+            raise ConnectionInterrupted(connection=client, parent=e)
 
     def make_key(self, key, version=None):
         if isinstance(key, CacheKey):
