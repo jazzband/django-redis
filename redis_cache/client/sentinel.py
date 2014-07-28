@@ -4,6 +4,7 @@ import functools
 import random
 
 from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured
 
 from redis import Redis
 from redis.sentinel import Sentinel
