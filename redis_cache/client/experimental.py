@@ -43,7 +43,7 @@ def auto_failover(method):
                 self._client = self.fallback_client
 
                 self._in_fallback = True
-                self._in_fallback_date = timezone.now()
+                self._in_fallback_date = datetime_now()
 
             return method(self, *args, **kwargs)
     return _decorator
