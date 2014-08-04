@@ -190,7 +190,7 @@ It returns:
 Scan & Delete keys in bulk
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-*django-redis* comes with some additions methods that hels for search or delete keys
+*django-redis* comes with some additional methods that help with searching or deleting keys
 using glob patterns.
 
 .Simple search keys by pattern
@@ -201,9 +201,9 @@ using glob patterns.
 ['foo_1', 'foo_2']
 ----
 
-On simple, search it return all matched values, in databases with big amount of keys
-this isn't suitable method. For it, you can use `iter_keys` function that works like 
-`keys` function but uses redis>=2.8 server side cursors.
+A simple search like this will return all matched values. In databases with a large number of keys
+this isn't suitable method. Instead, you can use the `iter_keys` function that works like the `keys` function
+but uses redis>=2.8 server side cursors. Calling `iter_keys` will return a generator that you can then iterate over efficiently.
 
 .Search using server side cursors
 [source,pycon]
@@ -215,8 +215,8 @@ this isn't suitable method. For it, you can use `iter_keys` function that works 
 "foo_1"
 ----
 
-For delete keys, you should use `delete_pattern` that has the same glob pattern syntax
-like `keys` function and returns a number of deleted keys.
+For deleting keys, you should use `delete_pattern` which has the same glob pattern syntax
+as the `keys` function and returns the number of deleted keys.
 
 .Example use of delete_pattern
 [source, python]
@@ -231,7 +231,7 @@ Redis native commands
 
 *django-redis* has limited support for some Redis atomic operations, such as the commands `SETNX` and `INCR`.
 
-You can use the `SETNX command through the backend `set()` method with the `nx` parameter:
+You can use the `SETNX` command through the backend `set()` method with the `nx` parameter:
 
 .Example:
 [source, python]
@@ -270,7 +270,7 @@ Connection pools
 ~~~~~~~~~~~~~~~~
 
 Behind the scenes, *django-redis* uses the underlying *redis-py* connection pool implementation, and exposes a simple way to
-configure it or directly customize a connection/connection pool creation for backend.
+configure it. Alternatively, you can directly customize a connection/connection pool creation for a backend.
 
 The default *redis-py* behavior is to not close connections, recycling them when possible.
 
