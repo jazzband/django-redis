@@ -21,8 +21,8 @@ asciidoc.install(2);
 <h1>django-redis documentation</h1>
 <span id="author">Andrey Antukh,</span><br>
 <span id="email" class="monospaced">&lt;<a href="mailto:niwi@niwi.be">niwi@niwi.be</a>&gt;</span><br>
-<span id="revnumber">version 3.6.2,</span>
-<span id="revdate">2014-05-09</span>
+<span id="revnumber">version 3.7.1,</span>
+<span id="revdate">2014-08-16</span>
 <div id="toc">
   <div id="toctitle">Table of Contents</div>
   <noscript><p><b>JavaScript must be enabled in your browser to display the table of contents.</b></p></noscript>
@@ -99,7 +99,12 @@ Pluggable parsers.
 <div class="ulist"><ul>
 <li>
 <p>
-Latest stable version: <strong>3.6.2</strong>
+Latest stable version: <strong>3.7.1</strong>
+</p>
+</li>
+<li>
+<p>
+Previous stable version: <strong>3.6.2</strong>
 </p>
 </li>
 <li>
@@ -108,6 +113,20 @@ Previous stable version: <strong>3.5.2</strong>
 </p>
 </li>
 </ul></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+<div class="paragraph"><p>Versions like <em>3.6</em>, <em>3.7</em>, &#8230; are considered major releases
+and can contain some backward incompatibilities. For more information
+is very recommended see the changelog before update.</p></div>
+<div class="paragraph"><p>Versions like <em>3.7.0</em>, <em>3.7.1</em>, &#8230; are considered minor or bug
+fix releases and are should contain only bug fixes. No new features.</p></div>
+</td>
+</tr></table>
+</div>
 </div>
 <div class="sect2">
 <h3 id="_requirements">1.3. Requirements</h3>
@@ -259,7 +278,7 @@ None for keys that does not have expiration
 </div>
 <div class="sect2">
 <h3 id="_scan_amp_delete_keys_in_bulk">3.6. Scan &amp; Delete keys in bulk</h3>
-<div class="paragraph"><p><strong>django-redis</strong> comes with some additions methods that hels for search or delete keys
+<div class="paragraph"><p><strong>django-redis</strong> comes with some additional methods that help with searching or deleting keys
 using glob patterns.</p></div>
 <div class="listingblock">
 <div class="title">Simple search keys by pattern</div>
@@ -267,9 +286,9 @@ using glob patterns.</p></div>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cache</span><span class="o">.</span><span class="n">keys</span><span class="p">(</span><span class="s">&#39;foo_*&#39;</span><span class="p">)</span>
 <span class="go">[&#39;foo_1&#39;, &#39;foo_2&#39;]</span>
 </pre></div></div></div>
-<div class="paragraph"><p>On simple, search it return all matched values, in databases with big amount of keys
-this isn&#8217;t suitable method. For it, you can use <span class="monospaced">iter_keys</span> function that works like
-<span class="monospaced">keys</span> function but uses redis&gt;=2.8 server side cursors.</p></div>
+<div class="paragraph"><p>A simple search like this will return all matched values. In databases with a large number of keys
+this isn&#8217;t suitable method. Instead, you can use the <span class="monospaced">iter_keys</span> function that works like the <span class="monospaced">keys</span> function
+but uses redis&gt;=2.8 server side cursors. Calling <span class="monospaced">iter_keys</span> will return a generator that you can then iterate over efficiently.</p></div>
 <div class="listingblock">
 <div class="title">Search using server side cursors</div>
 <div class="content"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">django.core.cache</span> <span class="kn">import</span> <span class="n">cache</span>
@@ -278,8 +297,8 @@ this isn&#8217;t suitable method. For it, you can use <span class="monospaced">i
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">next</span><span class="p">(</span><span class="n">cache</span><span class="o">.</span><span class="n">iter_keys</span><span class="p">(</span><span class="s">&#39;foo_*&#39;</span><span class="p">))</span>
 <span class="go">&quot;foo_1&quot;</span>
 </pre></div></div></div>
-<div class="paragraph"><p>For delete keys, you should use <span class="monospaced">delete_pattern</span> that has the same glob pattern syntax
-like <span class="monospaced">keys</span> function and returns a number of deleted keys.</p></div>
+<div class="paragraph"><p>For deleting keys, you should use <span class="monospaced">delete_pattern</span> which has the same glob pattern syntax
+as the <span class="monospaced">keys</span> function and returns the number of deleted keys.</p></div>
 <div class="listingblock">
 <div class="title">Example use of delete_pattern</div>
 <div class="content"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">django.core.cache</span> <span class="kn">import</span> <span class="n">cache</span>
@@ -289,7 +308,7 @@ like <span class="monospaced">keys</span> function and returns a number of delet
 <div class="sect2">
 <h3 id="_redis_native_commands">3.7. Redis native commands</h3>
 <div class="paragraph"><p><strong>django-redis</strong> has limited support for some Redis atomic operations, such as the commands <span class="monospaced">SETNX</span> and <span class="monospaced">INCR</span>.</p></div>
-<div class="paragraph"><p>You can use the <span class="monospaced">SETNX command through the backend `set()</span> method with the <span class="monospaced">nx</span> parameter:</p></div>
+<div class="paragraph"><p>You can use the <span class="monospaced">SETNX</span> command through the backend <span class="monospaced">set()</span> method with the <span class="monospaced">nx</span> parameter:</p></div>
 <div class="listingblock">
 <div class="title">Example:</div>
 <div class="content"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">django.core.cache</span> <span class="kn">import</span> <span class="n">cache</span>
@@ -327,7 +346,7 @@ string: <span class="monospaced">get_redis_connection(alias)</span>.</p></div>
 <div class="sect2">
 <h3 id="_connection_pools">3.9. Connection pools</h3>
 <div class="paragraph"><p>Behind the scenes, <strong>django-redis</strong> uses the underlying <strong>redis-py</strong> connection pool implementation, and exposes a simple way to
-configure it or directly customize a connection/connection pool creation for backend.</p></div>
+configure it. Alternatively, you can directly customize a connection/connection pool creation for a backend.</p></div>
 <div class="paragraph"><p>The default <strong>redis-py</strong> behavior is to not close connections, recycling them when possible.</p></div>
 <div class="sect3">
 <h4 id="_configure_default_connection_pool">3.9.1. Configure default connection pool</h4>
@@ -569,8 +588,8 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 <div id="footnotes"><hr></div>
 <div id="footer">
 <div id="footer-text">
-Version 3.6.2<br>
-Last updated 2014-05-09 22:30:18 CEST
+Version 3.7.1<br>
+Last updated 2014-08-16 10:18:34 CEST
 </div>
 </div>
 </body>
