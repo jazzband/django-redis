@@ -1,6 +1,13 @@
 Changelog
 =========
 
+Version 3.7.1
+-------------
+
+- Improve docs (by @dkingman).
+- Fix missing imports on sentinel client (by @opapy).
+- Connection closing improvements on sentinel client (by @opapy).
+
 Versiom 3.7.0
 -------------
 
