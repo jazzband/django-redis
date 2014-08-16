@@ -74,6 +74,15 @@ class SentinelClient(DefaultClient):
         """
         Closing old connections, as master may change in time of inactivity.
         """
+
+        if self._client_read:
+            for c in self._client_read.connection_pool._available_connections:
+                c.disconnect()
+
+        if self._client_write:
+            for c in self._client_write.connection_pool._available_connections:
+                c.disconnect()
+
         del(self._client_write)
         del(self._client_read)
         self._client_write = None
