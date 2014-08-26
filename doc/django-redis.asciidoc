@@ -506,6 +506,27 @@ The big difference is that each key in the `LOCATION` setting list can contain t
 separated by "/". A second connection string works as a failover server.
 
 
+Sentinel client
+^^^^^^^^^^^^^^^
+
+Pluggable experimental client, that works with redis sentinel.
+
+.This is a simple configuration example for sentinel client
+[source, python]
+----
+CACHES = {
+    'default': {
+        'BACKEND': 'redis_cache.cache.RedisCache',
+        'LOCATION': 'mymaster/127.0.0.1:6379,127.0.0.2:6379/1',
+        'OPTIONS': {
+            'CLIENT_CLASS': 'redis_cache.client.sentinel.SentinelClient',
+        }
+    }
+}
+----
+
+WARNING: this client is experimental and by their nature it not has tests.
+
 [[license]]
 License
 -------
