@@ -548,6 +548,30 @@ methods for getting/setting keys.</p></div>
 <div class="paragraph"><p>The big difference is that each key in the <span class="monospaced">LOCATION</span> setting list can contain two connection strings
 separated by "/". A second connection string works as a failover server.</p></div>
 </div>
+<div class="sect3">
+<h4 id="_sentinel_client">3.11.5. Sentinel client</h4>
+<div class="paragraph"><p>Pluggable experimental client, that works with redis sentinel.</p></div>
+<div class="listingblock">
+<div class="title">This is a simple configuration example for sentinel client</div>
+<div class="content"><div class="highlight"><pre><span class="n">CACHES</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&#39;default&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s">&#39;BACKEND&#39;</span><span class="p">:</span> <span class="s">&#39;redis_cache.cache.RedisCache&#39;</span><span class="p">,</span>
+        <span class="s">&#39;LOCATION&#39;</span><span class="p">:</span> <span class="s">&#39;mymaster/127.0.0.1:6379,127.0.0.2:6379/1&#39;</span><span class="p">,</span>
+        <span class="s">&#39;OPTIONS&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s">&#39;CLIENT_CLASS&#39;</span><span class="p">:</span> <span class="s">&#39;redis_cache.client.sentinel.SentinelClient&#39;</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div></div></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Warning</div>
+</td>
+<td class="content">this client is experimental and by their nature it not has tests.</td>
+</tr></table>
+</div>
+</div>
 </div>
 </div>
 </div>
@@ -555,7 +579,7 @@ separated by "/". A second connection string works as a failover server.</p></di
 <h2 id="license">4. License</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="content"><div class="highlight"><pre>Copyright (c) 2011-2014 Andrei Antoukh &lt;niwi@niwi.be&gt;
+<div class="content"><div class="highlight"><pre>Copyright (c) 2011-2014 Andrey Antukh &lt;niwi@niwi.be&gt;
 Copyright (c) 2011 Sean Bleier
 
 All rights reserved.
@@ -589,7 +613,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 <div id="footer">
 <div id="footer-text">
 Version 3.7.1<br>
-Last updated 2014-08-16 10:18:34 CEST
+Last updated 2014-08-26 19:27:12 CEST
 </div>
 </div>
 </body>
