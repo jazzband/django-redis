@@ -533,7 +533,7 @@ License
 
 [source,text]
 ----
-Copyright (c) 2011-2014 Andrei Antoukh <niwi@niwi.be>
+Copyright (c) 2011-2014 Andrey Antukh <niwi@niwi.be>
 Copyright (c) 2011 Sean Bleier
 
 All rights reserved.
