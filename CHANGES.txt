@@ -1,6 +1,11 @@
 Changelog
 =========
 
+Version 3.7.2
+-------------
+
+- Add missing forward of version parameter from `add()` to `set()` function. (by @fellowshipofone)
+
 Version 3.7.1
 -------------
 
