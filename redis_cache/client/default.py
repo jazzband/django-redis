@@ -13,6 +13,7 @@ except ImportError:
 
 import random
 import warnings
+import zlib
 
 try:
     from django.utils.encoding import smart_bytes
@@ -65,6 +66,9 @@ class DefaultClient(object):
 
         self._clients = [None] * len(self._server)
         self._options = params.get('OPTIONS', {})
+        self._options.setdefault('COMPRESS_COMPRESSOR', zlib.compress)
+        self._options.setdefault('COMPRESS_DECOMPRESSOR', zlib.decompress)
+        self._options.setdefault('COMPRESS_DECOMPRESSOR_ERROR', zlib.error)
 
         self.setup_pickle_version()
         self.connection_factory = pool.get_connection_factory(options=self._options)
@@ -284,14 +288,19 @@ class DefaultClient(object):
 
         client.flushdb()
 
-    @staticmethod
-    def unpickle(value):
+    def unpickle(self, value):
         """
         Unpickles the given value.
         """
         try:
             value = int(value)
         except (ValueError, TypeError):
+            if self._options.get('COMPRESS_MIN_LEN', 0) > 0:
+                try:
+                    value = self._options['COMPRESS_DECOMPRESSOR'](value)
+                except self._options['COMPRESS_DECOMPRESSOR_ERROR']:
+                    # Handle little values, chosen to be not compressed
+                    pass
             value = smart_bytes(value)
             value = pickle.loads(value)
         return value
@@ -302,7 +311,15 @@ class DefaultClient(object):
         """
 
         if isinstance(value, bool) or not isinstance(value, integer_types):
-            return pickle.dumps(value, self._pickle_version)
+            pickled_value = pickle.dumps(value, self._pickle_version)
+            if self._options.get('COMPRESS_MIN_LEN', 0) > 0:
+                if len(pickled_value) >= self._options['COMPRESS_MIN_LEN']:
+                    # We should try to compress if COMPRESS_MIN_LEN > 0
+                    # and this string is longer than our min threshold.
+                    compressed = self._options['COMPRESS_COMPRESSOR'](pickled_value)
+                    if len(compressed) < len(pickled_value):
+                        pickled_value = compressed
+            return pickled_value
 
         return value
 
