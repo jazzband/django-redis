@@ -206,7 +206,7 @@ class DefaultClient(object):
 
         Returns ``True`` if the object was added, ``False`` if not.
         """
-        return self.set(key, value, timeout, client=client, nx=True)
+        return self.set(key, value, timeout, version=version, client=client, nx=True)
 
     def get(self, key, default=None, version=None, client=None):
         """
