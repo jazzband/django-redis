@@ -12,10 +12,10 @@ from . import util
 
 class ConnectionFactory(object):
 
-    #: Store connection pool by cache backend options.
-    #: _pools is a process-global, as
-    #: otherwise _pools is cleared every time ConnectionFactory is instiated,
-    #: as Django creates new cache client (DefaultClient) instance for every request.
+    # Store connection pool by cache backend options.
+    # _pools is a process-global, as
+    # otherwise _pools is cleared every time ConnectionFactory is instiated,
+    # as Django creates new cache client (DefaultClient) instance for every request.
     _pools = {}
 
     def __init__(self, options):

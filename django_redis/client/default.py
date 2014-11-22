@@ -423,7 +423,9 @@ class DefaultClient(object):
         key = self.make_key(key, version=version)
         if not client.exists(key):
             return 0
-        return client.ttl(key)
+
+        t = client.ttl(key)
+        return (t >= 0 and t or None)
 
     def has_key(self, key, version=None, client=None):
         """

@@ -9,9 +9,9 @@ import datetime
 from django.conf import settings
 from django.core.cache import cache, get_cache
 from django.test import TestCase
-import redis_cache.cache
+import django_redis.cache
 
-from redis_cache.client import herd
+from django_redis.client import herd
 
 herd.CACHE_HERD_TIMEOUT = 2
 
@@ -369,9 +369,9 @@ class DjangoRedisCacheTests(TestCase):
         cache = get_cache("default")
         _params = cache._params
         _is_herd = (_params["OPTIONS"]["CLIENT_CLASS"] ==
-                    "redis_cache.client.HerdClient")
+                    "django_redis.client.HerdClient")
         _is_shard = (_params["OPTIONS"]["CLIENT_CLASS"] ==
-                    "redis_cache.client.ShardClient")
+                    "django_redis.client.ShardClient")
 
         # Not supported for shard client.
         if _is_shard:
@@ -403,7 +403,7 @@ class DjangoRedisCacheTests(TestCase):
         cache = get_cache("default")
         _params = cache._params
         _is_shard = (_params["OPTIONS"]["CLIENT_CLASS"] ==
-                    "redis_cache.client.ShardClient")
+                    "django_redis.client.ShardClient")
 
         if _is_shard:
             return
