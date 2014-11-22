@@ -2,7 +2,7 @@
 
 from django.conf import settings
 
-from redis import Redis
+from redis import StrictRedis
 from redis.connection import Connection
 from redis.connection import DefaultParser
 from redis.connection import UnixDomainSocketConnection
@@ -65,7 +65,7 @@ class ConnectionFactory(object):
         The default implementation uses a cached pools
         for create new connection.
         """
-        return Redis(connection_pool=self.get_or_create_connection_pool(params))
+        return StrictRedis(connection_pool=self.get_or_create_connection_pool(params))
 
     def get_parser_cls(self):
         cls = self.options.get('PARSER_CLASS', None)

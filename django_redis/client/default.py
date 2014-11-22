@@ -162,7 +162,7 @@ class DefaultClient(object):
             else:
                 if timeout is not None:
                     if timeout > 0:
-                        return client.setex(key, value, int(timeout))
+                        return client.setex(key, int(timeout), value)
                     elif timeout < 0:
                         # redis doesn't support negative timeouts in setex
                         # so it seems that it's better to just delete the key
