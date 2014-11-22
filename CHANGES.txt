@@ -1,6 +1,12 @@
 Changelog
 =========
 
+Version 3.8.0
+-------------
+
+- Add commpression support. Thanks to @alanjds
+
+
 Version 3.7.2
 -------------
 
