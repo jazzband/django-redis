@@ -56,7 +56,7 @@ class DefaultClient(object):
         self._server = server
         self._params = params
 
-        self.reverse_key = get_key_func(params.get('REVERSE_KEY_FUNCTION') or 'redis_cache.util.default_reverse_key')
+        self.reverse_key = get_key_func(params.get("REVERSE_KEY_FUNCTION") or "redis_cache.util.default_reverse_key")
 
         if not self._server:
             raise ImproperlyConfigured("Missing connections string")
@@ -65,10 +65,10 @@ class DefaultClient(object):
             self._server = self._server.split(",")
 
         self._clients = [None] * len(self._server)
-        self._options = params.get('OPTIONS', {})
-        self._options.setdefault('COMPRESS_COMPRESSOR', zlib.compress)
-        self._options.setdefault('COMPRESS_DECOMPRESSOR', zlib.decompress)
-        self._options.setdefault('COMPRESS_DECOMPRESSOR_ERROR', zlib.error)
+        self._options = params.get("OPTIONS", {})
+        self._options.setdefault("COMPRESS_COMPRESSOR", zlib.compress)
+        self._options.setdefault("COMPRESS_DECOMPRESSOR", zlib.decompress)
+        self._options.setdefault("COMPRESS_DECOMPRESSOR_ERROR", zlib.error)
 
         self.setup_pickle_version()
         self.connection_factory = pool.get_connection_factory(options=self._options)
@@ -129,7 +129,7 @@ class DefaultClient(object):
     def setup_pickle_version(self):
         if "PICKLE_VERSION" in self._options:
             try:
-                self._pickle_version = int(self._options['PICKLE_VERSION'])
+                self._pickle_version = int(self._options["PICKLE_VERSION"])
             except (ValueError, TypeError):
                 raise ImproperlyConfigured("PICKLE_VERSION value must be an integer")
 
@@ -295,14 +295,13 @@ class DefaultClient(object):
         try:
             value = int(value)
         except (ValueError, TypeError):
-            if self._options.get('COMPRESS_MIN_LEN', 0) > 0:
+            if self._options.get("COMPRESS_MIN_LEN", 0) > 0:
                 try:
-                    value = self._options['COMPRESS_DECOMPRESSOR'](value)
-                except self._options['COMPRESS_DECOMPRESSOR_ERROR']:
+                    value = self._options["COMPRESS_DECOMPRESSOR"](value)
+                except self._options["COMPRESS_DECOMPRESSOR_ERROR"]:
                     # Handle little values, chosen to be not compressed
                     pass
-            value = smart_bytes(value)
-            value = pickle.loads(value)
+            value = pickle.loads(smart_bytes(value))
         return value
 
     def pickle(self, value):
@@ -312,11 +311,11 @@ class DefaultClient(object):
 
         if isinstance(value, bool) or not isinstance(value, integer_types):
             pickled_value = pickle.dumps(value, self._pickle_version)
-            if self._options.get('COMPRESS_MIN_LEN', 0) > 0:
-                if len(pickled_value) >= self._options['COMPRESS_MIN_LEN']:
+            if self._options.get("COMPRESS_MIN_LEN", 0) > 0:
+                if len(pickled_value) >= self._options["COMPRESS_MIN_LEN"]:
                     # We should try to compress if COMPRESS_MIN_LEN > 0
                     # and this string is longer than our min threshold.
-                    compressed = self._options['COMPRESS_COMPRESSOR'](pickled_value)
+                    compressed = self._options["COMPRESS_COMPRESSOR"](pickled_value)
                     if len(compressed) < len(pickled_value):
                         pickled_value = compressed
             return pickled_value
