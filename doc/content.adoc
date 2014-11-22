@@ -35,7 +35,7 @@ Because:
 Supported versions
 ~~~~~~~~~~~~~~~~~~
 
-- Latest stable version: *3.7.1*
+- Latest stable version: *3.8.0*
 - Previous stable version: *3.6.2*
 - Previous stable version: *3.5.2*
 
