@@ -4,10 +4,11 @@ Changelog
 Version 3.8.0
 -------------
 
-- Add commpression support. Thanks to @alanjds
+- Add commpression support. (Thanks to @alanjds)
 - Change package name from redis_cache to django_redis.
 - Add backward compatibility layer for redis_cache package name.
 - BACKWARD INCOMPATIBLE CHANGE: use StrictRedis instead of Redis class of redis-py
+- Add redis dummy backend for development purposes. (Thanks to @papaloizouc)
 
 
 Version 3.7.2
