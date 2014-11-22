@@ -12,6 +12,7 @@ except ImportError:
     import pickle
 
 import random
+import socket
 import warnings
 import zlib
 
@@ -37,8 +38,6 @@ from redis.exceptions import ResponseError
 
 # Compatibility with redis-py 2.10.x+
 
-import socket
-
 try:
     from redis.exceptions import TimeoutError
     _main_exceptions = (TimeoutError, ConnectionError, socket.timeout)
@@ -57,7 +56,8 @@ class DefaultClient(object):
         self._server = server
         self._params = params
 
-        self.reverse_key = get_key_func(params.get("REVERSE_KEY_FUNCTION") or "django_redis.util.default_reverse_key")
+        self.reverse_key = get_key_func(params.get("REVERSE_KEY_FUNCTION") or
+                                        "django_redis.util.default_reverse_key")
 
         if not self._server:
             raise ImproperlyConfigured("Missing connections string")
@@ -106,26 +106,13 @@ class DefaultClient(object):
 
         return self._clients[index]
 
-    def parse_connection_string(self, constring):
-        """
-        Method that parse a connection string.
-        """
-        try:
-            host, port, db = constring.split(":")
-            port = port if host == "unix" else int(port)
-            db = int(db)
-            return host, port, db
-        except (ValueError, TypeError):
-            raise ImproperlyConfigured("Incorrect format '%s'" % (constring))
-
     def connect(self, index=0):
         """
         Given a connection index, returns a new raw redis client/connection
         instance. Index is used for master/slave setups and indicates that
         connection string should be used. In normal setups, index is 0.
         """
-        host, port, db = self.parse_connection_string(self._server[index])
-        return self.connection_factory.connect(host, port, db)
+        return self.connection_factory.connect(self._server[index])
 
     def setup_pickle_version(self):
         if "PICKLE_VERSION" in self._options:

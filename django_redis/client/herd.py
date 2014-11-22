@@ -67,10 +67,6 @@ class HerdClient(DefaultClient):
             return super(HerdClient, self).set(key, value, timeout=timeout,
                                                version=version, client=client,
                                                nx=nx)
-        if timeout is True:
-            warnings.warn("Using True as timeout value, is now deprecated.", DeprecationWarning)
-            timeout = self._backend.default_timeout
-
         if timeout == DEFAULT_TIMEOUT:
             timeout = self._backend.default_timeout
 

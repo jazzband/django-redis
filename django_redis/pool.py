@@ -1,4 +1,5 @@
-# -*- coding: utf-8 -*-
+import re
+import warnings
 
 from django.conf import settings
 
@@ -18,6 +19,8 @@ class ConnectionFactory(object):
     # as Django creates new cache client (DefaultClient) instance for every request.
     _pools = {}
 
+    oldparams_rx = re.compile("^(?:[^:]+:\d{1,4}:\d+|unix:[\w/\-\.]+:\d+)$", flags=re.I)
+
     def __init__(self, options):
         pool_cls_path = options.get("CONNECTION_POOL_CLASS",
                                     "redis.connection.ConnectionPool")
@@ -25,37 +28,62 @@ class ConnectionFactory(object):
         self.pool_cls_kwargs = options.get("CONNECTION_POOL_KWARGS", {})
         self.options = options
 
-    def make_connection_params(self, host, port, db):
+    def adapt_old_url_format(self, url):
+        warnings.warn("Using deprecated connection string format.", DeprecationWarning)
+
+        password = self.options.get("PASSWORD", None)
+        try:
+            host, port, db = url.split(":")
+            port = port if host == "unix" else int(port)
+            db = int(db)
+
+            if host == "unix":
+                if password:
+                    url = "unix://{password}@{port}?db={db}"
+                else:
+                    url = "unix://{port}?db={db}"
+            else:
+                if password:
+                    url = "redis://{password}@{host}:{port}?db={db}"
+                else:
+                    url = "redis://{host}:{port}?db={db}"
+
+            return url.format(password=password,
+                              host=host,
+                              port=port,
+                              db=db)
+
+        except (ValueError, TypeError):
+            raise ImproperlyConfigured("Incorrect format '%s'" % (constring))
+
+    def make_connection_params(self, url):
         """
         Given a main connection parameters, build a complete
         dict of connection parameters.
         """
+        if self.oldparams_rx.match(url):
+            url = self.adapt_old_url_format(url)
 
         kwargs = {
-            "db": db,
+            "url": url,
             "parser_class": self.get_parser_cls(),
-            "password": self.options.get("PASSWORD", None),
         }
 
-        if host == "unix":
-            kwargs.update({"path": port, "connection_class": UnixDomainSocketConnection})
-        else:
-            kwargs.update({"host": host, "port": port, "connection_class": Connection})
-
-        if "SOCKET_TIMEOUT" in self.options:
-            timeout = self.options["SOCKET_TIMEOUT"]
-            assert isinstance(timeout, (int, float)), "Socket timeout should be float or integer"
-            kwargs["socket_timeout"] = timeout
+        socket_timeout = self.options.get("SOCKET_TIMEOUT", None)
+        if socket_timeout:
+            assert isinstance(socket_timeout, (int, float)), "Socket timeout should be float or integer"
+            kwargs["socket_timeout"] = socket_timeout
 
         return kwargs
 
-    def connect(self, host, port, db):
+    def connect(self, url):
         """
         Given a basic connection parameters,
         return a new connection.
         """
-        params = self.make_connection_params(host, port, db)
-        return self.get_connection(params)
+        params = self.make_connection_params(url)
+        connection = self.get_connection(params)
+        return connection
 
     def get_connection(self, params):
         """
@@ -65,7 +93,8 @@ class ConnectionFactory(object):
         The default implementation uses a cached pools
         for create new connection.
         """
-        return StrictRedis(connection_pool=self.get_or_create_connection_pool(params))
+        pool =  self.get_or_create_connection_pool(params)
+        return StrictRedis(connection_pool=pool)
 
     def get_parser_cls(self):
         cls = self.options.get("PARSER_CLASS", None)
@@ -81,7 +110,7 @@ class ConnectionFactory(object):
         Reimplement this method if you want distinct
         connection pool instance caching behavior.
         """
-        key = frozenset((k, repr(v)) for (k, v) in params.items())
+        key = params["url"]
         if key not in self._pools:
             self._pools[key] = self.get_connection_pool(params)
         return self._pools[key]
@@ -96,7 +125,7 @@ class ConnectionFactory(object):
         """
         cp_params = dict(params)
         cp_params.update(self.pool_cls_kwargs)
-        return self.pool_cls(**cp_params)
+        return self.pool_cls.from_url(**cp_params)
 
 
 def get_connection_factory(path=None, options=None):
