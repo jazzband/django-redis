@@ -6,10 +6,11 @@ from .default import DefaultClient
 from .sharded import ShardClient
 from .herd import HerdClient
 from .experimental import SimpleFailoverClient
+from .dummy import RedisDummyCache
 
 
-__all__ = ['DefaultClient', 'ShardClient',
-           'HerdClient', 'SimpleFailoverClient',]
+__all__ = ["DefaultClient", "ShardClient",
+           "HerdClient", "SimpleFailoverClient", "RedisDummyCache"]
 
 try:
     from .sentinel import SentinelClient
