@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import os, sys
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "test_sqlite_herd")
-sys.path.insert(0, 'tests')
-
+sys.path.insert(0, "..")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "test_sqlite")
 
 if __name__ == "__main__":
     from django.core.management import execute_from_command_line

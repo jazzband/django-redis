@@ -437,14 +437,16 @@ class DjangoRedisCacheTests(TestCase):
             pass
 
 
+import django_redis.cache
+
 class DjangoOmitExceptionsTests(TestCase):
     def setUp(self):
-        self._orig_setting = redis_cache.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS
-        redis_cache.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS = True
+        self._orig_setting = django_redis.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS
+        django_redis.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS = True
         self.cache = get_cache("doesnotexist")
 
     def tearDown(self):
-        redis_cache.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS = self._orig_setting
+        django_redis.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS = self._orig_setting
 
     def test_get(self):
         self.assertIsNone(self.cache.get("key"))

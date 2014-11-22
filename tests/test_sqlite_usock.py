@@ -23,6 +23,7 @@ TIME_ZONE = 'America/Chicago'
 LANGUAGE_CODE = 'en-us'
 ADMIN_MEDIA_PREFIX = '/static/admin/'
 STATICFILES_DIRS = ()
+MIDDLEWARE_CLASSES = []
 
 CACHES = {
     'default': {
