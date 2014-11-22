@@ -1,10 +1,11 @@
 django-redis documentation
 ==========================
 Andrey Antukh, <niwi@niwi.be>
-3.7.1, 2014-08-16
-
-:toc:
+3.8.0
+:toc: left
 :numbered:
+:source-highlighter: pygments
+:pygments-style: friendly
 
 
 Introduction
