@@ -34,18 +34,18 @@ class ConnectionFactory(object):
         kwargs = {
             "db": db,
             "parser_class": self.get_parser_cls(),
-            "password": self.options.get('PASSWORD', None),
+            "password": self.options.get("PASSWORD", None),
         }
 
         if host == "unix":
-            kwargs.update({'path': port, 'connection_class': UnixDomainSocketConnection})
+            kwargs.update({"path": port, "connection_class": UnixDomainSocketConnection})
         else:
-            kwargs.update({'host': host, 'port': port, 'connection_class': Connection})
+            kwargs.update({"host": host, "port": port, "connection_class": Connection})
 
-        if 'SOCKET_TIMEOUT' in self.options:
-            timeout = self.options['SOCKET_TIMEOUT']
+        if "SOCKET_TIMEOUT" in self.options:
+            timeout = self.options["SOCKET_TIMEOUT"]
             assert isinstance(timeout, (int, float)), "Socket timeout should be float or integer"
-            kwargs['socket_timeout'] = timeout
+            kwargs["socket_timeout"] = timeout
 
         return kwargs
 
@@ -68,7 +68,7 @@ class ConnectionFactory(object):
         return StrictRedis(connection_pool=self.get_or_create_connection_pool(params))
 
     def get_parser_cls(self):
-        cls = self.options.get('PARSER_CLASS', None)
+        cls = self.options.get("PARSER_CLASS", None)
         if cls is None:
             return DefaultParser
         return util.load_class(cls)
