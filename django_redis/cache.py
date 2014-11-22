@@ -40,7 +40,7 @@ class RedisCache(BaseCache):
         self._params = params
 
         options = params.get("OPTIONS", {})
-        self._client_cls = options.get("CLIENT_CLASS", "redis_cache.client.DefaultClient")
+        self._client_cls = options.get("CLIENT_CLASS", "django_redis.client.DefaultClient")
         self._client_cls = load_class(self._client_cls)
         self._client = None
 

@@ -45,9 +45,10 @@ try:
 except ImportError:
     _main_exceptions = (ConnectionError, socket.timeout)
 
-from redis_cache.util import CacheKey, integer_types
-from redis_cache.exceptions import ConnectionInterrupted
-from redis_cache import pool
+from ..util import CacheKey, integer_types
+from ..exceptions import ConnectionInterrupted
+from .. import pool
+
 
 class DefaultClient(object):
     def __init__(self, server, params, backend):
@@ -56,7 +57,7 @@ class DefaultClient(object):
         self._server = server
         self._params = params
 
-        self.reverse_key = get_key_func(params.get("REVERSE_KEY_FUNCTION") or "redis_cache.util.default_reverse_key")
+        self.reverse_key = get_key_func(params.get("REVERSE_KEY_FUNCTION") or "django_redis.util.default_reverse_key")
 
         if not self._server:
             raise ImproperlyConfigured("Missing connections string")

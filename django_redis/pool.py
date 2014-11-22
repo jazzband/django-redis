@@ -102,7 +102,7 @@ class ConnectionFactory(object):
 def get_connection_factory(path=None, options=None):
     if path is None:
         path = getattr(settings, "DJANGO_REDIS_CONNECTION_FACTORY",
-                       "redis_cache.pool.ConnectionFactory")
+                       "django_redis.pool.ConnectionFactory")
 
     cls = util.load_class(path)
     return cls(options or {})
