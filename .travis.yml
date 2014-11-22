@@ -23,9 +23,9 @@ install:
   - pip install redis==2.9.0 --use-mirrors
 
 script:
-  - python runtests.py
-  - python runtests-sharded.py
-  - python runtests-herd.py
+  - (cd tests && python runtests.py)
+  - (cd tests && python runtests-sharded.py)
+  - (cd tests && python runtests-herd.py)
 
 services:
   - redis-server
