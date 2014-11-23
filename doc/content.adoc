@@ -80,34 +80,35 @@ To start using *django-redis*, you should change your Django cache settings to s
 [source, python]
 ----
 CACHES = {
-    'default': {
-        'BACKEND': 'redis_cache.cache.RedisCache',
-        'LOCATION': '127.0.0.1:6379:1',
-        'OPTIONS': {
-            'CLIENT_CLASS': 'redis_cache.client.DefaultClient',
-            'PASSWORD': 'secretpassword',  # Optional
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "PASSWORD": "secretpassword",  # Optional
         }
     }
 }
 ----
 
-In this example, we are using a standard TCP/IP socket connection to Redis running at `localhost`, using database 1.
-In `OPTIONS`, we have specified the pluggable client we want to use; in this case the default one. You can omit
-this part since that client is used by default if one is not specified.
+In this example, we are using a standard TCP/IP socket connection to Redis running at `localhost`,
+using database 1. In `OPTIONS`, we have specified the pluggable client we want to use; in this case
+the default one. You can omit this part since that client is used by default if one is not specified.
 
-NOTE: If you want use Unix sockets, change the `LOCATION` value to something like `"unix:/path/to/socket:1"`.
+NOTE: If you want use Unix sockets, change the `LOCATION` value to something like
+`"unix:///path/to/socket?db=1"`.
 
 
 Configure as session backend
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Django can by default use any cache backend as session backend and you benefit from that by using *django-redis*
-as backend for session storage without installing any additional and unnecesary backends:
+Django can by default use any cache backend as session backend and you benefit from that by using
+*django-redis* as backend for session storage without installing any additional and unnecesary backends:
 
 [source, python]
 ----
-SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
-SESSION_CACHE_ALIAS = 'default'
+SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+SESSION_CACHE_ALIAS = "default"
 ----
 
 
@@ -123,8 +124,8 @@ in `OPTIONS`:
 
 [source, python]
 ----
-'OPTIONS': {
-    'PICKLE_VERSION': -1  # Use the latest protocol version
+"OPTIONS": {
+    "PICKLE_VERSION": -1  # Use the latest protocol version
 }
 ----
 
@@ -136,8 +137,8 @@ You can set socket timeout using the `SOCKET_TIMEOUT` key in the `OPTIONS` dict:
 
 [source, python]
 ----
-'OPTIONS': {
-    'SOCKET_TIMEOUT': 5,  # in seconds
+"OPTIONS": {
+    "SOCKET_TIMEOUT": 5,  # in seconds
 }
 ----
 
@@ -155,8 +156,8 @@ Additionally, you can set it individually for each client in their `OPTIONS` dic
 
 [source, python]
 ----
-'OPTIONS': {
-    'IGNORE_EXCEPTIONS': True,
+"OPTIONS": {
+    "IGNORE_EXCEPTIONS": True,
 }
 ----
 
@@ -172,8 +173,8 @@ If used with Django before version 1.6, *django-redis* interprets a `0` timeout 
 .These statements are then equivalent:
 [source, python]
 ----
-cache.set('key', 'value', timeout=0)
-cache.set('key', 'value', timeout=None)
+cache.set("key", "value", timeout=0)
+cache.set("key", "value", timeout=None)
 ----
 
 
@@ -192,10 +193,10 @@ It returns:
 [source,pycon]
 ----
 >>> from django.core.cache import cache
->>> cache.set('foo', 'value', timeout=25)
->>> cache.ttl('foo')
+>>> cache.set("foo", "value", timeout=25)
+>>> cache.ttl("foo")
 25
->>> cache.ttl('not-existent')
+>>> cache.ttl("not-existent")
 0
 ----
 
@@ -210,21 +211,22 @@ using glob patterns.
 [source,pycon]
 ----
 >>> from django.core.cache import cache
->>> cache.keys('foo_*')
-['foo_1', 'foo_2']
+>>> cache.keys("foo_*")
+["foo_1", "foo_2"]
 ----
 
 A simple search like this will return all matched values. In databases with a large number of keys
-this isn't suitable method. Instead, you can use the `iter_keys` function that works like the `keys` function
-but uses redis>=2.8 server side cursors. Calling `iter_keys` will return a generator that you can then iterate over efficiently.
+this isn't suitable method. Instead, you can use the `iter_keys` function that works like the `keys`
+function but uses redis>=2.8 server side cursors. Calling `iter_keys` will return a generator that
+you can then iterate over efficiently.
 
 .Search using server side cursors
 [source,pycon]
 ----
 >>> from django.core.cache import cache
->>> cache.iter_keys('foo_*')
+>>> cache.iter_keys("foo_*")
 <generator object algo at 0x7ffa9c2713a8>
->>> next(cache.iter_keys('foo_*'))
+>>> next(cache.iter_keys("foo_*"))
 "foo_1"
 ----
 
@@ -235,14 +237,15 @@ as the `keys` function and returns the number of deleted keys.
 [source, python]
 ----
 >>> from django.core.cache import cache
->>> cache.delete_pattern('foo_*')
+>>> cache.delete_pattern("foo_*")
 ----
 
 
 Redis native commands
 ~~~~~~~~~~~~~~~~~~~~~
 
-*django-redis* has limited support for some Redis atomic operations, such as the commands `SETNX` and `INCR`.
+*django-redis* has limited support for some Redis atomic operations, such as the commands `SETNX`
+ and `INCR`.
 
 You can use the `SETNX` command through the backend `set()` method with the `nx` parameter:
 
@@ -250,42 +253,46 @@ You can use the `SETNX` command through the backend `set()` method with the `nx`
 [source, python]
 ----
 >>> from django.core.cache import cache
->>> cache.set('key', 'value1', nx=True)
+>>> cache.set("key", "value1", nx=True)
 True
->>> cache.set('key', 'value2', nx=True)
+>>> cache.set("key", "value2", nx=True)
 False
->>> cache.get('key')
-'value1'
+>>> cache.get("key")
+"value1"
 ----
 
 Also, `incr` and `decr` methods uses redis atomic operations when value that contains a key is suitable
 for it.
 
+
 Raw client access
 ~~~~~~~~~~~~~~~~~
 
 In some situations your application requires access to a raw Redis client to use some advanced
-features that aren't exposed by the Django cache interface. To avoid storing another setting for creating a raw
-connection, *django-redis* exposes functions with which you can obtain a raw client reusing the cache connection
-string: `get_redis_connection(alias)`.
+features that aren't exposed by the Django cache interface. To avoid storing another setting for
+creating a raw connection, *django-redis* exposes functions with which you can obtain a raw client
+reusing the cache connection string: `get_redis_connection(alias)`.
 
 [source, python]
 ----
->>> from redis_cache import get_redis_connection
->>> con = get_redis_connection('default')
+>>> from django_redis import get_redis_connection
+>>> con = get_redis_connection("default")
 >>> con
-<redis.client.Redis object at 0x2dc4510>
+<redis.client.StrictRedis object at 0x2dc4510>
 ----
 
 WARNING: Not all pluggable clients support this feature.
 
+
 Connection pools
 ~~~~~~~~~~~~~~~~
 
-Behind the scenes, *django-redis* uses the underlying *redis-py* connection pool implementation, and exposes a simple way to
-configure it. Alternatively, you can directly customize a connection/connection pool creation for a backend.
+Behind the scenes, *django-redis* uses the underlying *redis-py* connection pool implementation,
+and exposes a simple way to configure it. Alternatively, you can directly customize a
+connection/connection pool creation for a backend.
 
 The default *redis-py* behavior is to not close connections, recycling them when possible.
+
 
 Configure default connection pool
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -296,11 +303,11 @@ in the pool, by setting `CONNECTION_POOL_KWARGS` in the `CACHES` setting:
 [source, python]
 ----
 CACHES = {
-    'default': {
-        'BACKEND': 'redis_cache.cache.RedisCache',
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
         ...
-        'OPTIONS': {
-            'CONNECTION_POOL_KWARGS': {'max_connections': 100}
+        "OPTIONS": {
+            "CONNECTION_POOL_KWARGS": {"max_connections": 100}
         }
     }
 }
@@ -312,10 +319,10 @@ You can verify how many connections the pool has opened with the following snipp
 [source, python]
 ----
 from django.core.cache import get_cache
-redis_cache = get_cache('default')  # Use the name you have defined for Redis in settings.CACHES
-redis = redis_cache.raw_client
+django_redis = get_cache("default")  # Use the name you have defined for Redis in settings.CACHES
+redis = django_redis.raw_client
 connection_pool = redis.connection_pool
-print('Created connections so far: %d' % connection_pool._created_connections)
+print("Created connections so far: %d" % connection_pool._created_connections)
 ----
 
 Use your own connection pool subclass
@@ -339,19 +346,19 @@ class MyOwnPool(ConnectionPool):
 ----
 # Omitting all backend declaration boilerplate code.
 
-'OPTIONS': {
-    'CONNECTION_POOL_CLASS': 'myproj.mypool.MyOwnPool',
+"OPTIONS": {
+    "CONNECTION_POOL_CLASS": "myproj.mypool.MyOwnPool",
 }
 ----
 
 Customize connection factory
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-If none of the previous methods satisfies you, you can get in the middle of the *django-redis* connection
-factory process and customize or completely rewrite it.
+If none of the previous methods satisfies you, you can get in the middle of the 
+*django-redis* connection factory process and customize or completely rewrite it.
 
-By default, *django-redis* creates connections through the `redis_cache.pool.ConnectionFactory` class that is specified
-in the global Django setting `DJANGO_REDIS_CONNECTION_FACTORY`.
+By default, *django-redis* creates connections through the `django_redis.pool.ConnectionFactory` 
+class that is specified in the global Django setting `DJANGO_REDIS_CONNECTION_FACTORY`.
 
 .Partial interface of `ConnectionFactory` class
 [source, python]
@@ -384,13 +391,13 @@ class ConnectionFactory(object):
         # behavior.
         pass
 
-    def make_connection_params(self, host:str, port:int, db:int) -> dict:
+    def make_connection_params(self, url:str) -> dict:
         # The responsibility of this method is to convert basic connection
         # parameters and other settings to fully connection pool ready
         # connection parameters.
         pass
 
-    def connect(self, host:str, port:int, db:int):
+    def connect(self, url:str):
         # This is really a public API and entry point for this
         # factory class. This encapsulates the main logic of creating
         # the previously mentioned `params` using `make_connection_params`
@@ -398,18 +405,20 @@ class ConnectionFactory(object):
         pass
 ----
 
+
 Pluggable parsers
 ~~~~~~~~~~~~~~~~~
 
-*redis-py* (the Python Redis client used by *django-redis*) comes with a pure Python Redis parser that works very
-well for most common task, but if you want some performance boost, you can use *hiredis*.
+*redis-py* (the Python Redis client used by *django-redis*) comes with a pure Python Redis parser 
+that works very well for most common task, but if you want some performance boost, you can use 
+*hiredis*.
 
 *hiredis* is a Redis client written in C and it has its own parser that can be used with *django-redis*.
 
 [source, python]
 ----
-'OPTIONS': {
-    'PARSER_CLASS': 'redis.connection.HiredisParser',
+"OPTIONS": {
+    "PARSER_CLASS": "redis.connection.HiredisParser",
 }
 ----
 
@@ -417,21 +426,30 @@ well for most common task, but if you want some performance boost, you can use *
 Pluggable clients
 ~~~~~~~~~~~~~~~~~
 
+_django_redis_ is designed for to be very flexible and very configurable. For it, it exposes a
+pluggable backends that make easy extend the default behavior, and it comes with few ones
+out the box.
+
 Default client
 ^^^^^^^^^^^^^^
 
-In addition to what has been explained previously, the default client comes with master-slave connection support. To
-use master-slave configuration in your project, you should change your `LOCATION` value to something like this:
+Almost all about the default client is explained, with one exception: the default client comes
+with master-slave support.
+
+To connect to master-slave redis setup, you should change the `LOCATION` to something like this:
 
 [source, python]
 ----
-'LOCATION': [
-    '127.0.0.1:6379:1',
-    '127.0.0.1:6378:1',
+"LOCATION": [
+    "redis://127.0.0.1:6379/1",
+    "redis://127.0.0.1:6378/1",
 ]
 ----
 
+The first connection string represents a master server and the rest to slave servers.
+
 WARNING: Master-Slave setup is not heavily tested in production environments.
+
 
 Shard client
 ^^^^^^^^^^^^
@@ -442,14 +460,14 @@ the default client. To use it, change your cache settings to something like this
 [source, python]
 ----
 CACHES = {
-    'default': {
-        'BACKEND': 'redis_cache.cache.RedisCache',
-        'LOCATION': [
-            '127.0.0.1:6379:1',
-            '127.0.0.1:6379:2',
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": [
+            "redis://127.0.0.1:6379/1",
+            "redis://127.0.0.1:6379/2",
         ],
-        'OPTIONS': {
-            'CLIENT_CLASS': 'redis_cache.client.ShardClient',
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.ShardClient",
         }
     }
 }
@@ -457,24 +475,25 @@ CACHES = {
 
 WARNING: Shard client is still experimental, so be careful when using it in production environments.
 
+
 Herd client
 ^^^^^^^^^^^
 
 This pluggable client helps dealing with the thundering herd problem. You can read more about it
 on link:http://en.wikipedia.org/wiki/Thundering_herd_problem[Wikipedia].
 
-As with previous pluggable clients, it inherits all functionality from the default client, adding some additional
-methods for getting/setting keys.
+Like previus pluggable clients, it inherits all functionality from the default client, adding some 
+additional methods for getting/setting keys.
 
 .Example setup
 [source, python]
 ----
  CACHES = {
-    'default': {
-        'BACKEND': 'redis_cache.cache.RedisCache',
-        'LOCATION': '127.0.0.1:6379:1',
-        'OPTIONS': {
-            'CLIENT_CLASS': 'redis_cache.client.HerdClient',
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.HerdClient",
         }
     }
 }
@@ -483,30 +502,6 @@ methods for getting/setting keys.
 This client exposes additional settings:
 
 - `CACHE_HERD_TIMEOUT`: Set default herd timeout. (Default value: 60s)
-
-
-Auto Failover client
-^^^^^^^^^^^^^^^^^^^^
-
-This pluggable experimental client offers a simple failover algorithm if the main Redis server is down.
-
-To use it, you should change your cache settings to something like this:
-
-[source, python]
-----
-CACHES = {
-    'default': {
-        'BACKEND': 'redis_cache.cache.RedisCache',
-        'LOCATION': '127.0.0.1:6379:1/127.0.0.2:6379:1',
-        'OPTIONS': {
-            'CLIENT_CLASS': 'redis_cache.client.SimpleFailoverClient',
-        }
-    }
-}
-----
-
-The big difference is that each key in the `LOCATION` setting list can contain two connection strings
-separated by "/". A second connection string works as a failover server.
 
 
 Sentinel client
@@ -518,11 +513,11 @@ Pluggable experimental client, that works with redis sentinel.
 [source, python]
 ----
 CACHES = {
-    'default': {
-        'BACKEND': 'redis_cache.cache.RedisCache',
-        'LOCATION': 'mymaster/127.0.0.1:6379,127.0.0.2:6379/1',
-        'OPTIONS': {
-            'CLIENT_CLASS': 'redis_cache.client.sentinel.SentinelClient',
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "mymaster/127.0.0.1:6379,127.0.0.2:6379/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.sentinel.SentinelClient",
         }
     }
 }
