@@ -20,6 +20,7 @@ Why use django-redis?
 Because:
 
 - In active development.
+- Uses native redis-py url notation connection strings.
 - Modular client system (pluggable clients).
 - Master-Slave support in the default client.
 - Complete battery of tests.
@@ -39,6 +40,7 @@ Supported versions
 - Previous stable version: *3.6.2*
 - Previous stable version: *3.5.2*
 
+
 [NOTE]
 ====
 Versions like _3.6_, _3.7_, ... are considered major releases
@@ -54,7 +56,7 @@ Requirements
 
 - Python 2.7, 3.3 or 3.4
 - Django 1.4, 1.5, 1.6 and 1.7
-- redis-py >= 2.9.0
+- redis-py >= 2.10.0
 
 
 User guide

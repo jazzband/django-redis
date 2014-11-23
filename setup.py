@@ -18,7 +18,7 @@ setup(
     ],
     description = description.strip(),
     install_requires=[
-        "redis>=2.9.0",
+        "redis>=2.10.0",
     ],
     zip_safe=False,
     include_package_data = True,
