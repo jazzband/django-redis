@@ -9,6 +9,8 @@ Version 3.8.0
 - Add backward compatibility layer for redis_cache package name.
 - BACKWARD INCOMPATIBLE CHANGE: use StrictRedis instead of Redis class of redis-py
 - Add redis dummy backend for development purposes. (Thanks to @papaloizouc)
+- Now use redis native url notation for connection string (the own connection string
+  notation is also supported but is marked as deprecated).
 
 
 Version 3.7.2
