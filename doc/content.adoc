@@ -37,8 +37,8 @@ Supported versions
 ~~~~~~~~~~~~~~~~~~
 
 - Latest stable version: *3.8.0*
+- Previous stable version: *3.7.2*
 - Previous stable version: *3.6.2*
-- Previous stable version: *3.5.2*
 
 
 [NOTE]
@@ -75,7 +75,7 @@ pip install django-redis
 Configure as cache backend
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To start using *django-redis*, you should change your Django cache settings to something like:
+To start using *django-redis*, you should change your Django cache settings to something like this:
 
 [source, python]
 ----
@@ -85,15 +85,10 @@ CACHES = {
         "LOCATION": "redis://127.0.0.1:6379/1",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            "PASSWORD": "secretpassword",  # Optional
         }
     }
 }
 ----
-
-In this example, we are using a standard TCP/IP socket connection to Redis running at `localhost`,
-using database 1. In `OPTIONS`, we have specified the pluggable client we want to use; in this case
-the default one. You can omit this part since that client is used by default if one is not specified.
 
 NOTE: If you want use Unix sockets, change the `LOCATION` value to something like
 `"unix:///path/to/socket?db=1"`.
@@ -103,7 +98,7 @@ Configure as session backend
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Django can by default use any cache backend as session backend and you benefit from that by using
-*django-redis* as backend for session storage without installing any additional and unnecesary backends:
+*django-redis* as backend for session storage without installing any additional backends:
 
 [source, python]
 ----
@@ -118,14 +113,20 @@ Advanced usage
 Pickle version
 ~~~~~~~~~~~~~~
 
-For almost all values, *django-redis* uses pickle to serialize objects and by default uses the
-latest pickle protocol version. If you want set a custom version you can do it with the `PICKLE_VERSION` key
-in `OPTIONS`:
+For almost all values, *django-redis* uses pickle to serialize objects.
+
+The latest available version of pickle is used by default. If you want set a concrete version, you
+can do it, using `PICKLE_VERSION` settings:
 
 [source, python]
 ----
-"OPTIONS": {
-    "PICKLE_VERSION": -1  # Use the latest protocol version
+CACHES = {
+    "default": {
+        # ...
+        "OPTIONS": {
+            "PICKLE_VERSION": -1  # Use the latest protocol version
+        }
+    }
 }
 ----
 
@@ -133,12 +134,17 @@ in `OPTIONS`:
 Socket timeout
 ~~~~~~~~~~~~~~
 
-You can set socket timeout using the `SOCKET_TIMEOUT` key in the `OPTIONS` dict:
+Socket timeout can be set using `SOCKET_TIMEOUT` settings:
 
 [source, python]
 ----
-"OPTIONS": {
-    "SOCKET_TIMEOUT": 5,  # in seconds
+CACHES = {
+    "default": {
+        # ...
+        "OPTIONS": {
+            "SOCKET_TIMEOUT": 5,  # in seconds
+        }
+    }
 }
 ----
 
@@ -146,29 +152,39 @@ You can set socket timeout using the `SOCKET_TIMEOUT` key in the `OPTIONS` dict:
 Memcached exceptions behavior
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In some situations, when Redis is only used for cache, you do not want exceptions when Redis is down. This is
-default behavior in the memcached backend and it can be emulated in *django-redis*.
+In some situations, when Redis is only used for cache, you do not want exceptions when Redis is down.
+This is default behavior in the memcached backend and it can be emulated in *django-redis*.
 
-You can ignore exceptions globally (for all configured Redis cache clients) by setting `DJANGO_REDIS_IGNORE_EXCEPTIONS`
-to `True` in your settings.
-
-Additionally, you can set it individually for each client in their `OPTIONS` dict:
+For setup memcached like behaviour (ignore all exceptions), you should
+set `IGNORE_EXCEPTIONS` settings on your cache configuration:
 
 [source, python]
 ----
-"OPTIONS": {
-    "IGNORE_EXCEPTIONS": True,
+CACHES = {
+    "default": {
+        # ...
+        "OPTIONS": {
+            "IGNORE_EXCEPTIONS": True,
+        }
+    }
 }
 ----
 
+Also, you can apply the same settings to all configured caches, you can set the global flag in
+your settings:
+
+[source, python]
+----
+DJANGO_REDIS_IGNORE_EXCEPTIONS = True
+----
 
 Infinite timeout
 ~~~~~~~~~~~~~~~~
 
 *django-redis* comes with infinite timeouts support, since before Django added it in version 1.6.
 
-If used with Django before version 1.6, *django-redis* interprets a `0` timeout value as infinite. In Django >= 1.6 it also supports
-`None` as timeout value.
+If used with Django before version 1.6, *django-redis* interprets a `0` timeout value as infinite.
+In Django >= 1.6 it also supports `None` as timeout value
 
 .These statements are then equivalent:
 [source, python]
@@ -354,10 +370,10 @@ class MyOwnPool(ConnectionPool):
 Customize connection factory
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-If none of the previous methods satisfies you, you can get in the middle of the 
+If none of the previous methods satisfies you, you can get in the middle of the
 *django-redis* connection factory process and customize or completely rewrite it.
 
-By default, *django-redis* creates connections through the `django_redis.pool.ConnectionFactory` 
+By default, *django-redis* creates connections through the `django_redis.pool.ConnectionFactory`
 class that is specified in the global Django setting `DJANGO_REDIS_CONNECTION_FACTORY`.
 
 .Partial interface of `ConnectionFactory` class
@@ -409,8 +425,8 @@ class ConnectionFactory(object):
 Pluggable parsers
 ~~~~~~~~~~~~~~~~~
 
-*redis-py* (the Python Redis client used by *django-redis*) comes with a pure Python Redis parser 
-that works very well for most common task, but if you want some performance boost, you can use 
+*redis-py* (the Python Redis client used by *django-redis*) comes with a pure Python Redis parser
+that works very well for most common task, but if you want some performance boost, you can use
 *hiredis*.
 
 *hiredis* is a Redis client written in C and it has its own parser that can be used with *django-redis*.
@@ -482,7 +498,7 @@ Herd client
 This pluggable client helps dealing with the thundering herd problem. You can read more about it
 on link:http://en.wikipedia.org/wiki/Thundering_herd_problem[Wikipedia].
 
-Like previus pluggable clients, it inherits all functionality from the default client, adding some 
+Like previus pluggable clients, it inherits all functionality from the default client, adding some
 additional methods for getting/setting keys.
 
 .Example setup
