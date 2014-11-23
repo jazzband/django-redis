@@ -116,7 +116,7 @@ Pickle version
 For almost all values, *django-redis* uses pickle to serialize objects.
 
 The latest available version of pickle is used by default. If you want set a concrete version, you
-can do it, using `PICKLE_VERSION` settings:
+can do it, using `PICKLE_VERSION` option:
 
 [source, python]
 ----
@@ -134,7 +134,7 @@ CACHES = {
 Socket timeout
 ~~~~~~~~~~~~~~
 
-Socket timeout can be set using `SOCKET_TIMEOUT` settings:
+Socket timeout can be set using `SOCKET_TIMEOUT` option:
 
 [source, python]
 ----
@@ -143,6 +143,48 @@ CACHES = {
         # ...
         "OPTIONS": {
             "SOCKET_TIMEOUT": 5,  # in seconds
+        }
+    }
+}
+----
+
+
+Compression support
+~~~~~~~~~~~~~~~~~~~
+
+_django_redis_ comes with compression support out of the box, but is deactivated by default. You
+can activate it setting `COMPRESS_MIN_LEN` option to any value great than `0`.
+
+
+[source, python]
+----
+CACHES = {
+    "default": {
+        # ...
+        "OPTIONS": {
+            "COMPRESS_MIN_LEN": 10,
+        }
+    }
+}
+----
+
+*zlib* is used as default commpression format. You can change it providing two callables, one for
+compress and an other for uncompress.
+
+Let see an example, of how make it work with *lzma* compression format:
+
+[source, python]
+----
+import lzma
+
+CACHES = {
+    "default": {
+        # ...
+        "OPTIONS": {
+            "COMPRESS_MIN_LEN": 10,
+            "COMPRESS_COMPRESSOR": lzma.compress,
+            "COMPRESS_DECOMPRESSOR": lzma.decompress,
+            "COMPRESS_DECOMPRESSOR_ERROR": lzma.LZMAError
         }
     }
 }
