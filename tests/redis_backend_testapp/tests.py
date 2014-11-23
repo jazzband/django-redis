@@ -5,7 +5,11 @@ from __future__ import absolute_import, unicode_literals, print_function
 import sys
 import time
 import datetime
-from unittest.mock import patch
+
+try:
+    from unittest.mock import patch
+except ImportError:
+    from mock import patch
 
 from django.conf import settings
 from django.core.cache import cache, get_cache
