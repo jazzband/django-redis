@@ -451,17 +451,9 @@ class DefaultClient(object):
             client = self.get_client(write=False)
 
         pattern = self.make_key(search, version=version)
-        cursor = b"0"
-
-        while True:
-            cursor, data = client.scan(cursor, match=pattern, count=itersize)
-
-            for item in data:
-                item = smart_text(item)
-                yield self.reverse_key(item)
-
-            if cursor == b"0":
-                break
+        for item in client.scan_iter(match=pattern, count=itersize):
+            item = smart_text(item)
+            yield self.reverse_key(item)
 
     def keys(self, search, version=None, client=None):
         """
