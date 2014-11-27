@@ -93,6 +93,10 @@ CACHES = {
 NOTE: If you want use Unix sockets, change the `LOCATION` value to something like
 `"unix:///path/to/socket?db=1"`.
 
+NOTE: if you are coming fron django-redis < 3.8.x, you are probably using redis_cache. Since
+django-redis 3.8.x, `redis_cache` module is deprecated in favor to `django_redis`. The
+`redis_cache` module will be removed in 3.9.x versions.
+
 
 Configure as session backend
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
