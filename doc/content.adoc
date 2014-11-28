@@ -201,7 +201,7 @@ Memcached exceptions behavior
 In some situations, when Redis is only used for cache, you do not want exceptions when Redis is down.
 This is default behavior in the memcached backend and it can be emulated in *django-redis*.
 
-For setup memcached like behaviour (ignore all exceptions), you should
+For setup memcached like behaviour (ignore connection exceptions), you should
 set `IGNORE_EXCEPTIONS` settings on your cache configuration:
 
 [source, python]
