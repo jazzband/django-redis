@@ -566,27 +566,6 @@ This client exposes additional settings:
 - `CACHE_HERD_TIMEOUT`: Set default herd timeout. (Default value: 60s)
 
 
-Sentinel client
-^^^^^^^^^^^^^^^
-
-Pluggable experimental client, that works with redis sentinel.
-
-.This is a simple configuration example for sentinel client
-[source, python]
-----
-CACHES = {
-    "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "mymaster/127.0.0.1:6379,127.0.0.2:6379/1",
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.sentinel.SentinelClient",
-        }
-    }
-}
-----
-
-WARNING: this client is experimental and by their nature it not has tests.
-
 [[license]]
 License
 -------
