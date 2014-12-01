@@ -2,7 +2,6 @@
 
 import random
 import time
-import warnings
 
 from redis.exceptions import ConnectionError
 
