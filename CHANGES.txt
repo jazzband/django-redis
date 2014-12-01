@@ -12,6 +12,7 @@ Version 3.8.0
 - Now use redis native url notation for connection string (the own connection string
   notation is also supported but is marked as deprecated).
 - Now requires redis-py >= 2.10.0
+- Remove deprecated `raw_cache` property from backend.
 
 
 Version 3.7.2

@@ -54,17 +54,6 @@ class RedisCache(BaseCache):
             self._client = self._client_cls(self._server, self._params, self)
         return self._client
 
-    @property
-    def raw_client(self):
-        """
-        Return a raw redis client (connection). Not all
-        pluggable clients supports this feature. If not supports
-        this raises NotImplementedError
-        """
-        warnings.warn("raw_client is deprecated. use self.client.get_client instead",
-                      DeprecationWarning, stacklevel=2)
-        return self.client.get_client(write=True)
-
     @omit_exception
     def set(self, *args, **kwargs):
         return self.client.set(*args, **kwargs)
