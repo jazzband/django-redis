@@ -5,9 +5,7 @@ from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 
 from redis import StrictRedis
-from redis.connection import Connection
 from redis.connection import DefaultParser
-from redis.connection import UnixDomainSocketConnection
 
 from . import util
 
@@ -55,7 +53,7 @@ class ConnectionFactory(object):
                               db=db)
 
         except (ValueError, TypeError):
-            raise ImproperlyConfigured("Incorrect format '%s'" % (constring))
+            raise ImproperlyConfigured("Incorrect format '%s'" % (url))
 
     def make_connection_params(self, url):
         """
@@ -72,7 +70,8 @@ class ConnectionFactory(object):
 
         socket_timeout = self.options.get("SOCKET_TIMEOUT", None)
         if socket_timeout:
-            assert isinstance(socket_timeout, (int, float)), "Socket timeout should be float or integer"
+            assert isinstance(socket_timeout, (int, float)), \
+                "Socket timeout should be float or integer"
             kwargs["socket_timeout"] = socket_timeout
 
         return kwargs
@@ -94,7 +93,7 @@ class ConnectionFactory(object):
         The default implementation uses a cached pools
         for create new connection.
         """
-        pool =  self.get_or_create_connection_pool(params)
+        pool = self.get_or_create_connection_pool(params)
         return StrictRedis(connection_pool=pool)
 
     def get_parser_cls(self):
