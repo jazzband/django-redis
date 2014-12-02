@@ -1,5 +1,6 @@
 from django.core.cache.backends.dummy import DummyCache
 
+
 class RedisDummyCache(DummyCache):
     def __init__(self, *args, **kwargs):
         DummyCache.__init__(self, *args, **kwargs)
