@@ -50,7 +50,9 @@ class HashRing(object):
         return (self.ring[self.sorted_keys[idx]], idx)
 
     def iter_nodes(self, key):
-        if len(self.ring) == 0: yield None, None
+        if len(self.ring) == 0:
+            yield None, None
+
         node, pos = self.get_node_pos(key)
         for k in self.sorted_keys[pos:]:
             yield k, self.ring[k]
