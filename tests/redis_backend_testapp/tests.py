@@ -5,6 +5,7 @@ from __future__ import absolute_import, unicode_literals, print_function
 import sys
 import time
 import datetime
+from unittest import skip
 
 try:
     from unittest.mock import patch
@@ -90,6 +91,7 @@ class DjangoRedisCacheTestCustomKeyFunction(TestCase):
         except Exception:
             pass
 
+    @skip("No cache.raw_client")
     def test_custom_key_function(self):
         for key in ["foo-aa","foo-ab", "foo-bb","foo-bc"]:
             self.cache.set(key, "foo")
