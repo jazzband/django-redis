@@ -5,7 +5,6 @@ from __future__ import absolute_import, unicode_literals, print_function
 import sys
 import time
 import datetime
-from unittest import skip
 
 try:
     from unittest.mock import patch
@@ -91,7 +90,6 @@ class DjangoRedisCacheTestCustomKeyFunction(TestCase):
         except Exception:
             pass
 
-    @skip("No cache.raw_client")
     def test_custom_key_function(self):
         for key in ["foo-aa","foo-ab", "foo-bb","foo-bc"]:
             self.cache.set(key, "foo")
@@ -105,7 +103,7 @@ class DjangoRedisCacheTestCustomKeyFunction(TestCase):
         try:
             self.assertEqual(set(k.decode('utf-8') for k in self.cache.raw_client.keys('*')),
                 set(['#1#foo-bc', '#1#foo-bb']))
-        except NotImplementedError:
+        except (NotImplementedError, AttributeError):
             # not all clients support .keys()
             pass
 
