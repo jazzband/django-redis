@@ -121,7 +121,7 @@ class DefaultClient(object):
             except (ValueError, TypeError):
                 raise ImproperlyConfigured("PICKLE_VERSION value must be an integer")
 
-    def set(self, key, value, timeout=DEFAULT_TIMEOUT, version=None, client=None, nx=False):
+    def set(self, key, value, timeout=DEFAULT_TIMEOUT, version=None, client=None, nx=False, xx=False):
         """
         Persist a value to the cache, and set an optional expiration time.
         Also supports optional nx parameter. If set to True - will use redis setnx instead of set.
@@ -149,7 +149,7 @@ class DefaultClient(object):
                     # so it seems that it's better to just delete the key
                     # than to set it and than expire in a pipeline
                     return self.delete(key, client=client)
-            return client.set(key, value, nx=nx, ex=timeout)
+            return client.set(key, value, nx=nx, ex=timeout, xx=xx)
         except _main_exceptions as e:
             raise ConnectionInterrupted(connection=client, parent=e)
 
