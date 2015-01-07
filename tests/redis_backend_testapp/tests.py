@@ -103,7 +103,7 @@ class DjangoRedisCacheTestCustomKeyFunction(TestCase):
         try:
             self.assertEqual(set(k.decode('utf-8') for k in self.cache.raw_client.keys('*')),
                 set(['#1#foo-bc', '#1#foo-bb']))
-        except NotImplementedError:
+        except (NotImplementedError, AttributeError):
             # not all clients support .keys()
             pass
 
