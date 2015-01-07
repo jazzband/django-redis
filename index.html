@@ -4,14 +4,14 @@
 <meta charset="UTF-8">
 <!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Asciidoctor 1.5.1">
+<meta name="generator" content="Asciidoctor 1.5.2">
 <meta name="author" content="Andrey Antukh, &lt;niwi@niwi.be&gt;">
 <title>django-redis documentation</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic|Noto+Serif:400,400italic,700,700italic|Droid+Sans+Mono:400">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400">
 <style>
 /* Asciidoctor default stylesheet | MIT License | http://asciidoctor.org */
 /* Remove the comments around the @import statement below when using this as a custom stylesheet */
-/*@import "https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic|Noto+Serif:400,400italic,700,700italic|Droid+Sans+Mono:400";*/
+/*@import "https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400";*/
 article,aside,details,figcaption,figure,footer,header,hgroup,main,nav,section,summary{display:block}
 audio,canvas,video{display:inline-block}
 audio:not([controls]){display:none;height:0}
@@ -275,8 +275,8 @@ dl dd:last-child,dl dd:last-child>:last-child{margin-bottom:0}
 ol>li p,ul>li p,ul dd,ol dd,.olist .olist,.ulist .ulist,.ulist .olist,.olist .ulist{margin-bottom:.625em}
 ul.unstyled,ol.unnumbered,ul.checklist,ul.none{list-style-type:none}
 ul.unstyled,ol.unnumbered,ul.checklist{margin-left:.625em}
-ul.checklist li>p:first-child>.fa-check-square-o:first-child,ul.checklist li>p:first-child>input[type="checkbox"]:first-child{margin-right:.25em}
-ul.checklist li>p:first-child>input[type="checkbox"]:first-child{position:relative;top:1px}
+ul.checklist li>p:first-child>.fa-square-o:first-child,ul.checklist li>p:first-child>.fa-check-square-o:first-child{width:1em;font-size:.85em}
+ul.checklist li>p:first-child>input[type="checkbox"]:first-child{width:1em;position:relative;top:1px}
 ul.inline{margin:0 auto .625em auto;margin-left:-1.375em;margin-right:0;padding:0;list-style:none;overflow:hidden}
 ul.inline>li{list-style:none;float:left;margin-left:1.375em;display:block}
 ul.inline>li>*{display:block}
@@ -480,7 +480,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h1>django-redis documentation</h1>
 <div class="details">
 <span id="author" class="author">Andrey Antukh, &lt;niwi@niwi.be&gt;</span><br>
-<span id="revdate">3.8.0</span>
+<span id="revdate">3.8.1</span>
 </div>
 <div id="toc" class="toc2">
 <div id="toctitle">Table of Contents</div>
@@ -577,7 +577,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="ulist">
 <ul>
 <li>
-<p>Latest stable version: <strong>3.8.0</strong></p>
+<p>Latest stable version: <strong>3.8.1</strong></p>
 </li>
 <li>
 <p>Previous stable version: <strong>3.7.2</strong></p>
@@ -658,18 +658,46 @@ fix releases and are should contain only bug fixes. No new features.</p>
 <span class="tok-p">}</span></code></pre>
 </div>
 </div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<div class="title">Note</div>
-</td>
-<td class="content">
-If you want use Unix sockets, change the <code>LOCATION</code> value to something like
-<code>"unix:///path/to/socket?db=1"</code>.
-</td>
-</tr>
-</table>
+<div class="paragraph">
+<p>django-redis, since 3.8.0, it starts using redis-py native url notation for connection strings,
+that allows better interoperability and have a connection string in more "standard" way.</p>
+</div>
+<div class="listingblock">
+<div class="title">This is a examples of url format</div>
+<div class="content">
+<pre>redis://[:password]@localhost:6379/0
+rediss://[:password]@localhost:6379/0
+unix://[:password]@/path/to/socket.sock?db=0</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Three URL schemes are supported:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>redis://</code>: creates a normal TCP socket connection</p>
+</li>
+<li>
+<p><code>rediss://</code>: creates a SSL wrapped TCP socket connection</p>
+</li>
+<li>
+<p><code>unix://</code> creates a Unix Domain Socket connection</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>There are several ways to specify a database number:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>A <code>db</code> querystring option, e.g. redis://localhost?db=0</p>
+</li>
+<li>
+<p>If using the redis:// scheme, the path argument of the url, e.g. <code>redis://localhost/0</code></p>
+</li>
+</ul>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -1261,7 +1289,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</code></pre>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2014-12-02 20:22:16 CET
+Last updated 2015-01-07 23:01:58 CET
 </div>
 </div>
 </body>
