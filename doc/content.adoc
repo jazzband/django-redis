@@ -1,7 +1,7 @@
 django-redis documentation
 ==========================
 Andrey Antukh, <niwi@niwi.be>
-3.8.0
+3.8.1
 :toc: left
 :numbered:
 :source-highlighter: pygments
@@ -36,7 +36,7 @@ Because:
 Supported versions
 ~~~~~~~~~~~~~~~~~~
 
-- Latest stable version: *3.8.0*
+- Latest stable version: *3.8.1*
 - Previous stable version: *3.7.2*
 - Previous stable version: *3.6.2*
 
@@ -90,12 +90,33 @@ CACHES = {
 }
 ----
 
-NOTE: If you want use Unix sockets, change the `LOCATION` value to something like
-`"unix:///path/to/socket?db=1"`.
+django-redis, since 3.8.0, it starts using redis-py native url notation for connection strings,
+that allows better interoperability and have a connection string in more "standard" way.
+
+.This is a examples of url format
+----
+redis://[:password]@localhost:6379/0
+rediss://[:password]@localhost:6379/0
+unix://[:password]@/path/to/socket.sock?db=0
+----
+
+Three URL schemes are supported:
+
+- `redis://`: creates a normal TCP socket connection
+- `rediss://`: creates a SSL wrapped TCP socket connection
+- `unix://` creates a Unix Domain Socket connection
+
+There are several ways to specify a database number:
+
+- A `db` querystring option, e.g. redis://localhost?db=0
+- If using the redis:// scheme, the path argument of the url, e.g. `redis://localhost/0`
+
 
 NOTE: if you are coming fron django-redis < 3.8.x, you are probably using redis_cache. Since
 django-redis 3.8.x, `redis_cache` module is deprecated in favor to `django_redis`. The
 `redis_cache` module will be removed in 3.9.x versions.
+
+
 
 
 Configure as session backend
