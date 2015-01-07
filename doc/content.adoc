@@ -402,9 +402,10 @@ You can verify how many connections the pool has opened with the following snipp
 [source, python]
 ----
 from django.core.cache import get_cache
-django_redis = get_cache("default")  # Use the name you have defined for Redis in settings.CACHES
-redis = django_redis.raw_client
-connection_pool = redis.connection_pool
+from django_redis import get_redis_connection
+
+r = get_redis_connection("default")  # Use the name you have defined for Redis in settings.CACHES
+connection_pool = r.connection_pool
 print("Created connections so far: %d" % connection_pool._created_connections)
 ----
 
