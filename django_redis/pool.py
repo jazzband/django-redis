@@ -38,12 +38,12 @@ class ConnectionFactory(object):
 
             if host == "unix":
                 if password:
-                    url = "unix://{password}@{port}?db={db}"
+                    url = "unix://:{password}@{port}?db={db}"
                 else:
                     url = "unix://{port}?db={db}"
             else:
                 if password:
-                    url = "redis://{password}@{host}:{port}?db={db}"
+                    url = "redis://:{password}@{host}:{port}?db={db}"
                 else:
                     url = "redis://{host}:{port}?db={db}"
 
