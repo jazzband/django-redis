@@ -1,6 +1,16 @@
 Changelog
 =========
 
+Version 3.8.1
+-------------
+
+- Fix documentation related to new url format.
+- Fix documentation parts that uses now removed functions.
+- Fix invalid url transformation from old format (password was not set properly)
+- Replace setex and friends with set, because it now supports all need for atomic
+  updates (thanks to @23doors).
+
+
 Version 3.8.0
 -------------
 
