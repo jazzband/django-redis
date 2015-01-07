@@ -1029,9 +1029,10 @@ in the pool, by setting <code>CONNECTION_POOL_KWARGS</code> in the <code>CACHES<
 <div class="listingblock">
 <div class="content">
 <pre class="pygments highlight"><code data-lang="python"><span class="tok-kn">from</span> <span class="tok-nn">django.core.cache</span> <span class="tok-kn">import</span> <span class="tok-n">get_cache</span>
-<span class="tok-n">django_redis</span> <span class="tok-o">=</span> <span class="tok-n">get_cache</span><span class="tok-p">(</span><span class="tok-s">&quot;default&quot;</span><span class="tok-p">)</span>  <span class="tok-c"># Use the name you have defined for Redis in settings.CACHES</span>
-<span class="tok-n">redis</span> <span class="tok-o">=</span> <span class="tok-n">django_redis</span><span class="tok-o">.</span><span class="tok-n">raw_client</span>
-<span class="tok-n">connection_pool</span> <span class="tok-o">=</span> <span class="tok-n">redis</span><span class="tok-o">.</span><span class="tok-n">connection_pool</span>
+<span class="tok-kn">from</span> <span class="tok-nn">django_redis</span> <span class="tok-kn">import</span> <span class="tok-n">get_redis_connection</span>
+
+<span class="tok-n">r</span> <span class="tok-o">=</span> <span class="tok-n">get_redis_connection</span><span class="tok-p">(</span><span class="tok-s">&quot;default&quot;</span><span class="tok-p">)</span>  <span class="tok-c"># Use the name you have defined for Redis in settings.CACHES</span>
+<span class="tok-n">connection_pool</span> <span class="tok-o">=</span> <span class="tok-n">r</span><span class="tok-o">.</span><span class="tok-n">connection_pool</span>
 <span class="tok-k">print</span><span class="tok-p">(</span><span class="tok-s">&quot;Created connections so far: </span><span class="tok-si">%d</span><span class="tok-s">&quot;</span> <span class="tok-o">%</span> <span class="tok-n">connection_pool</span><span class="tok-o">.</span><span class="tok-n">_created_connections</span><span class="tok-p">)</span></code></pre>
 </div>
 </div>
@@ -1289,7 +1290,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</code></pre>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2015-01-07 23:01:58 CET
+Last updated 2015-01-07 23:04:58 CET
 </div>
 </div>
 </body>
