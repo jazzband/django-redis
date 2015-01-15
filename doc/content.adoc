@@ -159,7 +159,8 @@ CACHES = {
 Socket timeout
 ~~~~~~~~~~~~~~
 
-Socket timeout can be set using `SOCKET_TIMEOUT` option:
+Socket timeout can be set using `SOCKET_TIMEOUT` and `SOCKET_CONNECT_TIMEOUT`
+options:
 
 [source, python]
 ----
@@ -167,11 +168,16 @@ CACHES = {
     "default": {
         # ...
         "OPTIONS": {
+            "SOCKET_CONNECT_TIMEOUT": 5,  # in seconds
             "SOCKET_TIMEOUT": 5,  # in seconds
         }
     }
 }
 ----
+
+`SOCKET_CONNECT_TIMEOUT` is the timeout for the connection to be established and
+`SOCKET_TIMEOUT` is the timeout for read and write operations after the connection
+is established.
 
 
 Compression support

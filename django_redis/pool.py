@@ -74,6 +74,12 @@ class ConnectionFactory(object):
                 "Socket timeout should be float or integer"
             kwargs["socket_timeout"] = socket_timeout
 
+        socket_connect_timeout = self.options.get("SOCKET_CONNECT_TIMEOUT", None)
+        if socket_connect_timeout:
+            assert isinstance(socket_connect_timeout, (int, float)), \
+                "Socket connect timeout should be float or integer"
+            kwargs["socket_connect_timeout"] = socket_connect_timeout
+
         return kwargs
 
     def connect(self, url):
