@@ -1,7 +1,7 @@
 django-redis documentation
 ==========================
 Andrey Antukh, <niwi@niwi.be>
-3.8.1
+3.8.2
 :toc: left
 :numbered:
 :source-highlighter: pygments
@@ -36,7 +36,7 @@ Because:
 Supported versions
 ~~~~~~~~~~~~~~~~~~
 
-- Latest stable version: *3.8.1*
+- Latest stable version: *3.8.2*
 - Previous stable version: *3.7.2*
 - Previous stable version: *3.6.2*
 
