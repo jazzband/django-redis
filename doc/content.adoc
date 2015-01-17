@@ -1,7 +1,7 @@
 django-redis documentation
 ==========================
 Andrey Antukh, <niwi@niwi.be>
-3.8.2
+4.0.0
 :toc: left
 :numbered:
 :source-highlighter: pygments
@@ -26,37 +26,54 @@ Because:
 - Complete battery of tests.
 - Used in production in several projects as cache and session storage.
 - Supports infinite timeouts.
-- Python 3 support in same code base.
 - Facilities for raw access to Redis client/connection pool.
 - Highly configurable (can emulate memcached exception behavior, for example).
 - Unix sockets supported by default.
 - Pluggable parsers.
+- With support for python 2.7, 3.3 and 3.4
 
 
-Supported versions
-~~~~~~~~~~~~~~~~~~
 
-- Latest stable version: *3.8.2*
-- Previous stable version: *3.7.2*
-- Previous stable version: *3.6.2*
+Supported django-redis versions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Development version: *4.0.0*
+- Supported stable version: *3.8.2*
+- Supported previous stable version: *3.7.2*
 
 
-[NOTE]
-====
+How version number is handled
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 Versions like _3.6_, _3.7_, ... are considered major releases
 and can contain some backward incompatibilities. For more information
 is very recommended see the changelog before update.
 
 Versions like _3.7.0_, _3.7.1_, ... are considered minor or bug
 fix releases and are should contain only bug fixes. No new features.
-====
+
 
 Requirements
 ~~~~~~~~~~~~
 
-- Python 2.7, 3.3 or 3.4
-- Django 1.4, 1.5, 1.6 and 1.7
-- redis-py >= 2.10.0
+Django version support
+^^^^^^^^^^^^^^^^^^^^^^
+
+- *django-redis 3.8.x* will maintain support for django 1.4, 1.5, 1.6, 1.7 (and maybe 1.8)
+- *django-redis 4.0.0* will maintain support for django 1.6, 1.7 and 1.8
+
+
+Redis Server Support
+^^^^^^^^^^^^^^^^^^^^
+
+- *django-redis 3.8.x* will maintain support for redis-server 2.6.x and upper.
+- *django-redis 4.0.0* will maintain support for redis-server 2.8.x and upper.
+
+
+Other requirements
+^^^^^^^^^^^^^^^^^^
+
+All supported versions of *django-redis* depends on `redis-py >= 2.10.0`.
 
 
 User guide
@@ -600,7 +617,7 @@ License
 
 [source,text]
 ----
-Copyright (c) 2011-2014 Andrey Antukh <niwi@niwi.be>
+Copyright (c) 2011-2015 Andrey Antukh <niwi@niwi.be>
 Copyright (c) 2011 Sean Bleier
 
 All rights reserved.
