@@ -488,8 +488,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_introduction">1. Introduction</a>
 <ul class="sectlevel2">
 <li><a href="#_why_use_django_redis">1.1. Why use django-redis?</a></li>
-<li><a href="#_supported_versions">1.2. Supported versions</a></li>
-<li><a href="#_requirements">1.3. Requirements</a></li>
+<li><a href="#_supported_django_redis_versions">1.2. Supported django-redis versions</a></li>
+<li><a href="#_how_version_number_is_handled">1.3. How version number is handled</a></li>
+<li><a href="#_requirements">1.4. Requirements</a></li>
 </ul>
 </li>
 <li><a href="#_user_guide">2. User guide</a>
@@ -555,9 +556,6 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p>Supports infinite timeouts.</p>
 </li>
 <li>
-<p>Python 3 support in same code base.</p>
-</li>
-<li>
 <p>Facilities for raw access to Redis client/connection pool.</p>
 </li>
 <li>
@@ -569,31 +567,30 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li>
 <p>Pluggable parsers.</p>
 </li>
+<li>
+<p>With support for python 2.7, 3.3 and 3.4</p>
+</li>
 </ul>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_supported_versions">1.2. Supported versions</h3>
+<h3 id="_supported_django_redis_versions">1.2. Supported django-redis versions</h3>
 <div class="ulist">
 <ul>
 <li>
-<p>Latest stable version: <strong>3.8.2</strong></p>
+<p>Development version: <strong>4.0.0</strong></p>
 </li>
 <li>
-<p>Previous stable version: <strong>3.7.2</strong></p>
+<p>Supported stable version: <strong>3.8.2</strong></p>
 </li>
 <li>
-<p>Previous stable version: <strong>3.6.2</strong></p>
+<p>Supported previous stable version: <strong>3.7.2</strong></p>
 </li>
 </ul>
 </div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<div class="title">Note</div>
-</td>
-<td class="content">
+</div>
+<div class="sect2">
+<h3 id="_how_version_number_is_handled">1.3. How version number is handled</h3>
 <div class="paragraph">
 <p>Versions like <em>3.6</em>, <em>3.7</em>, &#8230;&#8203; are considered major releases
 and can contain some backward incompatibilities. For more information
@@ -603,25 +600,40 @@ is very recommended see the changelog before update.</p>
 <p>Versions like <em>3.7.0</em>, <em>3.7.1</em>, &#8230;&#8203; are considered minor or bug
 fix releases and are should contain only bug fixes. No new features.</p>
 </div>
-</td>
-</tr>
-</table>
-</div>
 </div>
 <div class="sect2">
-<h3 id="_requirements">1.3. Requirements</h3>
+<h3 id="_requirements">1.4. Requirements</h3>
+<div class="sect3">
+<h4 id="_django_version_support">1.4.1. Django version support</h4>
 <div class="ulist">
 <ul>
 <li>
-<p>Python 2.7, 3.3 or 3.4</p>
+<p><strong>django-redis 3.8.x</strong> will maintain support for django 1.4, 1.5, 1.6, 1.7 (and maybe 1.8)</p>
 </li>
 <li>
-<p>Django 1.4, 1.5, 1.6 and 1.7</p>
-</li>
-<li>
-<p>redis-py &gt;= 2.10.0</p>
+<p><strong>django-redis 4.0.0</strong> will maintain support for django 1.6, 1.7 and 1.8</p>
 </li>
 </ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_redis_server_support">1.4.2. Redis Server Support</h4>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>django-redis 3.8.x</strong> will maintain support for redis-server 2.6.x and upper.</p>
+</li>
+<li>
+<p><strong>django-redis 4.0.0</strong> will maintain support for redis-server 2.8.x and upper.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_other_requirements">1.4.3. Other requirements</h4>
+<div class="paragraph">
+<p>All supported versions of <strong>django-redis</strong> depends on <code>redis-py &gt;= 2.10.0</code>.</p>
+</div>
 </div>
 </div>
 </div>
@@ -1257,7 +1269,7 @@ additional methods for getting/setting keys.</p>
 <div class="sectionbody">
 <div class="listingblock">
 <div class="content">
-<pre class="pygments highlight"><code data-lang="text">Copyright (c) 2011-2014 Andrey Antukh &lt;niwi@niwi.be&gt;
+<pre class="pygments highlight"><code data-lang="text">Copyright (c) 2011-2015 Andrey Antukh &lt;niwi@niwi.be&gt;
 Copyright (c) 2011 Sean Bleier
 
 All rights reserved.
@@ -1290,7 +1302,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</code></pre>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2015-01-17 12:19:39 CET
+Last updated 2015-01-17 12:21:37 CET
 </div>
 </div>
 </body>
