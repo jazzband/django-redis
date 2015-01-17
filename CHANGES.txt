@@ -1,6 +1,12 @@
 Changelog
 =========
 
+Version 3.8.2
+-------------
+
+- Revert some changes from 3.8.1 that are incompatible with redis server < 2.6.12
+
+
 Version 3.8.1
 -------------
 
