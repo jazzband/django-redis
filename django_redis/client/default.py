@@ -130,8 +130,8 @@ class DefaultClient(object):
         if not client:
             client = self.get_client(write=True)
 
-        key = self.make_key(key, version=version)
-        value = self.pickle(value)
+        nkey = self.make_key(key, version=version)
+        nvalue = self.pickle(value)
 
         if timeout is True:
             warnings.warn("Using True as timeout value, is now deprecated.", DeprecationWarning)
@@ -142,21 +142,21 @@ class DefaultClient(object):
 
         try:
             if nx:
-                res = client.setnx(key, value)
+                res = client.setnx(nkey, nvalue)
                 if res and timeout is not None and timeout != 0:
-                    return client.expire(key, int(timeout))
+                    return client.expire(nkey, int(timeout))
                 return res
             else:
                 if timeout is not None:
                     if timeout > 0:
-                        return client.setex(key, int(timeout), value)
+                        return client.setex(nkey, int(timeout), nvalue)
                     elif timeout < 0:
                         # redis doesn't support negative timeouts in setex
                         # so it seems that it's better to just delete the key
                         # than to set it and than expire in a pipeline
-                        return self.delete(key, client=client)
+                        return self.delete(key, client=client, version=version)
 
-                return client.set(key, value)
+                return client.set(nkey, nvalue)
         except _main_exceptions as e:
             raise ConnectionInterrupted(connection=client, parent=e)
 
