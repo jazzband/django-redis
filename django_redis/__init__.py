@@ -1,6 +1,14 @@
 # -*- coding: utf-8 -*-
 
-from django.core.cache import get_cache
+try:
+    from django.core.cache import caches
+except ImportError:
+    # Django <1.7
+    from django.core.cache import get_cache
+else:
+    def get_cache(alias):
+        return caches[alias]
+
 
 def get_redis_connection(alias='default', write=True):
     """
