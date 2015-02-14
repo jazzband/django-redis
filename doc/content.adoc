@@ -216,7 +216,7 @@ CACHES = {
 }
 ----
 
-*zlib* is used as default commpression format. You can change it providing two callables, one for
+*zlib* is used as default compression format. You can change it providing two callables, one for
 compress and an other for uncompress.
 
 Let see an example, of how make it work with *lzma* compression format:
@@ -589,7 +589,7 @@ Herd client
 This pluggable client helps dealing with the thundering herd problem. You can read more about it
 on link:http://en.wikipedia.org/wiki/Thundering_herd_problem[Wikipedia].
 
-Like previus pluggable clients, it inherits all functionality from the default client, adding some
+Like previous pluggable clients, it inherits all functionality from the default client, adding some
 additional methods for getting/setting keys.
 
 .Example setup
