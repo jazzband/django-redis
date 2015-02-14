@@ -43,7 +43,7 @@ Version 3.7.1
 - Fix missing imports on sentinel client (by @opapy).
 - Connection closing improvements on sentinel client (by @opapy).
 
-Versiom 3.7.0
+Version 3.7.0
 -------------
 
 - Add support for django's `KEY_FUNCTION` and `REVERSE_KEY_FUNCTION` (by @teferi)
@@ -100,7 +100,7 @@ Version 3.4.0
 
 - Fix wrong behavior for "default" parameter on get method
   when DJANGO_REDIS_IGNORE_EXCEPTIONS is True
-  (also thansk to Łukasz Langa (@ambv)).
+  (also thanks to Łukasz Langa (@ambv)).
 
 - Now added support for master-slave connection to default
   client (it still experimental because is not tested in
