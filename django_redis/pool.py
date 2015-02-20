@@ -18,7 +18,7 @@ class ConnectionFactory(object):
     # as Django creates new cache client (DefaultClient) instance for every request.
     _pools = {}
 
-    oldparams_rx = re.compile("^(?:[^:]+:\d{1,4}:\d+|unix:[\w/\-\.]+:\d+)$", flags=re.I)
+    oldparams_rx = re.compile("^(?:[^:]+:\d{1,5}:\d+|unix:[\w/\-\.]+:\d+)$", flags=re.I)
 
     def __init__(self, options):
         pool_cls_path = options.get("CONNECTION_POOL_CLASS",
