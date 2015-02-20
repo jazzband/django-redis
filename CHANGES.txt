@@ -1,6 +1,12 @@
 Changelog
 =========
 
+Version 4.0.0 (in development)
+------------------------------
+
+- Remove usage of deprecated `get_cache` method.
+
+
 Version 3.8.3
 -------------
 
