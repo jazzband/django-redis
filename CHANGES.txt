@@ -1,6 +1,12 @@
 Changelog
 =========
 
+Version 3.8.3
+-------------
+
+- Minor fix on regular expression for old url notation.
+
+
 Version 3.8.2
 -------------
 
