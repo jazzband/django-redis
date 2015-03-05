@@ -2,11 +2,11 @@
 
 import random
 import time
+from collections import OrderedDict
 
 from redis.exceptions import ConnectionError
 
 from django.conf import settings
-from django.utils.datastructures import SortedDict
 
 from .default import DEFAULT_TIMEOUT, DefaultClient
 from ..exceptions import ConnectionInterrupted
@@ -93,7 +93,7 @@ class HerdClient(DefaultClient):
         if not keys:
             return {}
 
-        recovered_data = SortedDict()
+        recovered_data = OrderedDict()
 
         new_keys = [self.make_key(key, version=version) for key in keys]
         map_keys = dict(zip(new_keys, keys))
