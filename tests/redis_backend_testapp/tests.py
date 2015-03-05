@@ -512,7 +512,13 @@ class DjangoOmitExceptionsTests(TestCase):
 
 
 from django.contrib.sessions.backends.cache import SessionStore as CacheSession
-from django.contrib.sessions.tests import SessionTestsMixin
+
+try:
+    # SessionTestsMixin isn't available for import on django >= 1.8
+    from django.contrib.sessions.tests import SessionTestsMixin
+except ImportError:
+    class SessionTestsMixin(object): pass
+
 
 
 class SessionTests(SessionTestsMixin, TestCase):

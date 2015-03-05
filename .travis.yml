@@ -10,6 +10,7 @@ env:
   - DJANGO="django==1.6.3"
   - DJANGO="django==1.5.7"
   - DJANGO="django==1.4.12"
+  - DJANGO="django==1.8b1"
 
 matrix:
   exclude:

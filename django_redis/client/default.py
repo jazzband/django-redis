@@ -15,6 +15,7 @@ import random
 import socket
 import warnings
 import zlib
+from collections import OrderedDict
 
 try:
     from django.utils.encoding import smart_bytes
@@ -26,7 +27,6 @@ except ImportError:
 from django.conf import settings
 from django.core.cache.backends.base import get_key_func
 from django.core.exceptions import ImproperlyConfigured
-from django.utils.datastructures import SortedDict
 
 try:
     from django.core.cache.backends.base import DEFAULT_TIMEOUT
@@ -323,7 +323,7 @@ class DefaultClient(object):
         if not keys:
             return {}
 
-        recovered_data = SortedDict()
+        recovered_data = OrderedDict()
 
         new_keys = [self.make_key(k, version=version) for k in keys]
         map_keys = dict(zip(new_keys, keys))
