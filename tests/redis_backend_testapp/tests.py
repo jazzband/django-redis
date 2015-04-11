@@ -12,7 +12,11 @@ except ImportError:
     from mock import patch
 
 from django.conf import settings
-from django.core.cache import cache, get_cache
+from django.core.cache import cache
+try:
+    from django.core.cache import caches as get_cache
+except ImportError:
+    from django.core.cache import get_cache
 from django.test import TestCase
 
 import django_redis.cache
@@ -32,6 +36,7 @@ else:
 
 def make_key(key, prefix, version):
     return "{}#{}#{}".format(prefix, version, key)
+
 
 def reverse_key(key):
     return key.split("#", 2)[2]
@@ -77,6 +82,7 @@ class DjangoRedisConnectionStrings(TestCase):
         self.assertEqual(res2["url"], self.constring5)
         self.assertEqual(res3["url"], self.constring6)
 
+
 class DjangoRedisCacheTestCustomKeyFunction(TestCase):
     def setUp(self):
         self.old_kf = settings.CACHES['default'].get('KEY_FUNCTION')
@@ -91,14 +97,14 @@ class DjangoRedisCacheTestCustomKeyFunction(TestCase):
             pass
 
     def test_custom_key_function(self):
-        for key in ["foo-aa","foo-ab", "foo-bb","foo-bc"]:
+        for key in ["foo-aa", "foo-ab", "foo-bb", "foo-bc"]:
             self.cache.set(key, "foo")
 
         res = self.cache.delete_pattern("*foo-a*")
         self.assertTrue(bool(res))
 
         keys = self.cache.keys("foo*")
-        self.assertEqual(set(keys), set(["foo-bb","foo-bc"]))
+        self.assertEqual(set(keys), set(["foo-bb", "foo-bc"]))
         # ensure our custom function was actually called
         try:
             self.assertEqual(set(k.decode('utf-8') for k in self.cache.raw_client.keys('*')),
@@ -412,7 +418,7 @@ class DjangoRedisCacheTests(TestCase):
         self.assertTrue(bool(res))
 
         keys = self.cache.keys("foo*")
-        self.assertEqual(set(keys), set(["foo-bb","foo-bc"]))
+        self.assertEqual(set(keys), set(["foo-bb", "foo-bc"]))
 
         res = self.cache.delete_pattern("*foo-a*")
         self.assertFalse(bool(res))
@@ -428,7 +434,7 @@ class DjangoRedisCacheTests(TestCase):
         _is_herd = (_params["OPTIONS"]["CLIENT_CLASS"] ==
                     "django_redis.client.HerdClient")
         _is_shard = (_params["OPTIONS"]["CLIENT_CLASS"] ==
-                    "django_redis.client.ShardClient")
+                     "django_redis.client.ShardClient")
 
         # Not supported for shard client.
         if _is_shard:
@@ -460,7 +466,7 @@ class DjangoRedisCacheTests(TestCase):
         cache = get_cache("default")
         _params = cache._params
         _is_shard = (_params["OPTIONS"]["CLIENT_CLASS"] ==
-                    "django_redis.client.ShardClient")
+                     "django_redis.client.ShardClient")
 
         if _is_shard:
             return
@@ -496,6 +502,7 @@ class DjangoRedisCacheTests(TestCase):
 
 import django_redis.cache
 
+
 class DjangoOmitExceptionsTests(TestCase):
     def setUp(self):
         self._orig_setting = django_redis.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS
@@ -518,7 +525,6 @@ try:
     from django.contrib.sessions.tests import SessionTestsMixin
 except ImportError:
     class SessionTestsMixin(object): pass
-
 
 
 class SessionTests(SessionTestsMixin, TestCase):
