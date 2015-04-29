@@ -1,8 +1,8 @@
 Changelog
 =========
 
-Version 4.0.0 (in development)
-------------------------------
+Version 4.0.0
+-------------
 
 - Remove usage of deprecated `get_cache` method.
 - Added connection option SOCKET_CONNECT_TIMEOUT. [Jorge C. Leitão].
@@ -11,6 +11,8 @@ Version 4.0.0 (in development)
 - Fix django 1.8 compatibilities.
 - Fix django 1.9 compatibilities.
 - BREAKING CHANGE: Now timeout=0 works as django specified (expires inmediatelly)
+- Now requires redis server >= 2.8
+
 
 Version 3.8.4
 -------------
