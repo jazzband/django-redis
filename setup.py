@@ -11,8 +11,6 @@ setup(
     author_email = "niwi@niwi.be",
     version="4.0.0",
     packages = [
-        "redis_cache",
-        "redis_cache.client",
         "django_redis",
         "django_redis.client",
     ],
