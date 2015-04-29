@@ -11,6 +11,11 @@ Version 4.0.0 (in development)
 - Fix django 1.8 compatibilities.
 - Fix django 1.9 compatibilities.
 
+Version 3.8.4
+-------------
+
+- Backport django 1.8 fixes from master.
+
 
 Version 3.8.3
 -------------

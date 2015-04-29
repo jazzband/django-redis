@@ -38,7 +38,7 @@ Supported django-redis versions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 - Development version: *4.0.0*
-- Supported stable version: *3.8.3*
+- Supported stable version: *3.8.4*
 
 
 How version number is handled
