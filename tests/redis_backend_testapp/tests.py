@@ -13,10 +13,14 @@ except ImportError:
 
 from django.conf import settings
 from django.core.cache import cache
+
 try:
-    from django.core.cache import caches as get_cache
+    from django.core.cache import caches
+    def get_cache(name):
+        return caches[name]
 except ImportError:
     from django.core.cache import get_cache
+
 from django.test import TestCase
 
 import django_redis.cache

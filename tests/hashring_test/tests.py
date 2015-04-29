@@ -2,7 +2,7 @@
 
 from django.test import TestCase
 
-from redis_cache.hash_ring import HashRing
+from django_redis.hash_ring import HashRing
 
 
 class Node(object):
