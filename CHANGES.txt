@@ -10,6 +10,7 @@ Version 4.0.0 (in development)
   updates (thanks to @23doors) (re revert changes from 3.8.x branch).
 - Fix django 1.8 compatibilities.
 - Fix django 1.9 compatibilities.
+- BREAKING CHANGE: Now timeout=0 works as django specified (expires inmediatelly)
 
 Version 3.8.4
 -------------

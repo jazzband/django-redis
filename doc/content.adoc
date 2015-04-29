@@ -270,15 +270,14 @@ DJANGO_REDIS_IGNORE_EXCEPTIONS = True
 Infinite timeout
 ~~~~~~~~~~~~~~~~
 
-*django-redis* comes with infinite timeouts support, since before Django added it in version 1.6.
+*django-redis* comes with infinite timeouts support out of the box. And it behaves in same way
+as django backend contract specifies:
 
-If used with Django before version 1.6, *django-redis* interprets a `0` timeout value as infinite.
-In Django >= 1.6 it also supports `None` as timeout value
+- `timeout=0` expires the value inmediatelly.
+- `timeout=None` infinite timeout
 
-.These statements are then equivalent:
 [source, python]
 ----
-cache.set("key", "value", timeout=0)
 cache.set("key", "value", timeout=None)
 ----
 

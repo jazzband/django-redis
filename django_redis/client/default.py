@@ -144,9 +144,7 @@ class DefaultClient(object):
             if timeout is not None:
                 if timeout > 0:
                     timeout = int(timeout)
-                elif timeout == 0:
-                    timeout = None
-                elif timeout < 0:
+                elif timeout <= 0:
                     if nx:
                         # Using negative timeouts when nx is True should
                         # not expire (in our case delete) the value if it exists.

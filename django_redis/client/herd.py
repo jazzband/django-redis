@@ -60,14 +60,15 @@ class HerdClient(DefaultClient):
         return unpacked, False
 
     def set(self, key, value, timeout=DEFAULT_TIMEOUT, version=None,
-            client=None, nx=False):
+            client=None, nx=False, xx=False):
 
-        if timeout == 0 or timeout is None:
-            return super(HerdClient, self).set(key, value, timeout=timeout,
-                                               version=version, client=client,
-                                               nx=nx)
         if timeout == DEFAULT_TIMEOUT:
             timeout = self._backend.default_timeout
+
+        if timeout is None or timeout <= 0:
+            return super(HerdClient, self).set(key, value, timeout=timeout,
+                                               version=version, client=client,
+                                               nx=nx, xx=xx)
 
         packed = self._pack(value, timeout)
         real_timeout = (timeout + CACHE_HERD_TIMEOUT)

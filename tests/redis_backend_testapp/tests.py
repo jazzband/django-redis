@@ -227,7 +227,7 @@ class DjangoRedisCacheTests(TestCase):
     def test_timeout_0(self):
         self.cache.set("test_key", 222, timeout=0)
         res = self.cache.get("test_key", None)
-        self.assertEqual(res, 222)
+        self.assertEqual(res, None)
 
     def test_timeout_parameter_as_positional_argument(self):
         self.cache.set("test_key", 222, -1)
