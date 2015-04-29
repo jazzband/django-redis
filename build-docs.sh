@@ -1,5 +1,5 @@
 #!/bin/sh
-VERSION="devel"
+VERSION="latest"
 (cd doc; make)
 
 rm -rf /tmp/index.html
