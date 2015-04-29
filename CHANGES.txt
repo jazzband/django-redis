@@ -5,6 +5,11 @@ Version 4.0.0 (in development)
 ------------------------------
 
 - Remove usage of deprecated `get_cache` method.
+- Added connection option SOCKET_CONNECT_TIMEOUT. [Jorge C. Leitão].
+- Replace setex and friends with set, because it now supports all need for atomic.
+  updates (thanks to @23doors) (re revert changes from 3.8.x branch).
+- Fix django 1.8 compatibilities.
+- Fix django 1.9 compatibilities.
 
 
 Version 3.8.3
