@@ -1,6 +1,12 @@
 Changelog
 =========
 
+Version 3.8.4
+-------------
+
+- Backport django 1.8 fixes from master.
+
+
 Version 3.8.3
 -------------
 
