@@ -3,11 +3,11 @@
 from __future__ import absolute_import, unicode_literals
 
 import re
+from collections import OrderedDict
 
 from redis.exceptions import ConnectionError
 
 from django.conf import settings
-from django.utils.datastructures import SortedDict
 
 try:
     from django.utils.encoding import smart_text
@@ -73,7 +73,7 @@ class ShardClient(DefaultClient):
         if not keys:
             return {}
 
-        recovered_data = SortedDict()
+        recovered_data = OrderedDict()
 
         new_keys = [self.make_key(key, version=version) for key in keys]
         map_keys = dict(zip(new_keys, keys))

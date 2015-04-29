@@ -12,6 +12,8 @@
 # database backends as possible.  You may want to create a separate settings
 # file for each of the backends you test against.
 
+import django
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3'
@@ -55,7 +57,10 @@ CACHES = {
     },
 }
 
-TEST_RUNNER = 'django.test.simple.DjangoTestSuiteRunner'
+if django.VERSION[1] >= 8:
+    TEST_RUNNER = 'django.test.runner.DiscoverRunner'
+else:
+    TEST_RUNNER = 'django.test.simple.DjangoTestSuiteRunner'
 
 INSTALLED_APPS = (
     'redis_backend_testapp',

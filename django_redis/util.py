@@ -2,6 +2,7 @@
 
 from __future__ import absolute_import, unicode_literals
 import sys
+from importlib import import_module
 
 try:
     from django.utils.encoding import smart_text
@@ -22,7 +23,6 @@ from redis.connection import UnixDomainSocketConnection, Connection
 from redis.connection import DefaultParser
 
 from collections import defaultdict
-from django.utils.importlib import import_module
 
 if sys.version_info[0] < 3:
     integer_types = (int, long,)
