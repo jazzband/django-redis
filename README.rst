@@ -17,8 +17,7 @@ Full featured redis cache backend for Django.
 Documentation
 -------------
 
-http://niwibe.github.io/django-redis/
-
+http://niwibe.github.io/django-redis/latest/
 
 How to install
 --------------
