@@ -2,15 +2,6 @@
 
 from __future__ import absolute_import, unicode_literals
 
-# Import the fastest implementation of
-# pickle package. This should be removed
-# when python3 come the unique supported
-# python version
-try:
-    import cPickle as pickle
-except ImportError:
-    import pickle
-
 import random
 import socket
 import warnings
@@ -18,10 +9,8 @@ import zlib
 from collections import OrderedDict
 
 try:
-    from django.utils.encoding import smart_bytes
     from django.utils.encoding import smart_text
 except ImportError:
-    from django.utils.encoding import smart_str as smart_bytes
     from django.utils.encoding import smart_unicode as smart_text
 
 from django.conf import settings
@@ -44,14 +33,13 @@ try:
 except ImportError:
     _main_exceptions = (ConnectionError, socket.timeout)
 
-from ..util import CacheKey, integer_types
+from ..util import CacheKey, load_class, integer_types
 from ..exceptions import ConnectionInterrupted
 from .. import pool
 
 
 class DefaultClient(object):
     def __init__(self, server, params, backend):
-        self._pickle_version = -1
         self._backend = backend
         self._server = server
         self._params = params
@@ -71,7 +59,10 @@ class DefaultClient(object):
         self._options.setdefault("COMPRESS_DECOMPRESSOR", zlib.decompress)
         self._options.setdefault("COMPRESS_DECOMPRESSOR_ERROR", zlib.error)
 
-        self.setup_pickle_version()
+        serializer_path = self._options.get("SERIALIZER", "django_redis.client.serializers.PickleSerializer")
+        serializer_cls = load_class(serializer_path)
+        self._serializer = serializer_cls(options=self._options)
+
         self.connection_factory = pool.get_connection_factory(options=self._options)
 
     def __contains__(self, key):
@@ -114,13 +105,6 @@ class DefaultClient(object):
         """
         return self.connection_factory.connect(self._server[index])
 
-    def setup_pickle_version(self):
-        if "PICKLE_VERSION" in self._options:
-            try:
-                self._pickle_version = int(self._options["PICKLE_VERSION"])
-            except (ValueError, TypeError):
-                raise ImproperlyConfigured("PICKLE_VERSION value must be an integer")
-
     def set(self, key, value, timeout=DEFAULT_TIMEOUT, version=None, client=None, nx=False, xx=False):
         """
         Persist a value to the cache, and set an optional expiration time.
@@ -131,7 +115,7 @@ class DefaultClient(object):
             client = self.get_client(write=True)
 
         nkey = self.make_key(key, version=version)
-        nvalue = self.pickle(value)
+        nvalue = self.encode(value)
 
         if timeout is True:
             warnings.warn("Using True as timeout value, is now deprecated.", DeprecationWarning)
@@ -204,7 +188,7 @@ class DefaultClient(object):
         """
         Retrieve a value from the cache.
 
-        Returns unpickled value if key is found, the default if not.
+        Returns decoded value if key is found, the default if not.
         """
         if client is None:
             client = self.get_client(write=False)
@@ -219,7 +203,7 @@ class DefaultClient(object):
         if value is None:
             return default
 
-        return self.unpickle(value)
+        return self.decode(value)
 
     def delete(self, key, version=None, client=None):
         """
@@ -276,9 +260,9 @@ class DefaultClient(object):
 
         client.flushdb()
 
-    def unpickle(self, value):
+    def decode(self, value):
         """
-        Unpickles the given value.
+        Decode the given value.
         """
         try:
             value = int(value)
@@ -289,24 +273,24 @@ class DefaultClient(object):
                 except self._options["COMPRESS_DECOMPRESSOR_ERROR"]:
                     # Handle little values, chosen to be not compressed
                     pass
-            value = pickle.loads(smart_bytes(value))
+            value = self._serializer.loads(value)
         return value
 
-    def pickle(self, value):
+    def encode(self, value):
         """
-        Pickle the given value.
+        Encode the given value.
         """
 
         if isinstance(value, bool) or not isinstance(value, integer_types):
-            pickled_value = pickle.dumps(value, self._pickle_version)
+            encoded_value = self._serializer.dumps(value)
             if self._options.get("COMPRESS_MIN_LEN", 0) > 0:
-                if len(pickled_value) >= self._options["COMPRESS_MIN_LEN"]:
+                if len(encoded_value) >= self._options["COMPRESS_MIN_LEN"]:
                     # We should try to compress if COMPRESS_MIN_LEN > 0
                     # and this string is longer than our min threshold.
-                    compressed = self._options["COMPRESS_COMPRESSOR"](pickled_value)
-                    if len(compressed) < len(pickled_value):
-                        pickled_value = compressed
-            return pickled_value
+                    compressed = self._options["COMPRESS_COMPRESSOR"](encoded_value)
+                    if len(compressed) < len(encoded_value):
+                        encoded_value = compressed
+            return encoded_value
 
         return value
 
@@ -334,7 +318,7 @@ class DefaultClient(object):
         for key, value in zip(new_keys, results):
             if value is None:
                 continue
-            recovered_data[map_keys[key]] = self.unpickle(value)
+            recovered_data[map_keys[key]] = self.decode(value)
         return recovered_data
 
     def set_many(self, data, timeout=DEFAULT_TIMEOUT, version=None, client=None):
@@ -371,7 +355,7 @@ class DefaultClient(object):
             except ResponseError:
                 # if cached value or total value is greater than 64 bit signed
                 # integer.
-                # elif int is pickled. so redis sees the data as string.
+                # elif int is encoded. so redis sees the data as string.
                 # In this situations redis will throw ResponseError
 
                 # try to keep TTL of key

@@ -108,7 +108,7 @@ class HerdClient(DefaultClient):
             if value is None:
                 continue
 
-            val, refresh = self._unpack(self.unpickle(value))
+            val, refresh = self._unpack(self.decode(value))
             recovered_data[map_keys[key]] = None if refresh else val
 
         return recovered_data

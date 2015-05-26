@@ -608,6 +608,32 @@ This client exposes additional settings:
 
 - `CACHE_HERD_TIMEOUT`: Set default herd timeout. (Default value: 60s)
 
+Pluggable serializer
+~~~~~~~~~~~~~~~~~~~~
+
+The pluggable clients serialize data before sending it to the
+server. By default, _django_redis_ serialize the data using Python
+`pickle`. This is very flexible and can handle a large range of object
+types.
+
+To serialize using JSON instead, the serializer `JSONSerializer` is
+also available.
+
+.Example setup
+[source, python]
+----
+ CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "SERIALIZER": "django_redis.client.serializers.JSONSerializer",
+        }
+    }
+}
+----
+
 
 [[license]]
 License

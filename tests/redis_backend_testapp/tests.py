@@ -27,6 +27,8 @@ import django_redis.cache
 from django_redis import pool
 from django_redis.client import herd
 
+from django_redis.client.serializers import JSONSerializer
+
 herd.CACHE_HERD_TIMEOUT = 2
 
 if sys.version_info[0] < 3:
@@ -197,6 +199,9 @@ class DjangoRedisCacheTests(TestCase):
         self.assertEqual(res, "heló")
 
     def test_save_dict(self):
+        if isinstance(self.cache._client._serializer, JSONSerializer):
+            self.skipTest("Datetimes are not JSON serializable")
+
         now_dt = datetime.datetime.now()
         test_dict = {"id":1, "date": now_dt, "name": "Foo"}
 
