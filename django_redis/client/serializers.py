@@ -56,4 +56,8 @@ class JSONSerializer(BaseSerializer):
         return json.dumps(value)
 
     def loads(self, value):
-        return json.loads(value)
+        try:
+            return json.loads(value)
+        except TypeError:
+            # pickle.loads() accepts bytes, but json.loads() accepts string
+            return json.loads(value.decode())
