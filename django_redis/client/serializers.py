@@ -56,4 +56,4 @@ class JSONSerializer(BaseSerializer):
         return json.dumps(value)
 
     def loads(self, value):
-        return json.loads(value)
+        return json.loads(value.decode())
