@@ -13,6 +13,9 @@ except ImportError:
 
 import json
 
+#Use msgpack from http://msgpack.org/
+import msgpack
+
 try:
     from django.utils.encoding import smart_bytes
 except ImportError:
@@ -57,3 +60,11 @@ class JSONSerializer(BaseSerializer):
 
     def loads(self, value):
         return json.loads(value)
+
+
+class MSGPackSerializer(BaseSerializer):
+    def dumps(self, value):
+        return msgpack.dumps(value)
+
+    def loads(self, value):
+        return msgpack.loads(value, encoding='utf-8)
