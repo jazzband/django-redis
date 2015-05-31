@@ -12,7 +12,7 @@ except ImportError:
     import pickle
 
 import json
-
+import msgpack
 
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.encoding import force_text
@@ -59,3 +59,11 @@ class JSONSerializer(BaseSerializer):
 
     def loads(self, value):
         return json.loads(force_text(value))
+
+
+class MSGPackSerializer(BaseSerializer):
+    def dumps(self, value):
+        return msgpack.dumps(value)
+
+    def loads(self, value):
+        return msgpack.loads(value, encoding='utf-8')
