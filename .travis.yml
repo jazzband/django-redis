@@ -23,6 +23,7 @@ install:
   - pip install $DJANGO --use-mirrors
   - pip install redis==2.10.3 --use-mirrors
   - pip install mock==1.0.1
+  - pip install msgpack-python>=0.4.6
 
 script:
   - (cd tests && python runtests.py -v2)
