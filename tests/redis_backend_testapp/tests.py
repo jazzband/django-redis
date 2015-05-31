@@ -27,7 +27,7 @@ import django_redis.cache
 from django_redis import pool
 from django_redis.client import herd
 
-from django_redis.client.serializers import JSONSerializer
+from django_redis.client.serializers import JSONSerializer, MSGPackSerializer
 
 herd.CACHE_HERD_TIMEOUT = 2
 
@@ -182,6 +182,7 @@ class DjangoRedisCacheTests(TestCase):
         self.cache.set("test_key", "hello")
         res = self.cache.get("test_key")
 
+        type(res)
         self.assertIsInstance(res, text_type)
         self.assertEqual(res, "hello")
 
@@ -202,7 +203,13 @@ class DjangoRedisCacheTests(TestCase):
         if isinstance(self.cache._client._serializer, JSONSerializer):
             self.skipTest("Datetimes are not JSON serializable")
 
-        now_dt = datetime.datetime.now()
+        if isinstance(self.cache._client._serializer, MSGPackSerializer):
+            #MSGPackSerializer serializers use the isoformat for datetimes
+            #https://github.com/msgpack/msgpack-python/issues/12
+            now_dt = datetime.datetime.now().isoformat()
+        else:
+            now_dt = datetime.datetime.now()
+
         test_dict = {"id":1, "date": now_dt, "name": "Foo"}
 
         self.cache.set("test_key", test_dict)
