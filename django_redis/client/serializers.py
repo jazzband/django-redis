@@ -13,12 +13,14 @@ except ImportError:
 
 import json
 
-try:
-    from django.utils.encoding import smart_bytes
-except ImportError:
-    from django.utils.encoding import smart_str as smart_bytes
 
 from django.core.exceptions import ImproperlyConfigured
+from django.utils.encoding import force_text
+
+try:
+    from django.utils.encoding import force_bytes
+except ImportError:
+    from django.utils.encoding import smart_bytes as force_bytes
 
 
 class BaseSerializer(object):
@@ -48,12 +50,12 @@ class PickleSerializer(BaseSerializer):
         return pickle.dumps(value, self._pickle_version)
 
     def loads(self, value):
-        return pickle.loads(smart_bytes(value))
+        return pickle.loads(force_bytes(value))
 
 
 class JSONSerializer(BaseSerializer):
     def dumps(self, value):
-        return json.dumps(value)
+        return force_bytes(json.dumps(value))
 
     def loads(self, value):
-        return json.loads(value.decode())
+        return json.loads(force_text(value))
