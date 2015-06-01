@@ -608,6 +608,7 @@ This client exposes additional settings:
 
 - `CACHE_HERD_TIMEOUT`: Set default herd timeout. (Default value: 60s)
 
+
 Pluggable serializer
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -628,14 +629,15 @@ also available.
         "LOCATION": "redis://127.0.0.1:6379/1",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            "SERIALIZER": "django_redis.client.serializers.JSONSerializer",
+            "SERIALIZER": "django_redis.serializers.json.JSONSerializer",
         }
     }
 }
 ----
 
+
 There's also support for serialization using 'MsgPack' 'http://msgpack.org/'
-It requires the msgpack-python library
+(that requires the msgpack-python library):
 
 .Example setup
 [source, python]
@@ -646,12 +648,13 @@ It requires the msgpack-python library
         "LOCATION": "redis://127.0.0.1:6379/1",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            "SERIALIZER": "django_redis.client.serializers.MSGPackSerializer",
+            "SERIALIZER": "django_redis.serializers.msgpack.MSGPackSerializer",
         }
     }
 }
-
 ----
+
+
 [[license]]
 License
 -------
