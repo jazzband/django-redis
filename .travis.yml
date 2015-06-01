@@ -10,7 +10,7 @@ env:
   - DJANGO="django==1.6.3"
   - DJANGO="django==1.5.7"
   - DJANGO="django==1.4.12"
-  - DJANGO="django==1.8b1"
+  - DJANGO="django==1.8.1"
 
 matrix:
   exclude:
@@ -29,6 +29,8 @@ script:
   - (cd tests && python runtests.py -v2)
   - (cd tests && python runtests-sharded.py -v2)
   - (cd tests && python runtests-herd.py -v2)
+  - (cd tests && python runtests-json.py -v2)
+  - (cd tests && python runtests-msgpack.py -v2)
 
 services:
   - redis-server
