@@ -661,7 +661,7 @@ License
 
 [source,text]
 ----
-Copyright (c) 2011-2015 Andrey Antukh <niwi@niwi.be>
+Copyright (c) 2011-2015 Andrey Antukh <niwi@niwi.nz>
 Copyright (c) 2011 Sean Bleier
 
 All rights reserved.
