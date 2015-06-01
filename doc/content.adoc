@@ -21,7 +21,9 @@ Because:
 
 - In active development.
 - Uses native redis-py url notation connection strings.
-- Modular client system (pluggable clients).
+- Pluggable clients.
+- Pluggable parsers.
+- Pluggable serializers.
 - Master-Slave support in the default client.
 - Complete battery of tests.
 - Used in production in several projects as cache and session storage.
@@ -29,7 +31,6 @@ Because:
 - Facilities for raw access to Redis client/connection pool.
 - Highly configurable (can emulate memcached exception behavior, for example).
 - Unix sockets supported by default.
-- Pluggable parsers.
 - With support for python 2.7, 3.3 and 3.4
 
 
