@@ -21,7 +21,7 @@ CACHES = {
         ],
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            "SERIALIZER": "django_redis.client.serializers.MSGPackSerializer",
+            "SERIALIZER": "django_redis.serializers.msgpack.MSGPackSerializer",
         }
     },
     "doesnotexist": {
@@ -29,7 +29,7 @@ CACHES = {
         "LOCATION": "127.0.0.1:56379:1",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            "SERIALIZER": "django_redis.client.serializers.MSGPackSerializer",
+            "SERIALIZER": "django_redis.serializers.msgpack.MSGPackSerializer",
         }
     },
     "sample": {
@@ -37,12 +37,13 @@ CACHES = {
         "LOCATION": "127.0.0.1:6379:1,127.0.0.1:6379:1",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            "SERIALIZER": "django_redis.client.serializers.MSGPackSerializer",
+            "SERIALIZER": "django_redis.serializers.msgpack.MSGPackSerializer",
         }
     },
 }
 
 INSTALLED_APPS = (
+    "django.contrib.sessions",
     "redis_backend_testapp",
     "hashring_test",
 )

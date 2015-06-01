@@ -27,7 +27,9 @@ import django_redis.cache
 from django_redis import pool
 from django_redis.client import herd
 
-from django_redis.client.serializers import JSONSerializer, MSGPackSerializer
+from django_redis.serializers.json import JSONSerializer
+from django_redis.serializers.msgpack import MSGPackSerializer
+
 
 herd.CACHE_HERD_TIMEOUT = 2
 

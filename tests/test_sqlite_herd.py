@@ -55,6 +55,7 @@ CACHES = {
 # TEST_RUNNER = 'django.test.simple.DjangoTestSuiteRunner'
 
 INSTALLED_APPS = (
+    "django.contrib.sessions",
     'redis_backend_testapp',
     'hashring_test',
 )
