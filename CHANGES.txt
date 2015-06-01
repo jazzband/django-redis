@@ -1,6 +1,16 @@
 Changelog
 =========
 
+Version 4.1.0
+-------------
+
+Date: unreleased
+
+- Add plugable serializers architecture (thanks to @jdufresne)
+- Add json serializer (thanks to @jdufresne)
+- Add msgpack serializer (thanks to @uditagarwal)
+
+
 Version 4.0.0
 -------------
 
