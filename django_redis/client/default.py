@@ -59,10 +59,9 @@ class DefaultClient(object):
         self._options.setdefault("COMPRESS_DECOMPRESSOR", zlib.decompress)
         self._options.setdefault("COMPRESS_DECOMPRESSOR_ERROR", zlib.error)
 
-        serializer_path = self._options.get("SERIALIZER", "django_redis.client.serializers.PickleSerializer")
+        serializer_path = self._options.get("SERIALIZER", "django_redis.serializers.pickle.PickleSerializer")
         serializer_cls = load_class(serializer_path)
         self._serializer = serializer_cls(options=self._options)
-
         self.connection_factory = pool.get_connection_factory(options=self._options)
 
     def __contains__(self, key):
