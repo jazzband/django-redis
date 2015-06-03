@@ -13,6 +13,7 @@ setup(
     packages = [
         "django_redis",
         "django_redis.client",
+        "django_redis.serializers"
     ],
     description = description.strip(),
     install_requires=[
