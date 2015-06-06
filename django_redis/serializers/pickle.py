@@ -32,7 +32,7 @@ class PickleSerializer(BaseSerializer):
     def setup_pickle_version(self, options):
         if "PICKLE_VERSION" in options:
             try:
-                self._pickle_version = int(self._options["PICKLE_VERSION"])
+                self._pickle_version = int(options["PICKLE_VERSION"])
             except (ValueError, TypeError):
                 raise ImproperlyConfigured("PICKLE_VERSION value must be an integer")
 
