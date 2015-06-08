@@ -226,10 +226,11 @@ class DefaultClient(object):
 
         pattern = self.make_key(pattern, version=version)
         try:
-            keys = client.keys(pattern)
-
-            if keys:
-                return client.delete(*keys)
+            count = 0
+            for key in client.scan_iter(pattern):
+                client.delete(key)
+                count += 1
+            return count
         except _main_exceptions as e:
             raise ConnectionInterrupted(connection=client, parent=e)
 
