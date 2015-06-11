@@ -22,6 +22,7 @@ Version 4.0.0
 - Fix django 1.9 compatibilities.
 - BREAKING CHANGE: Now timeout=0 works as django specified (expires immediately)
 - Now requires redis server >= 2.8
+- BREAKING CHANGE: `redis_cache` is no longer a valid package name
 
 
 Version 3.8.4
