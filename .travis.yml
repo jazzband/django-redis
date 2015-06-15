@@ -26,11 +26,11 @@ install:
   - pip install msgpack-python>=0.4.6
 
 script:
-  - (cd tests && python runtests.py -v2)
-  - (cd tests && python runtests-sharded.py -v2)
-  - (cd tests && python runtests-herd.py -v2)
-  - (cd tests && python runtests-json.py -v2)
-  - (cd tests && python runtests-msgpack.py -v2)
+  - (cd tests && python runtests.py)
+  - (cd tests && python runtests-sharded.py)
+  - (cd tests && python runtests-herd.py)
+  - (cd tests && python runtests-json.py)
+  - (cd tests && python runtests-msgpack.py)
 
 services:
   - redis-server
