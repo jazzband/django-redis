@@ -1,7 +1,7 @@
 django-redis documentation
 ==========================
 Andrey Antukh, <niwi@niwi.be>
-4.0.0
+4.1.0
 :toc: left
 :numbered:
 :source-highlighter: pygments
@@ -38,7 +38,7 @@ Because:
 Supported django-redis versions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- Development version: *4.0.0*
+- Supported stable version: *4.1.0*
 - Supported stable version: *3.8.4*
 
 
@@ -60,14 +60,14 @@ Django version support
 ^^^^^^^^^^^^^^^^^^^^^^
 
 - *django-redis 3.8.x* will maintain support for django 1.4, 1.5, 1.6, 1.7 (and maybe 1.8)
-- *django-redis 4.0.0* will maintain support for django 1.6, 1.7 and 1.8
+- *django-redis 4.1.0* will maintain support for django 1.6, 1.7 and 1.8
 
 
 Redis Server Support
 ^^^^^^^^^^^^^^^^^^^^
 
-- *django-redis 3.8.x* will maintain support for redis-server 2.6.x and upper.
-- *django-redis 4.0.0* will maintain support for redis-server 2.8.x and upper.
+- *django-redis 3.x.y* will maintain support for redis-server 2.6.x and upper.
+- *django-redis 4.x.y* will maintain support for redis-server 2.8.x and upper.
 
 
 Other requirements
@@ -132,7 +132,6 @@ There are several ways to specify a database number:
 NOTE: if you are coming fron django-redis < 3.8.x, you are probably using redis_cache. Since
 django-redis 3.8.x, `redis_cache` module is deprecated in favor to `django_redis`. The
 `redis_cache` module will be removed in 3.9.x versions.
-
 
 
 
