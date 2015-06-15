@@ -4,11 +4,12 @@ Changelog
 Version 4.1.0
 -------------
 
-Date: unreleased
+Date: 2015-06-15
 
 - Add plugable serializers architecture (thanks to @jdufresne)
 - Add json serializer (thanks to @jdufresne)
 - Add msgpack serializer (thanks to @uditagarwal)
+- Implement delete_pattern using iter_scan for better performance (thanks to @lenzenmi)
 
 
 Version 4.0.0
