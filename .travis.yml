@@ -6,18 +6,18 @@ python:
   - "2.7"
 
 env:
-  - DJANGO="django==1.7.1"
-  - DJANGO="django==1.6.3"
-  - DJANGO="django==1.5.7"
-  - DJANGO="django==1.4.12"
-  - DJANGO="django==1.8.1"
+  - DJANGO="django==1.8.2"
+  - DJANGO="django==1.7.8"
+  - DJANGO="django==1.6.11"
+  - DJANGO="django==1.5.12"
+  - DJANGO="django==1.4.20"
 
 matrix:
   exclude:
     - python: "3.3"
-      env: DJANGO="django==1.4.12"
+      env: DJANGO="django==1.4.20"
     - python: "3.4"
-      env: DJANGO="django==1.4.12"
+      env: DJANGO="django==1.4.20"
 
 install:
   - pip install $DJANGO --use-mirrors
