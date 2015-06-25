@@ -1,16 +1,33 @@
-from django.core.cache.backends.dummy import DummyCache
+import re
+import fnmatch
+
+from django.core.cache.backends.locmem import LocMemCache
 
 
-class RedisDummyCache(DummyCache):
+class RedisDummyCache(LocMemCache):
+    """
+    Useful for testing, use it like:
+
+    CACHES = {
+        'default': {
+            'BACKEND': 'django_redis.cache.RedisCache',
+            'OPTIONS': {
+                'CLIENT_CLASS': 'django_redis.client.RedisDummyCache',
+            }
+        }
+    }
+    """
     def __init__(self, *args, **kwargs):
-        DummyCache.__init__(self, *args, **kwargs)
+        super(RedisDummyCache, self).__init__(name='', params={})
 
-    @property
-    def client(self, *args, **kwargs):
-        return self
+    def get(self, key, default, version, client):
+        return super(RedisDummyCache, self).get(
+            key=key, default=default, version=version
+        )
 
-    def get_client(self, key):
-        return self
-
-    def keys(self, *args, **kwargs):
-        return []
+    def delete_pattern(self, pattern):
+        regex = re.compile(fnmatch.translate(':*:' + pattern))
+        for key in self._cache.keys():
+            if regex.match(key):
+                with self._lock.writer():
+                    self._delete(key)
