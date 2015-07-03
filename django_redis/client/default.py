@@ -222,6 +222,15 @@ class DefaultClient(object):
         if client.exists(key):
             client.expire(key, timeout)
 
+    def lock(self, key, version=None, timeout=None, sleep=0.1,
+             blocking_timeout=None, client=None):
+        if client is None:
+            client = self.get_client(write=True)
+
+        key = self.make_key(key, version=version)
+        return client.lock(key, timeout=timeout, sleep=sleep,
+                           blocking_timeout=blocking_timeout)
+
     def delete(self, key, version=None, client=None):
         """
         Remove a key from the cache.

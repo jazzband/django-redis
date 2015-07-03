@@ -8,6 +8,7 @@ Date: unreleased
 
 - Add `persist` and `expire` methods.
 - Remove old and broken dummy client.
+- Expose a redis lock method.
 
 
 Version 4.1.0

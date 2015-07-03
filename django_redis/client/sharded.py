@@ -140,6 +140,17 @@ class ShardClient(DefaultClient):
 
         return super(ShardClient, self).persist(key=key, version=version, client=client)
 
+    def lock(self, key, version=None, timeout=None, sleep=0.1,
+             blocking_timeout=None, client=None):
+
+        if client is None:
+            key = self.make_key(key, version=version)
+            client = self.get_server(key)
+
+        key = self.make_key(key, version=version)
+        return super(ShardClient, self).lock(key, timeout=timeout, sleep=sleep,
+                                             blocking_timeout=blocking_timeout)
+
     def expire(self, key, timeout, version=None, client=None):
         if client is None:
             key = self.make_key(key, version=version)

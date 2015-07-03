@@ -493,6 +493,14 @@ class DjangoRedisCacheTests(TestCase):
         ttl = self.cache.ttl("foo")
         self.assertAlmostEqual(ttl, 20)
 
+    def test_lock(self):
+        lock = self.cache.lock("foobar")
+        lock.acquire(blocking=True)
+
+        self.assertTrue(self.cache.has_key("foobar"))
+        lock.release()
+        self.assertFalse(self.cache.has_key("foobar"))
+
     def test_iter_keys(self):
         cache = get_cache("default")
         _params = cache._params
