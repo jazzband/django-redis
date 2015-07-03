@@ -1,7 +1,7 @@
 django-redis documentation
 ==========================
 Andrey Antukh, <niwi@niwi.be>
-4.1.0
+4.2.0
 :toc: left
 :numbered:
 :source-highlighter: pygments
@@ -38,7 +38,7 @@ Because:
 Supported django-redis versions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- Supported stable version: *4.1.0*
+- Supported stable version: *4.2.0*
 - Supported stable version: *3.8.4*
 
 
@@ -60,7 +60,7 @@ Django version support
 ^^^^^^^^^^^^^^^^^^^^^^
 
 - *django-redis 3.8.x* will maintain support for django 1.4, 1.5, 1.6, 1.7 (and maybe 1.8)
-- *django-redis 4.1.0* will maintain support for django 1.6, 1.7 and 1.8
+- *django-redis 4.2.0* will maintain support for django 1.6, 1.7 and 1.8
 
 
 Redis Server Support
@@ -302,6 +302,47 @@ It returns:
 25
 >>> cache.ttl("not-existent")
 0
+----
+
+
+Expire & Persist
+~~~~~~~~~~~~~~~~
+
+Additionally to the simple ttl query, you can send persist a concrete key or specify
+a new expiration timeout using the `persist` and `expire` methods:
+
+.Example using `persist` method
+[source, pycon]
+-----
+>>> cache.set("foo", "bar", timeout=22)
+>>> cache.ttl("foo")
+22
+>>> cache.persist("foo")
+>>> cache.ttl("foo")
+None
+-----
+
+.Example using expire method
+[source,pycon]
+----
+>>> cache.set("foo", "bar", timeout=22)
+>>> cache.expire("foo", timeout=5)
+>>> cache.ttl("foo")
+5
+----
+
+
+Locks
+~~~~~
+
+It also supports the redis ability to create redis distributed named locks. The Lock
+interface is identical to the `threading.Lock` so you can use it as replacement.
+
+.Example allocating a lock using python context managers facilities.
+[source, python]
+----
+with cache.lock("somekey"):
+    do_some_thing()
 ----
 
 
