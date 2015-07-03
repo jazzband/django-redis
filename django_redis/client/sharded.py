@@ -133,12 +133,32 @@ class ShardClient(DefaultClient):
 
         return super(ShardClient, self).delete(key=key, version=version, client=client)
 
+    def ttl(self, key, version=None, client=None):
+        """
+        Executes TTL redis command and return the "time-to-live" of specified key.
+        If key is a non volatile key, it returns None.
+        """
+
+        if client is None:
+            key = self.make_key(key, version=version)
+            client = self.get_server(key)
+
+        return super(ShardClient, self).ttl(key=key, version=version, client=client)
+
     def persist(self, key, version=None, client=None):
         if client is None:
             key = self.make_key(key, version=version)
             client = self.get_server(key)
 
         return super(ShardClient, self).persist(key=key, version=version, client=client)
+
+    def expire(self, key, timeout, version=None, client=None):
+        if client is None:
+            key = self.make_key(key, version=version)
+            client = self.get_server(key)
+
+        return super(ShardClient, self).expire(key=key, timeout=timeout,
+                                               version=version, client=client)
 
     def lock(self, key, version=None, timeout=None, sleep=0.1,
              blocking_timeout=None, client=None):
@@ -148,16 +168,8 @@ class ShardClient(DefaultClient):
             client = self.get_server(key)
 
         key = self.make_key(key, version=version)
-        return super(ShardClient, self).lock(key, timeout=timeout, sleep=sleep,
+        return super(ShardClient, self).lock(key, timeout=timeout, sleep=sleep, client=client,
                                              blocking_timeout=blocking_timeout)
-
-    def expire(self, key, timeout, version=None, client=None):
-        if client is None:
-            key = self.make_key(key, version=version)
-            client = self.get_server(key)
-
-        return super(ShardClient, self).expire(key=key, timeout=timeout,
-                                               version=version, client=client)
 
     def delete_many(self, keys, version=None):
         """
