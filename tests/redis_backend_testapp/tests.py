@@ -480,6 +480,19 @@ class DjangoRedisCacheTests(TestCase):
         ttl = cache.ttl("not-existent-key")
         self.assertEqual(ttl, 0)
 
+    def test_persist(self):
+        self.cache.set("foo", "bar", timeout=20)
+        self.cache.persist("foo")
+
+        ttl = self.cache.ttl("foo")
+        self.assertIsNone(ttl)
+
+    def test_expire(self):
+        self.cache.set("foo", "bar", timeout=None)
+        self.cache.expire("foo", 20)
+        ttl = self.cache.ttl("foo")
+        self.assertAlmostEqual(ttl, 20)
+
     def test_iter_keys(self):
         cache = get_cache("default")
         _params = cache._params

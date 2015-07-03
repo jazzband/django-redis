@@ -133,6 +133,21 @@ class ShardClient(DefaultClient):
 
         return super(ShardClient, self).delete(key=key, version=version, client=client)
 
+    def persist(self, key, version=None, client=None):
+        if client is None:
+            key = self.make_key(key, version=version)
+            client = self.get_server(key)
+
+        return super(ShardClient, self).persist(key=key, version=version, client=client)
+
+    def expire(self, key, timeout, version=None, client=None):
+        if client is None:
+            key = self.make_key(key, version=version)
+            client = self.get_server(key)
+
+        return super(ShardClient, self).expire(key=key, timeout=timeout,
+                                               version=version, client=client)
+
     def delete_many(self, keys, version=None):
         """
         Remove multiple keys at once.

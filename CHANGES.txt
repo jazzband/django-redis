@@ -1,6 +1,15 @@
 Changelog
 =========
 
+Version 4.2.0
+-------------
+
+Date: unreleased
+
+- Add `persist` and `expire` methods.
+- Remove old and broken dummy client.
+
+
 Version 4.1.0
 -------------
 

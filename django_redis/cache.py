@@ -125,5 +125,13 @@ class RedisCache(BaseCache):
         return self.client.ttl(*args, **kwargs)
 
     @omit_exception
+    def persist(self, *args, **kwargs):
+        return self.client.persist(*args, **kwargs)
+
+    @omit_exception
+    def expire(self, *args, **kwargs):
+        return self.client.expire(*args, **kwargs)
+
+    @omit_exception
     def close(self, **kwargs):
         self.client.close(**kwargs)

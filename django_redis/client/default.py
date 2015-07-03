@@ -204,6 +204,24 @@ class DefaultClient(object):
 
         return self.decode(value)
 
+    def persist(self, key, version=None, client=None):
+        if client is None:
+            client = self.get_client(write=True)
+
+        key = self.make_key(key, version=version)
+
+        if client.exists(key):
+            client.persist(key)
+
+    def expire(self, key, timeout, version=None, client=None):
+        if client is None:
+            client = self.get_client(write=True)
+
+        key = self.make_key(key, version=version)
+
+        if client.exists(key):
+            client.expire(key, timeout)
+
     def delete(self, key, version=None, client=None):
         """
         Remove a key from the cache.
