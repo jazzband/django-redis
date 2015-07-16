@@ -547,9 +547,15 @@ class DjangoOmitExceptionsTests(TestCase):
         self._orig_setting = django_redis.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS
         django_redis.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS = True
         self.cache = get_cache("doesnotexist")
+        self.cache._orig_ignore_exceptions = self.cache._ignore_exceptions
+        self.cache._ignore_exceptions = True
 
     def tearDown(self):
         django_redis.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS = self._orig_setting
+        self.cache._ignore_exceptions = self.cache._orig_ignore_exceptions
+
+    def test_get_many_returns_default_arg(self):
+        self.assertEqual(self.cache.get_many(["key1", "key2", "key3"]), {})
 
     def test_get(self):
         self.assertIsNone(self.cache.get("key"))
