@@ -16,13 +16,14 @@ if DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS:
     logger = logging.getLogger((DJANGO_REDIS_LOGGER or __name__))
 
 
-def omit_exception(method):
+def omit_exception(method=None, return_value=None):
     """
     Simple decorator that intercepts connection
     errors and ignores these if settings specify this.
-
-    Note: this doesn't handle the `default` argument in .get().
     """
+
+    if method is None:
+        return functools.partial(omit_exception, return_value=return_value)
 
     @functools.wraps(method)
     def _decorator(self, *args, **kwargs):
@@ -30,12 +31,10 @@ def omit_exception(method):
             return method(self, *args, **kwargs)
         except ConnectionInterrupted as e:
             if self._ignore_exceptions:
-
                 if DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS:
                     logger.error(str(e))
 
-                return None
-
+                return return_value
             raise e.parent
 
     return _decorator
@@ -79,7 +78,7 @@ class RedisCache(BaseCache):
     def get(self, key, default=None, version=None, client=None):
         try:
             return self.client.get(key, default=default, version=version,
-                               client=client)
+                                   client=client)
         except ConnectionInterrupted:
             if self._ignore_exceptions:
                 if DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS:
@@ -103,7 +102,7 @@ class RedisCache(BaseCache):
     def clear(self):
         return self.client.clear()
 
-    @omit_exception
+    @omit_exception(return_value={})
     def get_many(self, *args, **kwargs):
         return self.client.get_many(*args, **kwargs)
 
