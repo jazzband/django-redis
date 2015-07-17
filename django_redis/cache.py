@@ -32,6 +32,9 @@ def omit_exception(method):
             return method(self, *args, **kwargs)
         except ConnectionInterrupted as e:
             if self._ignore_exceptions or DJANGO_REDIS_IGNORE_EXCEPTIONS:
+
+                if self._log_ignored_exceptions:
+                    logger.error("ConnectionInterrupted: Redis Connection Failure")
                 return {}
 
             raise e.parent
@@ -51,6 +54,7 @@ class RedisCache(BaseCache):
         self._client = None
 
         self._ignore_exceptions = options.get("IGNORE_EXCEPTIONS", DJANGO_REDIS_IGNORE_EXCEPTIONS)
+        self._log_ignored_exceptions = options.get("LOG_IGNORED_EXCEPTIONS", False)
 
     @property
     def client(self):
