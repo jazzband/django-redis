@@ -1,11 +1,18 @@
 import functools
 import warnings
+import logging
 
 from django.conf import settings
 from django.core.cache.backends.base import BaseCache
 
 from .util import load_class
 from .exceptions import ConnectionInterrupted
+
+django_redis_settings = getattr(settings, "CACHES", {})
+if "OPTIONS" in django_redis_settings.get('default'):
+    log_ignored_exceptions = django_redis_settings['default']['OPTIONS'].get('LOG_IGNORED_EXCEPTIONS')
+    if log_ignored_exceptions == True:
+        logger = logging.getLogger(django_redis_settings['default']['OPTIONS'].get('LOGGER', __name__))
 
 
 DJANGO_REDIS_IGNORE_EXCEPTIONS = getattr(settings, "DJANGO_REDIS_IGNORE_EXCEPTIONS", False)
