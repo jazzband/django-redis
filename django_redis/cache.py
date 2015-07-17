@@ -16,6 +16,7 @@ if "OPTIONS" in django_redis_settings.get('default'):
 
 
 DJANGO_REDIS_IGNORE_EXCEPTIONS = getattr(settings, "DJANGO_REDIS_IGNORE_EXCEPTIONS", False)
+DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS = getattr(settings, "DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS", False)
 
 
 def omit_exception(method):
@@ -56,7 +57,7 @@ class RedisCache(BaseCache):
         self._client = None
 
         self._ignore_exceptions = options.get("IGNORE_EXCEPTIONS", DJANGO_REDIS_IGNORE_EXCEPTIONS)
-        self._log_ignored_exceptions = options.get("LOG_IGNORED_EXCEPTIONS", False)
+        self._log_ignored_exceptions = options.get("LOG_IGNORED_EXCEPTIONS", DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS)
 
     @property
     def client(self):
