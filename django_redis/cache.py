@@ -34,8 +34,8 @@ def omit_exception(method):
             if self._ignore_exceptions or DJANGO_REDIS_IGNORE_EXCEPTIONS:
 
                 if self._log_ignored_exceptions:
-                    logger.error("ConnectionInterrupted: Redis Connection Failure")
-                return {}
+                    logger.error(str(e))
+                return None
 
             raise e.parent
 
