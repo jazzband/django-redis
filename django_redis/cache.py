@@ -35,7 +35,9 @@ def omit_exception(method):
 
                 if self._log_ignored_exceptions:
                     logger.error(str(e))
-                return None
+
+                #return default or None
+                return kwargs.get('default', None)
 
             raise e.parent
 
