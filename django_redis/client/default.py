@@ -24,6 +24,7 @@ except ImportError:
 
 from redis.exceptions import ConnectionError
 from redis.exceptions import ResponseError
+from django_redis.serializers.json import JSONSerializer
 
 # Compatibility with redis-py 2.10.x+
 
@@ -114,7 +115,15 @@ class DefaultClient(object):
             client = self.get_client(write=True)
 
         nkey = self.make_key(key, version=version)
-        nvalue = self.encode(value)
+        if isinstance(self._serializer, JSONSerializer):
+            try:
+                nvalue = self._serializer.dumps(value)
+            except TypeError, te:
+                raise TypeError(te.message)
+        # Add the same for MessagePack
+        # elif ininstance(self._serializer, Mess)
+        else:
+            nvalue = self.encode(value)
 
         if timeout is True:
             warnings.warn("Using True as timeout value, is now deprecated.", DeprecationWarning)
@@ -202,7 +211,15 @@ class DefaultClient(object):
         if value is None:
             return default
 
-        return self.decode(value)
+        if isinstance(self._serializer, JSONSerializer):
+            try:
+                return self._serializer.loads(value)
+            except TypeError, te:
+                raise TypeError(te.message)
+        # Add the same for MessagePack
+        # elif ininstance(self._serializer, Mess)
+        else:
+            return self.decode(value)
 
     def persist(self, key, version=None, client=None):
         if client is None:
