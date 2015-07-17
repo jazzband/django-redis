@@ -24,8 +24,8 @@ def omit_exception(method):
         try:
             return method(self, *args, **kwargs)
         except ConnectionInterrupted as e:
-            if self._ignore_exceptions:
-                return None
+            if self._ignore_exceptions or DJANGO_REDIS_IGNORE_EXCEPTIONS:
+                return {}
 
             raise e.parent
 
@@ -68,13 +68,8 @@ class RedisCache(BaseCache):
 
     @omit_exception
     def get(self, key, default=None, version=None, client=None):
-        try:
-            return self.client.get(key, default=default, version=version,
-                                   client=client)
-        except ConnectionInterrupted:
-            if DJANGO_REDIS_IGNORE_EXCEPTIONS:
-                return default
-            raise
+        return self.client.get(key, default=default, version=version,
+                               client=client)
 
     @omit_exception
     def delete(self, *args, **kwargs):
