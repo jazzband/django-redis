@@ -1,5 +1,6 @@
 import functools
 import warnings
+import logging
 
 from django.conf import settings
 from django.core.cache.backends.base import BaseCache
@@ -7,8 +8,12 @@ from django.core.cache.backends.base import BaseCache
 from .util import load_class
 from .exceptions import ConnectionInterrupted
 
-
 DJANGO_REDIS_IGNORE_EXCEPTIONS = getattr(settings, "DJANGO_REDIS_IGNORE_EXCEPTIONS", False)
+DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS = getattr(settings, "DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS", False)
+DJANGO_REDIS_LOGGER = getattr(settings, "DJANGO_REDIS_LOGGER", False)
+
+if DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS:
+    logger = logging.getLogger((DJANGO_REDIS_LOGGER or __name__))
 
 
 def omit_exception(method):
@@ -25,7 +30,12 @@ def omit_exception(method):
             return method(self, *args, **kwargs)
         except ConnectionInterrupted as e:
             if self._ignore_exceptions:
-                return None
+
+                if DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS:
+                    logger.error(str(e))
+
+                #return default or None
+                return kwargs.get('default', None)
 
             raise e.parent
 
@@ -68,13 +78,8 @@ class RedisCache(BaseCache):
 
     @omit_exception
     def get(self, key, default=None, version=None, client=None):
-        try:
-            return self.client.get(key, default=default, version=version,
-                                   client=client)
-        except ConnectionInterrupted:
-            if DJANGO_REDIS_IGNORE_EXCEPTIONS:
-                return default
-            raise
+        return self.client.get(key, default=default, version=version,
+                               client=client)
 
     @omit_exception
     def delete(self, *args, **kwargs):
