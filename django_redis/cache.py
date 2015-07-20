@@ -29,7 +29,7 @@ def omit_exception(method):
         try:
             return method(self, *args, **kwargs)
         except ConnectionInterrupted as e:
-            if self._ignore_exceptions or DJANGO_REDIS_IGNORE_EXCEPTIONS:
+            if self._ignore_exceptions:
 
                 if DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS:
                     logger.error(str(e))
