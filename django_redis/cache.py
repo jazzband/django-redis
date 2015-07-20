@@ -12,6 +12,9 @@ DJANGO_REDIS_IGNORE_EXCEPTIONS = getattr(settings, "DJANGO_REDIS_IGNORE_EXCEPTIO
 DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS = getattr(settings, "DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS", False)
 DJANGO_REDIS_LOGGER = getattr(settings, "DJANGO_REDIS_LOGGER", False)
 
+if DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS:
+    logger = logging.getLogger((DJANGO_REDIS_LOGGER or __name__))
+
 
 def omit_exception(method):
     """
