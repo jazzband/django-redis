@@ -267,6 +267,29 @@ your settings:
 DJANGO_REDIS_IGNORE_EXCEPTIONS = True
 ----
 
+
+Log Ignored Exceptions
+~~~~~~~~~~~~~~~~~~~~~~
+
+When ignoring exceptions with `IGNORE_EXCEPTIONS` or `DJANGO_REDIS_IGNORE_EXCEPTIONS`,
+you may optionally log exceptions using the global variable `DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS`
+in your settings file.
+
+[source, python]
+----
+DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS = True
+----
+
+If you wish to specify the logger in which the exceptions are output, simply set the global
+variable `DJANGO_REDIS_LOGGER` to the string name and/or path of the desired logger. This will
+default to `__name__` if no logger is specified and `DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS` is `True`
+
+[source, python]
+----
+DJANGO_REDIS_IGNORE_EXCEPTIONS = 'some.specified.logger'
+----
+
+
 Infinite timeout
 ~~~~~~~~~~~~~~~~
 
