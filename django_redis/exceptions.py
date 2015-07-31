@@ -9,4 +9,5 @@ class ConnectionInterrumped(Exception):
 
 
 class ConnectionInterrupted(ConnectionInterrumped):
-    pass
+    def __str__(self):
+      return "ConnectionInterrupted: Connection to redis server failed"
