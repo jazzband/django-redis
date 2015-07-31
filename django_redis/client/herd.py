@@ -12,11 +12,6 @@ from django.conf import settings
 from .default import DEFAULT_TIMEOUT, DefaultClient
 from ..exceptions import ConnectionInterrupted
 
-try:
-    from django.core.cache.backends.base import DEFAULT_TIMEOUT
-except ImportError:
-    DEFAULT_TIMEOUT = object()
-
 from redis.exceptions import ConnectionError
 from redis.exceptions import ResponseError
 
