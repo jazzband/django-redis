@@ -15,6 +15,6 @@ class ConnectionInterrupted(ConnectionInterrumped):
 
       if self.parent:
         error_type = self.parent.__class__.__name__
-        error_msg = self.parent.__unicode__() 
+        error_msg = self.parent.__unicode__()
 
       return "Redis %s: %s" % (error_type, error_msg)
