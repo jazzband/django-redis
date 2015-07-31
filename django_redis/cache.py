@@ -78,8 +78,8 @@ class RedisCache(BaseCache):
         try:
             return self.client.get(key, default=default, version=version,
                                    client=client)
-        except ConnectionInterrupted:
-            if self._ignore_exceptions:
+        except ConnectionInterrupted as e:
+            if DJANGO_REDIS_IGNORE_EXCEPTIONS or self._ignore_exceptions:
                 if DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS:
                     logger.error(str(e))
                 return default

@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-
 class ConnectionInterrumped(Exception):
     """Deprecated exception name with a typo."""
     def __init__(self, connection, parent=None):
@@ -10,4 +9,11 @@ class ConnectionInterrumped(Exception):
 
 class ConnectionInterrupted(ConnectionInterrumped):
     def __str__(self):
-      return "ConnectionInterrupted: Connection to redis server failed"
+      error_type = "ConnectionInterrupted"
+      error_msg = "An error occurred while connecting to redis"
+
+      if self.parent:
+        error_type = self.parent.__class__.__name__
+        error_msg = str(self.parent)
+
+      return "Redis %s: %s" % (error_type, error_msg)
