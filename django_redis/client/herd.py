@@ -23,7 +23,7 @@ from redis.exceptions import ResponseError
 # Compatibility with redis-py 2.10.x+
 
 try:
-    from redis.exceptions import TimeoutError
+    from redis.exceptions import TimeoutError, ResponseError
     _main_exceptions = (TimeoutError, ResponseError, ConnectionError, socket.timeout)
 except ImportError:
     _main_exceptions = (ConnectionError, socket.timeout)
