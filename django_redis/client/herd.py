@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import random
+import socket
 import time
 from collections import OrderedDict
 
@@ -10,6 +11,22 @@ from django.conf import settings
 
 from .default import DEFAULT_TIMEOUT, DefaultClient
 from ..exceptions import ConnectionInterrupted
+
+try:
+    from django.core.cache.backends.base import DEFAULT_TIMEOUT
+except ImportError:
+    DEFAULT_TIMEOUT = object()
+
+from redis.exceptions import ConnectionError
+from redis.exceptions import ResponseError
+
+# Compatibility with redis-py 2.10.x+
+
+try:
+    from redis.exceptions import TimeoutError
+    _main_exceptions = (TimeoutError, ResponseError, ConnectionError, socket.timeout)
+except ImportError:
+    _main_exceptions = (ConnectionError, socket.timeout)
 
 
 class Marker(object):
@@ -101,8 +118,8 @@ class HerdClient(DefaultClient):
 
         try:
             results = client.mget(*new_keys)
-        except ConnectionError:
-            raise ConnectionInterrupted(connection=client)
+        except _main_exceptions as e:
+            raise ConnectionInterrupted(connection=client, parent=e)
 
         for key, value in zip(new_keys, results):
             if value is None:
@@ -132,8 +149,8 @@ class HerdClient(DefaultClient):
             for key, value in data.items():
                 set_function(key, value, timeout, version=version, client=pipeline)
             pipeline.execute()
-        except ConnectionError:
-            raise ConnectionInterrupted(connection=client)
+        except _main_exceptions as e:
+            raise ConnectionInterrupted(connection=client, parent=e)
 
     def incr(self, *args, **kwargs):
         raise NotImplementedError()
