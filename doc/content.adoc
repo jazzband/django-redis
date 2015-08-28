@@ -296,7 +296,7 @@ Infinite timeout
 *django-redis* comes with infinite timeouts support out of the box. And it behaves in same way
 as django backend contract specifies:
 
-- `timeout=0` expires the value inmediatelly.
+- `timeout=0` expires the value immediately.
 - `timeout=None` infinite timeout
 
 [source, python]
