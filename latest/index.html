@@ -106,17 +106,18 @@
 <li><a href="#_socket_timeout">3.2. Socket timeout</a></li>
 <li><a href="#_compression_support">3.3. Compression support</a></li>
 <li><a href="#_memcached_exceptions_behavior">3.4. Memcached exceptions behavior</a></li>
-<li><a href="#_infinite_timeout">3.5. Infinite timeout</a></li>
-<li><a href="#_get_ttl_time_to_live_from_key">3.6. Get ttl (time-to-live) from key</a></li>
-<li><a href="#_expire_persist">3.7. Expire &amp; Persist</a></li>
-<li><a href="#_locks">3.8. Locks</a></li>
-<li><a href="#_scan_delete_keys_in_bulk">3.9. Scan &amp; Delete keys in bulk</a></li>
-<li><a href="#_redis_native_commands">3.10. Redis native commands</a></li>
-<li><a href="#_raw_client_access">3.11. Raw client access</a></li>
-<li><a href="#_connection_pools">3.12. Connection pools</a></li>
-<li><a href="#_pluggable_parsers">3.13. Pluggable parsers</a></li>
-<li><a href="#_pluggable_clients">3.14. Pluggable clients</a></li>
-<li><a href="#_pluggable_serializer">3.15. Pluggable serializer</a></li>
+<li><a href="#_log_ignored_exceptions">3.5. Log Ignored Exceptions</a></li>
+<li><a href="#_infinite_timeout">3.6. Infinite timeout</a></li>
+<li><a href="#_get_ttl_time_to_live_from_key">3.7. Get ttl (time-to-live) from key</a></li>
+<li><a href="#_expire_persist">3.8. Expire &amp; Persist</a></li>
+<li><a href="#_locks">3.9. Locks</a></li>
+<li><a href="#_scan_delete_keys_in_bulk">3.10. Scan &amp; Delete keys in bulk</a></li>
+<li><a href="#_redis_native_commands">3.11. Redis native commands</a></li>
+<li><a href="#_raw_client_access">3.12. Raw client access</a></li>
+<li><a href="#_connection_pools">3.13. Connection pools</a></li>
+<li><a href="#_pluggable_parsers">3.14. Pluggable parsers</a></li>
+<li><a href="#_pluggable_clients">3.15. Pluggable clients</a></li>
+<li><a href="#_pluggable_serializer">3.16. Pluggable serializer</a></li>
 </ul>
 </li>
 <li><a href="#license">4. License</a></li>
@@ -470,7 +471,30 @@ your settings:</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_infinite_timeout">3.5. Infinite timeout</h3>
+<h3 id="_log_ignored_exceptions">3.5. Log Ignored Exceptions</h3>
+<div class="paragraph">
+<p>When ignoring exceptions with <code>IGNORE_EXCEPTIONS</code> or <code>DJANGO_REDIS_IGNORE_EXCEPTIONS</code>,
+you may optionally log exceptions using the global variable <code>DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS</code>
+in your settings file.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="python"><span class="tok-n">DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS</span> <span class="tok-o">=</span> <span class="tok-bp">True</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you wish to specify the logger in which the exceptions are output, simply set the global
+variable <code>DJANGO_REDIS_LOGGER</code> to the string name and/or path of the desired logger. This will
+default to <code>__name__</code> if no logger is specified and <code>DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS</code> is <code>True</code></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="python"><span class="tok-n">DJANGO_REDIS_IGNORE_EXCEPTIONS</span> <span class="tok-o">=</span> <span class="tok-s">&#39;some.specified.logger&#39;</span></code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_infinite_timeout">3.6. Infinite timeout</h3>
 <div class="paragraph">
 <p><strong>django-redis</strong> comes with infinite timeouts support out of the box. And it behaves in same way
 as django backend contract specifies:</p>
@@ -478,7 +502,7 @@ as django backend contract specifies:</p>
 <div class="ulist">
 <ul>
 <li>
-<p><code>timeout=0</code> expires the value inmediatelly.</p>
+<p><code>timeout=0</code> expires the value immediately.</p>
 </li>
 <li>
 <p><code>timeout=None</code> infinite timeout</p>
@@ -492,7 +516,7 @@ as django backend contract specifies:</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_get_ttl_time_to_live_from_key">3.6. Get ttl (time-to-live) from key</h3>
+<h3 id="_get_ttl_time_to_live_from_key">3.7. Get ttl (time-to-live) from key</h3>
 <div class="paragraph">
 <p>With redis, you can access to ttl of any stored key, for it, django-redis exposes <code>ttl</code> function.</p>
 </div>
@@ -525,7 +549,7 @@ as django backend contract specifies:</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_expire_persist">3.7. Expire &amp; Persist</h3>
+<h3 id="_expire_persist">3.8. Expire &amp; Persist</h3>
 <div class="paragraph">
 <p>Additionally to the simple ttl query, you can send persist a concrete key or specify
 a new expiration timeout using the <code>persist</code> and <code>expire</code> methods:</p>
@@ -552,7 +576,7 @@ a new expiration timeout using the <code>persist</code> and <code>expire</code> 
 </div>
 </div>
 <div class="sect2">
-<h3 id="_locks">3.8. Locks</h3>
+<h3 id="_locks">3.9. Locks</h3>
 <div class="paragraph">
 <p>It also supports the redis ability to create redis distributed named locks. The Lock
 interface is identical to the <code>threading.Lock</code> so you can use it as replacement.</p>
@@ -566,7 +590,7 @@ interface is identical to the <code>threading.Lock</code> so you can use it as r
 </div>
 </div>
 <div class="sect2">
-<h3 id="_scan_delete_keys_in_bulk">3.9. Scan &amp; Delete keys in bulk</h3>
+<h3 id="_scan_delete_keys_in_bulk">3.10. Scan &amp; Delete keys in bulk</h3>
 <div class="paragraph">
 <p><strong>django-redis</strong> comes with some additional methods that help with searching or deleting keys
 using glob patterns.</p>
@@ -608,7 +632,7 @@ as the <code>keys</code> function and returns the number of deleted keys.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_redis_native_commands">3.10. Redis native commands</h3>
+<h3 id="_redis_native_commands">3.11. Redis native commands</h3>
 <div class="paragraph">
 <p><strong>django-redis</strong> has limited support for some Redis atomic operations, such as the commands <code>SETNX</code>
  and <code>INCR</code>.</p>
@@ -634,7 +658,7 @@ for it.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_raw_client_access">3.11. Raw client access</h3>
+<h3 id="_raw_client_access">3.12. Raw client access</h3>
 <div class="paragraph">
 <p>In some situations your application requires access to a raw Redis client to use some advanced
 features that aren&#8217;t exposed by the Django cache interface. To avoid storing another setting for
@@ -663,7 +687,7 @@ Not all pluggable clients support this feature.
 </div>
 </div>
 <div class="sect2">
-<h3 id="_connection_pools">3.12. Connection pools</h3>
+<h3 id="_connection_pools">3.13. Connection pools</h3>
 <div class="paragraph">
 <p>Behind the scenes, <strong>django-redis</strong> uses the underlying <strong>redis-py</strong> connection pool implementation,
 and exposes a simple way to configure it. Alternatively, you can directly customize a
@@ -673,7 +697,7 @@ connection/connection pool creation for a backend.</p>
 <p>The default <strong>redis-py</strong> behavior is to not close connections, recycling them when possible.</p>
 </div>
 <div class="sect3">
-<h4 id="_configure_default_connection_pool">3.12.1. Configure default connection pool</h4>
+<h4 id="_configure_default_connection_pool">3.13.1. Configure default connection pool</h4>
 <div class="paragraph">
 <p>The default connection pool is simple. You can only customize the maximum number of connections
 in the pool, by setting <code>CONNECTION_POOL_KWARGS</code> in the <code>CACHES</code> setting:</p>
@@ -706,7 +730,7 @@ in the pool, by setting <code>CONNECTION_POOL_KWARGS</code> in the <code>CACHES<
 </div>
 </div>
 <div class="sect3">
-<h4 id="_use_your_own_connection_pool_subclass">3.12.2. Use your own connection pool subclass</h4>
+<h4 id="_use_your_own_connection_pool_subclass">3.13.2. Use your own connection pool subclass</h4>
 <div class="paragraph">
 <p>Sometimes you want to use your own subclass of the connection pool. This is possible with
 <strong>django-redis</strong> using the <code>CONNECTION_POOL_CLASS</code> parameter in the backend options.</p>
@@ -733,7 +757,7 @@ in the pool, by setting <code>CONNECTION_POOL_KWARGS</code> in the <code>CACHES<
 </div>
 </div>
 <div class="sect3">
-<h4 id="_customize_connection_factory">3.12.3. Customize connection factory</h4>
+<h4 id="_customize_connection_factory">3.13.3. Customize connection factory</h4>
 <div class="paragraph">
 <p>If none of the previous methods satisfies you, you can get in the middle of the
 <strong>django-redis</strong> connection factory process and customize or completely rewrite it.</p>
@@ -790,7 +814,7 @@ class that is specified in the global Django setting <code>DJANGO_REDIS_CONNECTI
 </div>
 </div>
 <div class="sect2">
-<h3 id="_pluggable_parsers">3.13. Pluggable parsers</h3>
+<h3 id="_pluggable_parsers">3.14. Pluggable parsers</h3>
 <div class="paragraph">
 <p><strong>redis-py</strong> (the Python Redis client used by <strong>django-redis</strong>) comes with a pure Python Redis parser
 that works very well for most common task, but if you want some performance boost, you can use
@@ -808,14 +832,14 @@ that works very well for most common task, but if you want some performance boos
 </div>
 </div>
 <div class="sect2">
-<h3 id="_pluggable_clients">3.14. Pluggable clients</h3>
+<h3 id="_pluggable_clients">3.15. Pluggable clients</h3>
 <div class="paragraph">
 <p><em>django_redis</em> is designed for to be very flexible and very configurable. For it, it exposes a
 pluggable backends that make easy extend the default behavior, and it comes with few ones
 out the box.</p>
 </div>
 <div class="sect3">
-<h4 id="_default_client">3.14.1. Default client</h4>
+<h4 id="_default_client">3.15.1. Default client</h4>
 <div class="paragraph">
 <p>Almost all about the default client is explained, with one exception: the default client comes
 with master-slave support.</p>
@@ -848,7 +872,7 @@ Master-Slave setup is not heavily tested in production environments.
 </div>
 </div>
 <div class="sect3">
-<h4 id="_shard_client">3.14.2. Shard client</h4>
+<h4 id="_shard_client">3.15.2. Shard client</h4>
 <div class="paragraph">
 <p>This pluggable client implements client-side sharding. It inherits almost all functionality from
 the default client. To use it, change your cache settings to something like this:</p>
@@ -883,7 +907,7 @@ Shard client is still experimental, so be careful when using it in production en
 </div>
 </div>
 <div class="sect3">
-<h4 id="_herd_client">3.14.3. Herd client</h4>
+<h4 id="_herd_client">3.15.3. Herd client</h4>
 <div class="paragraph">
 <p>This pluggable client helps dealing with the thundering herd problem. You can read more about it
 on <a href="http://en.wikipedia.org/wiki/Thundering_herd_problem">Wikipedia</a>.</p>
@@ -919,7 +943,7 @@ additional methods for getting/setting keys.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_pluggable_serializer">3.15. Pluggable serializer</h3>
+<h3 id="_pluggable_serializer">3.16. Pluggable serializer</h3>
 <div class="paragraph">
 <p>The pluggable clients serialize data before sending it to the
 server. By default, <em>django_redis</em> serialize the data using Python
@@ -1005,7 +1029,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</code></pre>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2015-07-03 22:10:42 EEST
+Last updated 2015-08-31 00:44:58 EEST
 </div>
 </div>
 </body>
