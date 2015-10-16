@@ -269,10 +269,11 @@ class DefaultClient(object):
         if client is None:
             client = self.get_client(write=True)
 
+        keys = [self.make_key(k, version=version) for k in keys]
+
         if not keys:
             return
 
-        keys = [self.make_key(k, version=version) for k in keys]
         try:
             return client.delete(*keys)
         except _main_exceptions as e:
