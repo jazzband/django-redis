@@ -327,6 +327,21 @@ class DjangoRedisCacheTests(TestCase):
         res = self.cache.delete_many(["a","b"])
         self.assertFalse(bool(res))
 
+    def test_delete_many_generator(self):
+        self.cache.set_many({"a": 1, "b": 2, "c": 3})
+        res = self.cache.delete_many(key for key in ["a","b"])
+        self.assertTrue(bool(res))
+
+        res = self.cache.get_many(["a", "b", "c"])
+        self.assertEqual(res, {"c": 3})
+
+        res = self.cache.delete_many(["a","b"])
+        self.assertFalse(bool(res))
+
+    def test_delete_many_empty_generator(self):
+        res = self.cache.delete_many(key for key in [])
+        self.assertFalse(bool(res))
+
     def test_incr(self):
         try:
             self.cache.set("num", 1)
