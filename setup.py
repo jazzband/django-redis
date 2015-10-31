@@ -18,7 +18,6 @@ setup(
     description = description.strip(),
     install_requires=[
         "redis>=2.10.0",
-        "msgpack-python>=0.4.6"
     ],
     zip_safe=False,
     include_package_data = True,
