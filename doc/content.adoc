@@ -1,7 +1,7 @@
 django-redis documentation
 ==========================
 Andrey Antukh, <niwi@niwi.be>
-4.2.0
+4.3.0
 :toc: left
 :numbered:
 :source-highlighter: pygments
@@ -38,7 +38,7 @@ Because:
 Supported django-redis versions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- Supported stable version: *4.2.0*
+- Supported stable version: *4.3.0*
 - Supported stable version: *3.8.4*
 
 
@@ -60,7 +60,7 @@ Django version support
 ^^^^^^^^^^^^^^^^^^^^^^
 
 - *django-redis 3.8.x* will maintain support for django 1.4, 1.5, 1.6, 1.7 (and maybe 1.8)
-- *django-redis 4.2.0* will maintain support for django 1.6, 1.7 and 1.8
+- *django-redis 4.3.0* will maintain support for django 1.6, 1.7 and 1.8
 
 
 Redis Server Support
