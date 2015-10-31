@@ -10,4 +10,11 @@ class ConnectionInterrumped(Exception):
 
 class ConnectionInterrupted(ConnectionInterrumped):
     def __str__(self):
-      return "ConnectionInterrupted: Connection to redis server failed"
+      error_type = "ConnectionInterrupted"
+      error_msg = "An error occurred while connecting to redis"
+
+      if self.parent:
+        error_type = self.parent.__class__.__name__
+        error_msg = self.parent.__unicode__()
+
+      return "Redis %s: %s" % (error_type, error_msg)
