@@ -8,8 +8,8 @@ setup(
     name = "django-redis",
     url = "https://github.com/niwibe/django-redis",
     author = "Andrei Antoukh",
-    author_email = "niwi@niwi.be",
-    version="4.2.0",
+    author_email = "niwi@niwi.nz",
+    version="4.3.0",
     packages = [
         "django_redis",
         "django_redis.client",
