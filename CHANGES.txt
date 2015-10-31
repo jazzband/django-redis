@@ -1,6 +1,16 @@
 Changelog
 =========
 
+Version 4.3.0
+-------------
+
+Date: 2015-10-31
+
+- Improved exception handling in herd client (thanks to @brandoshmando)
+- Fix bug that not allows use generators on delete_many (thanks to @ostcar).
+- Remove obsolete code that makes hard dependency to mspack.
+
+
 Version 4.2.0
 -------------
 
