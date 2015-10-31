@@ -36,7 +36,6 @@ def omit_exception(method=None, return_value=None):
 
                 return return_value
             raise e.parent
-
     return _decorator
 
 
