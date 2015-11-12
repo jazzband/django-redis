@@ -402,7 +402,7 @@ For deleting keys, you should use `delete_pattern` which has the same glob patte
 as the `keys` function and returns the number of deleted keys.
 
 .Example use of delete_pattern
-[source, python]
+[source, pycon]
 ----
 >>> from django.core.cache import cache
 >>> cache.delete_pattern("foo_*")
@@ -418,7 +418,7 @@ Redis native commands
 You can use the `SETNX` command through the backend `set()` method with the `nx` parameter:
 
 .Example:
-[source, python]
+[source, pycon]
 ----
 >>> from django.core.cache import cache
 >>> cache.set("key", "value1", nx=True)
@@ -441,7 +441,7 @@ features that aren't exposed by the Django cache interface. To avoid storing ano
 creating a raw connection, *django-redis* exposes functions with which you can obtain a raw client
 reusing the cache connection string: `get_redis_connection(alias)`.
 
-[source, python]
+[source, pycon]
 ----
 >>> from django_redis import get_redis_connection
 >>> con = get_redis_connection("default")
