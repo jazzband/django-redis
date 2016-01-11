@@ -10,6 +10,10 @@ else:
         return caches[alias]
 
 
+VERSION = (4, 3, 0)
+__version__ = '.'.join(map(str, VERSION))
+
+
 def get_redis_connection(alias='default', write=True):
     """
     Helper used for obtain a raw redis client.

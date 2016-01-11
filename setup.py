@@ -1,5 +1,8 @@
 from setuptools import setup
 
+from django_redis import __version__
+
+
 description = """
 Full featured redis cache backend for Django.
 """
@@ -9,7 +12,7 @@ setup(
     url = "https://github.com/niwibe/django-redis",
     author = "Andrei Antoukh",
     author_email = "niwi@niwi.nz",
-    version="4.3.0",
+    version=__version__,
     packages = [
         "django_redis",
         "django_redis.client",
