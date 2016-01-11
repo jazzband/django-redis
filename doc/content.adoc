@@ -148,6 +148,37 @@ SESSION_CACHE_ALIAS = "default"
 ----
 
 
+Testing with django-redis
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+`django-redis` supports customizing the underlying Redis client (see <<_pluggable_redis_client>>).
+This can be used for testing purposes, e.g., by replacing the default client with `fakeredis` 
+(https://github.com/jamesls/fakeredis) or `mockredis` (https://github.com/locationlabs/mockredis).
+Doing so allows you to run your integration tests without depending on a real Redis server.
+
+.Example setup using `fakeredis`: 
+[source, python]
+----
+import fakeredis
+CACHES = {
+    "default": {
+        "OPTIONS": {
+            "REDIS_CLIENT_CLASS": "fakeredis.FakeStrictRedis",
+        }
+    }
+}
+----
+
+In case you want to flush all data from the cache after a test, add the
+following lines to your `TestCase`:
+[source, python]
+----
+def tearDown(self):
+    from django_redis import get_redis_connection
+    get_redis_connection("default").flushall()
+----
+
+
 Advanced usage
 --------------
 
@@ -713,6 +744,31 @@ There's also support for serialization using 'MsgPack' 'http://msgpack.org/'
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
             "SERIALIZER": "django_redis.serializers.msgpack.MSGPackSerializer",
+        }
+    }
+}
+----
+
+
+Pluggable redis client
+~~~~~~~~~~~~~~~~~~~~~~
+
+_django_redis_ uses the Redis client `redis.client.StrictClient` by default.
+It is possible to use an alternative client, for example `fakeredis` for
+testing purpose (see <<_testing_with_django_redis>>).
+
+You can customize the client used by setting `REDIS_CLIENT_CLASS` in the
+`CACHES` setting. Optionally, you can provide arguments to this class
+by setting `REDIS_CLIENT_KWARGS`.
+
+.Example setup
+[source, python]
+----
+CACHES = {
+    "default": {
+        "OPTIONS": {
+            "REDIS_CLIENT_CLASS": "my.module.ClientClass",
+            "REDIS_CLIENT_KWARGS": {"some_setting": True},
         }
     }
 }

@@ -25,6 +25,12 @@ class ConnectionFactory(object):
                                     "redis.connection.ConnectionPool")
         self.pool_cls = util.load_class(pool_cls_path)
         self.pool_cls_kwargs = options.get("CONNECTION_POOL_KWARGS", {})
+
+        redis_client_cls_path = options.get("REDIS_CLIENT_CLASS",
+                                            "redis.client.StrictRedis")
+        self.redis_client_cls = util.load_class(redis_client_cls_path)
+        self.redis_client_cls_kwargs = options.get("REDIS_CLIENT_KWARGS", {})
+
         self.options = options
 
     def adapt_old_url_format(self, url):
@@ -100,7 +106,7 @@ class ConnectionFactory(object):
         for create new connection.
         """
         pool = self.get_or_create_connection_pool(params)
-        return StrictRedis(connection_pool=pool)
+        return self.redis_client_cls(connection_pool=pool, **self.redis_client_cls_kwargs)
 
     def get_parser_cls(self):
         cls = self.options.get("PARSER_CLASS", None)
