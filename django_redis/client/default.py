@@ -283,10 +283,7 @@ class DefaultClient(object):
         """
         Flush all cache keys.
         """
-        if client is None:
-            client = self.get_client(write=True)
-
-        client.flushdb()
+        self.delete_pattern("*", client=client)
 
     def decode(self, value):
         """
