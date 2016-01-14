@@ -17,3 +17,7 @@ class ConnectionInterrupted(ConnectionInterrumped):
         error_msg = str(self.parent)
 
       return "Redis %s: %s" % (error_type, error_msg)
+
+
+class CompressorError(Exception):
+    pass

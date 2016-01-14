@@ -181,12 +181,12 @@ class DjangoRedisCacheTests(TestCase):
         self.assertEqual(res, 2)
 
     def test_save_string(self):
-        self.cache.set("test_key", "hello")
+        self.cache.set("test_key", "hello"*1000)
         res = self.cache.get("test_key")
 
         type(res)
         self.assertIsInstance(res, text_type)
-        self.assertEqual(res, "hello")
+        self.assertEqual(res, "hello"*1000)
 
         self.cache.set("test_key", "2")
         res = self.cache.get("test_key")
@@ -567,6 +567,9 @@ class DjangoRedisCacheTests(TestCase):
 
         self.assertIsNone(cache_with_prefix.get('other_key'))
         self.assertEqual(cache_normal.get('some_key'), 'some_value')
+
+    def test_zlib_compressor(self):
+        pass
 
 
 import django_redis.cache

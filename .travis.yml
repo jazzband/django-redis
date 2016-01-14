@@ -31,6 +31,7 @@ script:
   - (cd tests && python runtests-herd.py)
   - (cd tests && python runtests-json.py)
   - (cd tests && python runtests-msgpack.py)
+  - (cd tests && python runtests-zlib.py)
 
 services:
   - redis-server

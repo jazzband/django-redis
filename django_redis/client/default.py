@@ -34,7 +34,7 @@ except ImportError:
     _main_exceptions = (ConnectionError, socket.timeout)
 
 from ..util import CacheKey, load_class, integer_types
-from ..exceptions import ConnectionInterrupted
+from ..exceptions import ConnectionInterrupted, CompressorError
 from .. import pool
 
 
@@ -55,13 +55,16 @@ class DefaultClient(object):
 
         self._clients = [None] * len(self._server)
         self._options = params.get("OPTIONS", {})
-        self._options.setdefault("COMPRESS_COMPRESSOR", zlib.compress)
-        self._options.setdefault("COMPRESS_DECOMPRESSOR", zlib.decompress)
-        self._options.setdefault("COMPRESS_DECOMPRESSOR_ERROR", zlib.error)
 
         serializer_path = self._options.get("SERIALIZER", "django_redis.serializers.pickle.PickleSerializer")
         serializer_cls = load_class(serializer_path)
+
+        compressor_path = self._options.get("COMPRESSOR", "django_redis.compressors.identity.IdentityCompressor")
+        compressor_cls = load_class(compressor_path)
+
         self._serializer = serializer_cls(options=self._options)
+        self._compressor = compressor_cls(options=self._options);
+
         self.connection_factory = pool.get_connection_factory(options=self._options)
 
     def __contains__(self, key):
@@ -292,12 +295,11 @@ class DefaultClient(object):
         try:
             value = int(value)
         except (ValueError, TypeError):
-            if self._options.get("COMPRESS_MIN_LEN", 0) > 0:
-                try:
-                    value = self._options["COMPRESS_DECOMPRESSOR"](value)
-                except self._options["COMPRESS_DECOMPRESSOR_ERROR"]:
-                    # Handle little values, chosen to be not compressed
-                    pass
+            try:
+                value = self._compressor.decompress(value)
+            except CompressorError:
+                # Handle little values, chosen to be not compressed
+                pass
             value = self._serializer.loads(value)
         return value
 
@@ -307,15 +309,9 @@ class DefaultClient(object):
         """
 
         if isinstance(value, bool) or not isinstance(value, integer_types):
-            encoded_value = self._serializer.dumps(value)
-            if self._options.get("COMPRESS_MIN_LEN", 0) > 0:
-                if len(encoded_value) >= self._options["COMPRESS_MIN_LEN"]:
-                    # We should try to compress if COMPRESS_MIN_LEN > 0
-                    # and this string is longer than our min threshold.
-                    compressed = self._options["COMPRESS_COMPRESSOR"](encoded_value)
-                    if len(compressed) < len(encoded_value):
-                        encoded_value = compressed
-            return encoded_value
+            value = self._serializer.dumps(value)
+            value = self._compressor.compress(value)
+            return value
 
         return value
 

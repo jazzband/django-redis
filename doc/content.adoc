@@ -230,8 +230,8 @@ is established.
 Compression support
 ~~~~~~~~~~~~~~~~~~~
 
-_django_redis_ comes with compression support out of the box, but is deactivated by default. You
-can activate it setting `COMPRESS_MIN_LEN` option to any value great than `0`.
+_django_redis_ comes with compression support out of the box, but is deactivated by default. 
+You can activate it setting up a concrete backend:
 
 
 [source, python]
@@ -240,14 +240,11 @@ CACHES = {
     "default": {
         # ...
         "OPTIONS": {
-            "COMPRESS_MIN_LEN": 10,
+            "COMPRESSOR": "django_redis.compressor.zlib.ZlibCompressor",
         }
     }
 }
 ----
-
-*zlib* is used as default compression format. You can change it providing two callables, one for
-compress and an other for uncompress.
 
 Let see an example, of how make it work with *lzma* compression format:
 
@@ -259,10 +256,7 @@ CACHES = {
     "default": {
         # ...
         "OPTIONS": {
-            "COMPRESS_MIN_LEN": 10,
-            "COMPRESS_COMPRESSOR": lzma.compress,
-            "COMPRESS_DECOMPRESSOR": lzma.decompress,
-            "COMPRESS_DECOMPRESSOR_ERROR": lzma.LZMAError
+            "COMPRESSOR": "django_redis.compressor.lzma.LzmaCompressor",
         }
     }
 }
