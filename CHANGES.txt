@@ -1,6 +1,17 @@
 Changelog
 =========
 
+Version 4.4.0
+-------------
+
+Date: Unreleased
+
+- Make redis client pluggable (thanks to @arnuschky)
+- Add version number inside python module (thanks to @BertrandBordage)
+- Fix clear method (thanks to @ostcar)
+- BREAKING CHANGE: improved compression support (make it more plugable).
+
+
 Version 4.3.0
 -------------
 
