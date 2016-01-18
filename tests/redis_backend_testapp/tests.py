@@ -2,9 +2,13 @@
 
 from __future__ import absolute_import, unicode_literals, print_function
 
+import base64
+import os
+import unittest
 import sys
 import time
 import datetime
+from datetime import timedelta
 
 try:
     from unittest.mock import patch
@@ -603,45 +607,14 @@ try:
     from django.contrib.sessions.tests import SessionTestsMixin
 except ImportError:
 
-
-    import base64
-    import os
-    import shutil
-    import string
-    import sys
-    import tempfile
-    import unittest
-    from datetime import timedelta
-
-    from django.conf import settings
-    # from django.contrib.sessions.backends.cache import SessionStore as CacheSession
-    # from django.contrib.sessions.backends.cached_db import \
-    #     SessionStore as CacheDBSession
-    # from django.contrib.sessions.backends.db import SessionStore as DatabaseSession
-    # from django.contrib.sessions.backends.file import SessionStore as FileSession
-    # from django.contrib.sessions.backends.signed_cookies import \
-    #     SessionStore as CookieSession
-    from django.contrib.sessions.exceptions import InvalidSessionKey
-    from django.contrib.sessions.middleware import SessionMiddleware
-    from django.contrib.sessions.models import Session
     from django.contrib.sessions.serializers import (
         JSONSerializer, PickleSerializer,
     )
     from django.core import management
     from django.core.cache import caches
-    from django.core.cache.backends.base import InvalidCacheBackendError
-    from django.core.exceptions import ImproperlyConfigured
-    from django.http import HttpResponse
-    from django.test import (
-        RequestFactory, TestCase, ignore_warnings, override_settings,
-    )
+    from django.test import override_settings
     from django.test.utils import patch_logger
     from django.utils import six, timezone
-    from django.utils.encoding import force_text
-    from django.utils.six.moves import http_cookies
-
-    # from .custom_db_backend import SessionStore as CustomDatabaseSession
-
 
     class SessionTestsMixin(object):
         # This does not inherit from TestCase to avoid any tests being run with this
