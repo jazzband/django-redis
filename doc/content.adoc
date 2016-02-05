@@ -311,7 +311,7 @@ default to `__name__` if no logger is specified and `DJANGO_REDIS_LOG_IGNORED_EX
 
 [source, python]
 ----
-DJANGO_REDIS_IGNORE_EXCEPTIONS = 'some.specified.logger'
+DJANGO_REDIS_LOGGER = 'some.specified.logger'
 ----
 
 
