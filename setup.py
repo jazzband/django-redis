@@ -16,7 +16,8 @@ setup(
     packages = [
         "django_redis",
         "django_redis.client",
-        "django_redis.serializers"
+        "django_redis.serializers",
+        "django_redis.compressors"
     ],
     description = description.strip(),
     install_requires=[
