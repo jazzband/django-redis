@@ -24,8 +24,8 @@ matrix:
       env: DJANGO="django==1.4.22"
 
 install:
-  - pip install $DJANGO --use-mirrors
-  - pip install redis==2.10.3 --use-mirrors
+  - pip install $DJANGO
+  - pip install redis==2.10.3
   - pip install mock==1.0.1
   - pip install msgpack-python>=0.4.6
 
