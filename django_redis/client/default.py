@@ -234,7 +234,7 @@ class DefaultClient(object):
         return client.lock(key, timeout=timeout, sleep=sleep,
                            blocking_timeout=blocking_timeout)
 
-    def delete(self, key, version=None, client=None):
+    def delete(self, key, version=None, prefix=None, client=None):
         """
         Remove a key from the cache.
         """
@@ -242,11 +242,12 @@ class DefaultClient(object):
             client = self.get_client(write=True)
 
         try:
-            return client.delete(self.make_key(key, version=version))
+            return client.delete(self.make_key(key, version=version,
+                                               prefix=prefix))
         except _main_exceptions as e:
             raise ConnectionInterrupted(connection=client, parent=e)
 
-    def delete_pattern(self, pattern, version=None, client=None):
+    def delete_pattern(self, pattern, version=None, prefix=None, client=None):
         """
         Remove all keys matching pattern.
         """
@@ -254,7 +255,7 @@ class DefaultClient(object):
         if client is None:
             client = self.get_client(write=True)
 
-        pattern = self.make_key(pattern, version=version)
+        pattern = self.make_key(pattern, version=version, prefix=prefix)
         try:
             count = 0
             for key in client.scan_iter(pattern):
@@ -465,10 +466,14 @@ class DefaultClient(object):
         except _main_exceptions as e:
             raise ConnectionInterrupted(connection=client, parent=e)
 
-    def make_key(self, key, version=None):
+    def make_key(self, key, version=None, prefix=None):
         if isinstance(key, CacheKey):
             return key
-        return CacheKey(self._backend.make_key(key, version))
+
+        if prefix is None:
+            prefix = self._backend.key_prefix
+
+        return CacheKey(self._backend.key_func(key, self.key_prefix, version))
 
     def close(self, **kwargs):
         if getattr(settings, "DJANGO_REDIS_CLOSE_CONNECTION", False):
