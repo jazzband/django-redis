@@ -9,6 +9,7 @@ Date: 2016-04-12
 - Make redis client pluggable (thanks to @arnuschky)
 - Add version number inside python module (thanks to @BertrandBordage)
 - Fix clear method (thanks to @ostcar)
+- Add the ability to specify key prefix on delete and delete_pattern.
 - BREAKING CHANGE: improved compression support (make it more plugable).
 
 
