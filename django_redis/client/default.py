@@ -473,7 +473,10 @@ class DefaultClient(object):
         if prefix is None:
             prefix = self._backend.key_prefix
 
-        return CacheKey(self._backend.key_func(key, self.key_prefix, version))
+        if version is None:
+            version = self._backend.version
+
+        return CacheKey(self._backend.key_func(key, prefix, version))
 
     def close(self, **kwargs):
         if getattr(settings, "DJANGO_REDIS_CLOSE_CONNECTION", False):
