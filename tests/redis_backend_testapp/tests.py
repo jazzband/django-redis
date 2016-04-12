@@ -208,10 +208,10 @@ class DjangoRedisCacheTests(TestCase):
         self.assertEqual(res, "heló")
 
     def test_save_dict(self):
-        if isinstance(self.cache._client._serializer, JSONSerializer):
+        if isinstance(self.cache.client._serializer, JSONSerializer):
             self.skipTest("Datetimes are not JSON serializable")
 
-        if isinstance(self.cache._client._serializer, MSGPackSerializer):
+        if isinstance(self.cache.client._serializer, MSGPackSerializer):
             #MSGPackSerializer serializers use the isoformat for datetimes
             #https://github.com/msgpack/msgpack-python/issues/12
             now_dt = datetime.datetime.now().isoformat()
