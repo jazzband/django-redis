@@ -25,6 +25,8 @@ try:
 except ImportError:
     from django.core.cache import get_cache
 
+from django import VERSION
+
 from django.test import TestCase
 
 import django_redis.cache
@@ -784,15 +786,16 @@ except ImportError:
                 # session key; make sure that entry is manually deleted
                 session.delete('1')
 
-        def test_session_key_empty_string_invalid(self):
-            """Falsey values (Such as an empty string) are rejected."""
-            self.session._session_key = ''
-            self.assertIsNone(self.session.session_key)
+        if VERSION[:2] != (1, 8):
+            def test_session_key_empty_string_invalid(self):
+                """Falsey values (Such as an empty string) are rejected."""
+                self.session._session_key = ''
+                self.assertIsNone(self.session.session_key)
 
-        def test_session_key_too_short_invalid(self):
-            """Strings shorter than 8 characters are rejected."""
-            self.session._session_key = '1234567'
-            self.assertIsNone(self.session.session_key)
+            def test_session_key_too_short_invalid(self):
+                """Strings shorter than 8 characters are rejected."""
+                self.session._session_key = '1234567'
+                self.assertIsNone(self.session.session_key)
 
         def test_session_key_valid_string_saved(self):
             """Strings of length 8 and up are accepted and stored."""
