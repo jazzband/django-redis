@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-VERSION = (4, 4, 0)
+VERSION = (4, 4, 1)
 __version__ = '.'.join(map(str, VERSION))
 
 
@@ -19,7 +19,11 @@ def get_redis_connection(alias='default', write=True):
             return caches[alias]
 
     cache = get_cache(alias)
-    if not hasattr(cache.client, 'get_client'):
+
+    if not hasattr(cache, "client"):
+        raise NotImplementedError("This backend does not supports this feature")
+
+    if not hasattr(cache.client, "get_client"):
         raise NotImplementedError("This backend does not supports this feature")
 
     return cache.client.get_client(write)
