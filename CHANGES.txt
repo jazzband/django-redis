@@ -1,6 +1,15 @@
 Changelog
 =========
 
+Version 4.4.1
+-------------
+
+Date: 2016-04-13
+
+- Add additional check for avoid wrong exception on `get_redis_connection`.
+
+
+
 Version 4.4.0
 -------------
 
