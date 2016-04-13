@@ -31,7 +31,7 @@ Because:
 - Facilities for raw access to Redis client/connection pool.
 - Highly configurable (can emulate memcached exception behavior, for example).
 - Unix sockets supported by default.
-- With support for python 2.7, 3.3 and 3.4
+- With support for python 2.7, 3.3, 3.4 and 3.5
 
 
 
