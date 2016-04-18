@@ -129,7 +129,10 @@ class DefaultClient(object):
         try:
             if timeout is not None:
                 if timeout > 0:
-                    timeout = int(timeout)
+                    # If "timeout" is 0.1, this would make it 0, which redis
+                    # considers as "don't expire". Instead, set it to a minimum
+                    # of 1.
+                    timeout = max(1, int(timeout))
                 elif timeout <= 0:
                     if nx:
                         # Using negative timeouts when nx is True should
