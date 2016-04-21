@@ -1,6 +1,14 @@
 Changelog
 =========
 
+Version 4.4.2
+-------------
+
+Date: 2016-04-21
+
+- Fix timeout bug (thanks to @skorokithakis)
+
+
 Version 4.4.1
 -------------
 
