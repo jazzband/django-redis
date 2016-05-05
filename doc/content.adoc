@@ -240,7 +240,7 @@ CACHES = {
     "default": {
         # ...
         "OPTIONS": {
-            "COMPRESSOR": "django_redis.compressor.zlib.ZlibCompressor",
+            "COMPRESSOR": "django_redis.compressors.zlib.ZlibCompressor",
         }
     }
 }
@@ -256,7 +256,7 @@ CACHES = {
     "default": {
         # ...
         "OPTIONS": {
-            "COMPRESSOR": "django_redis.compressor.lzma.LzmaCompressor",
+            "COMPRESSOR": "django_redis.compressors.lzma.LzmaCompressor",
         }
     }
 }
