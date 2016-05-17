@@ -1,6 +1,14 @@
 Changelog
 =========
 
+Version 4.4.3
+-------------
+
+Date: 2016-05-17
+
+- Fix minor ttl inconsistencies.
+
+
 Version 4.4.2
 -------------
 
