@@ -1,7 +1,7 @@
 django-redis documentation
 ==========================
 Andrey Antukh, <niwi@niwi.be>
-4.4.2
+4.4.3
 :toc: left
 :numbered:
 :source-highlighter: pygments
@@ -38,7 +38,7 @@ Because:
 Supported django-redis versions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- Supported stable version: *4.4.0*
+- Supported stable version: *4.4.3*
 - Supported stable version: *3.8.4*
 
 
@@ -337,9 +337,9 @@ With redis, you can access to ttl of any stored key, for it, django-redis expose
 
 It returns:
 
-- ttl value for any volatile key (any key that has expiration)
-- 0 for expired and not existent keys
-- None for keys that does not have expiration
+- 0 if key does not exists (or already expired).
+- None for keys that exists but does not have any expiration.
+- ttl value for any volatile key (any key that has expiration).
 
 .Simple search keys by pattern
 [source,pycon]
@@ -350,6 +350,7 @@ It returns:
 25
 >>> cache.ttl("not-existent")
 0
+
 ----
 
 
