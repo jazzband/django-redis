@@ -421,7 +421,16 @@ class DefaultClient(object):
             return 0
 
         t = client.ttl(key)
-        return (t >= 0 and t or None)
+
+        if t >= 0:
+            return t
+        elif t == -1:
+            return None
+        elif t == -2:
+            return 0
+        else:
+            # Should never reach here
+            return None
 
     def has_key(self, key, version=None, client=None):
         """
