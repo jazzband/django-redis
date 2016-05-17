@@ -498,6 +498,7 @@ class DjangoRedisCacheTests(TestCase):
         # Test ttl with expired key
         cache.set("foo", "foo", timeout=-1)
         ttl = cache.ttl("foo")
+        self.assertEqual(ttl, 0)
 
         # Test ttl with not existent key
         ttl = cache.ttl("not-existent-key")
