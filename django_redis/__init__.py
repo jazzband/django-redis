@@ -6,7 +6,7 @@ __version__ = '.'.join(map(str, VERSION))
 
 def get_redis_connection(alias='default', write=True):
     """
-    Helper used for obtain a raw redis client.
+    Helper used for obtaining a raw redis client.
     """
 
     try:
@@ -21,9 +21,9 @@ def get_redis_connection(alias='default', write=True):
     cache = get_cache(alias)
 
     if not hasattr(cache, "client"):
-        raise NotImplementedError("This backend does not supports this feature")
+        raise NotImplementedError("This backend does not support this feature")
 
     if not hasattr(cache.client, "get_client"):
-        raise NotImplementedError("This backend does not supports this feature")
+        raise NotImplementedError("This backend does not support this feature")
 
     return cache.client.get_client(write)

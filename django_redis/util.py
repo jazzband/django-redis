@@ -55,7 +55,7 @@ class CacheKey(object):
 
 def load_class(path):
     """
-    Load class from path.
+    Loads class from path.
     """
 
     mod_name, klass_name = path.rsplit('.', 1)
