@@ -129,10 +129,8 @@ class DefaultClient(object):
         try:
             if timeout is not None:
                 if timeout > 0:
-                    # If "timeout" is 0.1, this would make it 0, which redis
-                    # considers as "don't expire". Instead, set it to a minimum
-                    # of 1.
-                    timeout = max(1, int(timeout))
+                    # Convert to milliseconds
+                    timeout = int(timeout * 1000)
                 elif timeout <= 0:
                     if nx:
                         # Using negative timeouts when nx is True should
@@ -145,7 +143,7 @@ class DefaultClient(object):
                         # than to set it and than expire in a pipeline
                         return self.delete(key, client=client, version=version)
 
-            return client.set(nkey, nvalue, nx=nx, ex=timeout, xx=xx)
+            return client.set(nkey, nvalue, nx=nx, px=timeout, xx=xx)
         except _main_exceptions as e:
             raise ConnectionInterrupted(connection=client, parent=e)
 
