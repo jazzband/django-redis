@@ -370,11 +370,19 @@ class DefaultClient(object):
         key = self.make_key(key, version=version)
 
         try:
-            if not client.exists(key):
-                raise ValueError("Key '%s' not found" % key)
-
             try:
-                value = client.incr(key, delta)
+                # if key expired after exists check, then we get
+                # key with wrong value and ttl -1.
+                # use lua script for atomicity
+                lua = """
+                local exists = redis.call('EXISTS', KEYS[1])
+                if (exists == 1) then
+                    return redis.call('INCRBY', KEYS[1], ARGV[1])
+                else return false end
+                """
+                value = client.eval(lua, 1, key, delta)
+                if value is None:
+                    raise ValueError("Key '%s' not found" % key)
             except ResponseError:
                 # if cached value or total value is greater than 64 bit signed
                 # integer.
@@ -382,7 +390,12 @@ class DefaultClient(object):
                 # In this situations redis will throw ResponseError
 
                 # try to keep TTL of key
+
                 timeout = client.ttl(key)
+                # returns -2 if the key does not exist
+                # means, that key have expired
+                if timeout == -2:
+                    raise ValueError("Key '%s' not found" % key)
                 value = self.get(key, version=version, client=client) + delta
                 self.set(key, value, version=version, timeout=timeout,
                          client=client)

@@ -382,6 +382,11 @@ class DjangoRedisCacheTests(TestCase):
         except NotImplementedError as e:
             print(e)
 
+    def test_incr_error(self):
+        with self.assertRaises(ValueError):
+            # key not exists
+            self.cache.incr('numnum')
+
     def test_get_set_bool(self):
         self.cache.set("bool", True)
         res = self.cache.get("bool")
