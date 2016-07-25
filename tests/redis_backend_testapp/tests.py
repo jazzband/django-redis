@@ -383,9 +383,13 @@ class DjangoRedisCacheTests(TestCase):
             print(e)
 
     def test_incr_error(self):
-        with self.assertRaises(ValueError):
-            # key not exists
-            self.cache.incr('numnum')
+        try:
+            with self.assertRaises(ValueError):
+                # key not exists
+                self.cache.incr('numnum')
+        except NotImplementedError:
+            raise unittest.SkipTest("`incr` not supported in herd client")
+
 
     def test_get_set_bool(self):
         self.cache.set("bool", True)
