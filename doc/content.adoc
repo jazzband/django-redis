@@ -1,7 +1,7 @@
 django-redis documentation
 ==========================
 Andrey Antukh, <niwi@niwi.be>
-4.4.3
+4.4.4
 :toc: left
 :numbered:
 :source-highlighter: pygments
@@ -31,14 +31,14 @@ Because:
 - Facilities for raw access to Redis client/connection pool.
 - Highly configurable (can emulate memcached exception behavior, for example).
 - Unix sockets supported by default.
-- With support for python 2.7, 3.3, 3.4 and 3.5
+- With support for python 2.7, 3.4 and 3.5
 
 
 
 Supported django-redis versions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- Supported stable version: *4.4.3*
+- Supported stable version: *4.4.4*
 - Supported stable version: *3.8.4*
 
 
@@ -60,7 +60,7 @@ Django version support
 ^^^^^^^^^^^^^^^^^^^^^^
 
 - *django-redis 3.8.x* will maintain support for django 1.4, 1.5, 1.6, 1.7 (and maybe 1.8)
-- *django-redis 4.4.0* will maintain support for django 1.6, 1.7, 1.8 and 1.9
+- *django-redis 4.4.x* will maintain support for django 1.6, 1.7, 1.8 and 1.9
 
 
 Redis Server Support
