@@ -1,6 +1,15 @@
 Changelog
 =========
 
+Version 4.4.4
+-------------
+
+Date: 2016-07-25
+
+- Fix possible race condition on incr implementation using
+  lua script (thanks to @prokaktus).
+
+
 Version 4.4.3
 -------------
 
