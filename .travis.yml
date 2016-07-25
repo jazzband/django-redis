@@ -3,38 +3,34 @@ sudo: false
 python:
   - "3.5"
   - "3.4"
-  - "3.3"
   - "2.7"
 
 env:
-  - DJANGO="django==1.9.5"
-  - DJANGO="django==1.8.12"
-  - DJANGO="django==1.7.10"
+  - DJANGO="django==1.10rc1"
+  - DJANGO="django==1.9.8"
+  - DJANGO="django==1.8.14"
+  - DJANGO="django==1.7.11"
   - DJANGO="django==1.6.11"
   - DJANGO="django==1.5.12"
   - DJANGO="django==1.4.22"
 
 matrix:
   exclude:
-    - python: "3.3"
-      env: DJANGO="django==1.4.22"
-    - python: "3.3"
-      env: DJANGO="django==1.9.5"
     - python: "3.4"
       env: DJANGO="django==1.4.22"
     - python: "3.5"
-      env: DJANGO="django==1.7.10"
+      env: DJANGO="django==1.4.22"
+    - python: "3.5"
+      env: DJANGO="django==1.7.11"
     - python: "3.5"
       env: DJANGO="django==1.6.11"
     - python: "3.5"
       env: DJANGO="django==1.5.12"
-    - python: "3.5"
-      env: DJANGO="django==1.4.22"
 
 install:
   - pip install $DJANGO
-  - pip install redis==2.10.3
-  - pip install mock==1.0.1
+  - pip install redis==2.10.5
+  - pip install mock==2.0.0
   - pip install msgpack-python>=0.4.6
 
 script:
