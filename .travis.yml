@@ -6,8 +6,8 @@ python:
   - "2.7"
 
 env:
-  - DJANGO="django==1.10rc1"
-  - DJANGO="django==1.9.8"
+  - DJANGO="django==1.10"
+  - DJANGO="django==1.9.9"
   - DJANGO="django==1.8.14"
   - DJANGO="django==1.7.11"
   - DJANGO="django==1.6.11"
