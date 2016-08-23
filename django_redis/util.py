@@ -4,19 +4,10 @@ from __future__ import absolute_import, unicode_literals
 import sys
 from importlib import import_module
 
-try:
-    from django.utils.encoding import smart_text
-except ImportError:
-    from django.utils.encoding import smart_unicode as smart_text
-
-try:
-    from django.utils.encoding import smart_bytes
-except ImportError:
-    from django.utils.encoding import smart_str as smart_bytes
-
 from django.core.exceptions import ImproperlyConfigured
 from django.conf import settings
 from django.core.cache.backends.base import get_key_func
+from django.utils.encoding import smart_bytes, smart_text
 
 from redis import ConnectionPool as RedisConnectionPool
 from redis.connection import UnixDomainSocketConnection, Connection

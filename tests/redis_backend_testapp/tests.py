@@ -16,17 +16,8 @@ except ImportError:
     from mock import patch
 
 from django.conf import settings
-from django.core.cache import cache
-
-try:
-    from django.core.cache import caches
-    def get_cache(name):
-        return caches[name]
-except ImportError:
-    from django.core.cache import get_cache
-
+from django.core.cache import cache, caches
 from django import VERSION
-
 from django.test import TestCase
 
 import django_redis.cache
@@ -104,7 +95,7 @@ class DjangoRedisCacheTestCustomKeyFunction(TestCase):
         settings.CACHES['default']['KEY_FUNCTION'] = 'redis_backend_testapp.tests.make_key'
         settings.CACHES['default']['REVERSE_KEY_FUNCTION'] = 'redis_backend_testapp.tests.reverse_key'
 
-        self.cache = get_cache('default')
+        self.cache = caches['default']
         try:
             self.cache.clear()
         except Exception:
@@ -474,12 +465,12 @@ class DjangoRedisCacheTests(TestCase):
         self.assertFalse(bool(res))
 
     def test_close(self):
-        cache = get_cache("default")
+        cache = caches["default"]
         cache.set("f", "1")
         cache.close()
 
     def test_ttl(self):
-        cache = get_cache("default")
+        cache = caches["default"]
         _params = cache._params
         _is_herd = (_params["OPTIONS"]["CLIENT_CLASS"] ==
                     "django_redis.client.HerdClient")
@@ -535,7 +526,7 @@ class DjangoRedisCacheTests(TestCase):
         self.assertFalse(self.cache.has_key("foobar"))
 
     def test_iter_keys(self):
-        cache = get_cache("default")
+        cache = caches["default"]
         _params = cache._params
         _is_shard = (_params["OPTIONS"]["CLIENT_CLASS"] ==
                      "django_redis.client.ShardClient")
@@ -561,7 +552,7 @@ class DjangoRedisCacheTests(TestCase):
 
     def test_master_slave_switching(self):
         try:
-            cache = get_cache("sample")
+            cache = caches["sample"]
             client = cache.client
             client._server = ["foo", "bar",]
             client._clients = ["Foo", "Bar"]
@@ -576,8 +567,8 @@ class DjangoRedisCacheTests(TestCase):
         Tests that cache.clear() does only delete keys which starts with the
         correct prefix configured with KEY_PREFIX.
         """
-        cache_normal = get_cache('sample')
-        cache_with_prefix = get_cache('with_prefix')
+        cache_normal = caches['sample']
+        cache_with_prefix = caches['with_prefix']
         cache_normal.set('some_key', 'some_value')
         cache_with_prefix.set('other_key', 'other_value')
 
@@ -597,7 +588,7 @@ class DjangoOmitExceptionsTests(TestCase):
     def setUp(self):
         self._orig_setting = django_redis.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS
         django_redis.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS = True
-        self.cache = get_cache("doesnotexist")
+        self.cache = caches["doesnotexist"]
         self.cache._orig_ignore_exceptions = self.cache._ignore_exceptions
         self.cache._ignore_exceptions = True
 
@@ -616,323 +607,316 @@ class DjangoOmitExceptionsTests(TestCase):
 
 from django.contrib.sessions.backends.cache import SessionStore as CacheSession
 
-try:
-    # SessionTestsMixin isn't available for import on django >= 1.8
-    from django.contrib.sessions.tests import SessionTestsMixin
-except ImportError:
+from django.contrib.sessions.serializers import (
+    JSONSerializer, PickleSerializer,
+)
+from django.core import management
+from django.core.cache import caches
+from django.test import override_settings
+from django.test.utils import patch_logger
+from django.utils import six, timezone
 
-    from django.contrib.sessions.serializers import (
-        JSONSerializer, PickleSerializer,
-    )
-    from django.core import management
-    from django.core.cache import caches
-    from django.test import override_settings
-    from django.test.utils import patch_logger
-    from django.utils import six, timezone
+class SessionTestsMixin(object):
+    # This does not inherit from TestCase to avoid any tests being run with this
+    # class, which wouldn't work, and to allow different TestCase subclasses to
+    # be used.
 
-    class SessionTestsMixin(object):
-        # This does not inherit from TestCase to avoid any tests being run with this
-        # class, which wouldn't work, and to allow different TestCase subclasses to
-        # be used.
+    backend = None  # subclasses must specify
 
-        backend = None  # subclasses must specify
+    def setUp(self):
+        self.session = self.backend()
 
-        def setUp(self):
-            self.session = self.backend()
+    def tearDown(self):
+        # NB: be careful to delete any sessions created; stale sessions fill up
+        # the /tmp (with some backends) and eventually overwhelm it after lots
+        # of runs (think buildbots)
+        self.session.delete()
 
-        def tearDown(self):
-            # NB: be careful to delete any sessions created; stale sessions fill up
-            # the /tmp (with some backends) and eventually overwhelm it after lots
-            # of runs (think buildbots)
-            self.session.delete()
+    def test_new_session(self):
+        self.assertFalse(self.session.modified)
+        self.assertFalse(self.session.accessed)
 
-        def test_new_session(self):
-            self.assertFalse(self.session.modified)
-            self.assertFalse(self.session.accessed)
+    def test_get_empty(self):
+        self.assertEqual(self.session.get('cat'), None)
 
-        def test_get_empty(self):
-            self.assertEqual(self.session.get('cat'), None)
+    def test_store(self):
+        self.session['cat'] = "dog"
+        self.assertTrue(self.session.modified)
+        self.assertEqual(self.session.pop('cat'), 'dog')
 
-        def test_store(self):
-            self.session['cat'] = "dog"
-            self.assertTrue(self.session.modified)
-            self.assertEqual(self.session.pop('cat'), 'dog')
+    def test_pop(self):
+        self.session['some key'] = 'exists'
+        # Need to reset these to pretend we haven't accessed it:
+        self.accessed = False
+        self.modified = False
 
-        def test_pop(self):
-            self.session['some key'] = 'exists'
-            # Need to reset these to pretend we haven't accessed it:
-            self.accessed = False
-            self.modified = False
+        self.assertEqual(self.session.pop('some key'), 'exists')
+        self.assertTrue(self.session.accessed)
+        self.assertTrue(self.session.modified)
+        self.assertEqual(self.session.get('some key'), None)
 
-            self.assertEqual(self.session.pop('some key'), 'exists')
-            self.assertTrue(self.session.accessed)
-            self.assertTrue(self.session.modified)
-            self.assertEqual(self.session.get('some key'), None)
+    def test_pop_default(self):
+        self.assertEqual(self.session.pop('some key', 'does not exist'),
+                         'does not exist')
+        self.assertTrue(self.session.accessed)
+        self.assertFalse(self.session.modified)
 
-        def test_pop_default(self):
-            self.assertEqual(self.session.pop('some key', 'does not exist'),
-                             'does not exist')
-            self.assertTrue(self.session.accessed)
-            self.assertFalse(self.session.modified)
+    def test_setdefault(self):
+        self.assertEqual(self.session.setdefault('foo', 'bar'), 'bar')
+        self.assertEqual(self.session.setdefault('foo', 'baz'), 'bar')
+        self.assertTrue(self.session.accessed)
+        self.assertTrue(self.session.modified)
 
-        def test_setdefault(self):
-            self.assertEqual(self.session.setdefault('foo', 'bar'), 'bar')
-            self.assertEqual(self.session.setdefault('foo', 'baz'), 'bar')
-            self.assertTrue(self.session.accessed)
-            self.assertTrue(self.session.modified)
+    def test_update(self):
+        self.session.update({'update key': 1})
+        self.assertTrue(self.session.accessed)
+        self.assertTrue(self.session.modified)
+        self.assertEqual(self.session.get('update key', None), 1)
 
-        def test_update(self):
-            self.session.update({'update key': 1})
-            self.assertTrue(self.session.accessed)
-            self.assertTrue(self.session.modified)
-            self.assertEqual(self.session.get('update key', None), 1)
+    def test_has_key(self):
+        self.session['some key'] = 1
+        self.session.modified = False
+        self.session.accessed = False
+        self.assertIn('some key', self.session)
+        self.assertTrue(self.session.accessed)
+        self.assertFalse(self.session.modified)
 
-        def test_has_key(self):
-            self.session['some key'] = 1
-            self.session.modified = False
-            self.session.accessed = False
-            self.assertIn('some key', self.session)
-            self.assertTrue(self.session.accessed)
-            self.assertFalse(self.session.modified)
+    def test_values(self):
+        self.assertEqual(list(self.session.values()), [])
+        self.assertTrue(self.session.accessed)
+        self.session['some key'] = 1
+        self.assertEqual(list(self.session.values()), [1])
 
-        def test_values(self):
-            self.assertEqual(list(self.session.values()), [])
-            self.assertTrue(self.session.accessed)
-            self.session['some key'] = 1
-            self.assertEqual(list(self.session.values()), [1])
+    def test_iterkeys(self):
+        self.session['x'] = 1
+        self.session.modified = False
+        self.session.accessed = False
+        i = six.iterkeys(self.session)
+        self.assertTrue(hasattr(i, '__iter__'))
+        self.assertTrue(self.session.accessed)
+        self.assertFalse(self.session.modified)
+        self.assertEqual(list(i), ['x'])
 
-        def test_iterkeys(self):
-            self.session['x'] = 1
-            self.session.modified = False
-            self.session.accessed = False
-            i = six.iterkeys(self.session)
-            self.assertTrue(hasattr(i, '__iter__'))
-            self.assertTrue(self.session.accessed)
-            self.assertFalse(self.session.modified)
-            self.assertEqual(list(i), ['x'])
+    def test_itervalues(self):
+        self.session['x'] = 1
+        self.session.modified = False
+        self.session.accessed = False
+        i = six.itervalues(self.session)
+        self.assertTrue(hasattr(i, '__iter__'))
+        self.assertTrue(self.session.accessed)
+        self.assertFalse(self.session.modified)
+        self.assertEqual(list(i), [1])
 
-        def test_itervalues(self):
-            self.session['x'] = 1
-            self.session.modified = False
-            self.session.accessed = False
-            i = six.itervalues(self.session)
-            self.assertTrue(hasattr(i, '__iter__'))
-            self.assertTrue(self.session.accessed)
-            self.assertFalse(self.session.modified)
-            self.assertEqual(list(i), [1])
+    def test_iteritems(self):
+        self.session['x'] = 1
+        self.session.modified = False
+        self.session.accessed = False
+        i = six.iteritems(self.session)
+        self.assertTrue(hasattr(i, '__iter__'))
+        self.assertTrue(self.session.accessed)
+        self.assertFalse(self.session.modified)
+        self.assertEqual(list(i), [('x', 1)])
 
-        def test_iteritems(self):
-            self.session['x'] = 1
-            self.session.modified = False
-            self.session.accessed = False
-            i = six.iteritems(self.session)
-            self.assertTrue(hasattr(i, '__iter__'))
-            self.assertTrue(self.session.accessed)
-            self.assertFalse(self.session.modified)
-            self.assertEqual(list(i), [('x', 1)])
+    def test_clear(self):
+        self.session['x'] = 1
+        self.session.modified = False
+        self.session.accessed = False
+        self.assertEqual(list(self.session.items()), [('x', 1)])
+        self.session.clear()
+        self.assertEqual(list(self.session.items()), [])
+        self.assertTrue(self.session.accessed)
+        self.assertTrue(self.session.modified)
 
-        def test_clear(self):
-            self.session['x'] = 1
-            self.session.modified = False
-            self.session.accessed = False
-            self.assertEqual(list(self.session.items()), [('x', 1)])
-            self.session.clear()
-            self.assertEqual(list(self.session.items()), [])
-            self.assertTrue(self.session.accessed)
-            self.assertTrue(self.session.modified)
+    def test_save(self):
+        if (hasattr(self.session, '_cache') and 'DummyCache' in
+                settings.CACHES[settings.SESSION_CACHE_ALIAS]['BACKEND']):
+            raise unittest.SkipTest("Session saving tests require a real cache backend")
+        self.session.save()
+        self.assertTrue(self.session.exists(self.session.session_key))
 
-        def test_save(self):
-            if (hasattr(self.session, '_cache') and 'DummyCache' in
-                    settings.CACHES[settings.SESSION_CACHE_ALIAS]['BACKEND']):
-                raise unittest.SkipTest("Session saving tests require a real cache backend")
-            self.session.save()
-            self.assertTrue(self.session.exists(self.session.session_key))
+    def test_delete(self):
+        self.session.save()
+        self.session.delete(self.session.session_key)
+        self.assertFalse(self.session.exists(self.session.session_key))
 
-        def test_delete(self):
-            self.session.save()
-            self.session.delete(self.session.session_key)
-            self.assertFalse(self.session.exists(self.session.session_key))
+    def test_flush(self):
+        self.session['foo'] = 'bar'
+        self.session.save()
+        prev_key = self.session.session_key
+        self.session.flush()
+        self.assertFalse(self.session.exists(prev_key))
+        self.assertNotEqual(self.session.session_key, prev_key)
+        self.assertIsNone(self.session.session_key)
+        self.assertTrue(self.session.modified)
+        self.assertTrue(self.session.accessed)
 
-        def test_flush(self):
-            self.session['foo'] = 'bar'
-            self.session.save()
-            prev_key = self.session.session_key
-            self.session.flush()
-            self.assertFalse(self.session.exists(prev_key))
-            self.assertNotEqual(self.session.session_key, prev_key)
+    def test_cycle(self):
+        self.session['a'], self.session['b'] = 'c', 'd'
+        self.session.save()
+        prev_key = self.session.session_key
+        prev_data = list(self.session.items())
+        self.session.cycle_key()
+        self.assertNotEqual(self.session.session_key, prev_key)
+        self.assertEqual(list(self.session.items()), prev_data)
+
+    def test_save_doesnt_clear_data(self):
+        self.session['a'] = 'b'
+        self.session.save()
+        self.assertEqual(self.session['a'], 'b')
+
+    def test_invalid_key(self):
+        # Submitting an invalid session key (either by guessing, or if the db has
+        # removed the key) results in a new key being generated.
+        try:
+            session = self.backend('1')
+            try:
+                session.save()
+            except AttributeError:
+                self.fail(
+                    "The session object did not save properly. "
+                    "Middleware may be saving cache items without namespaces."
+                )
+            self.assertNotEqual(session.session_key, '1')
+            self.assertEqual(session.get('cat'), None)
+            session.delete()
+        finally:
+            # Some backends leave a stale cache entry for the invalid
+            # session key; make sure that entry is manually deleted
+            session.delete('1')
+
+    if VERSION[:2] != (1, 8):
+        def test_session_key_empty_string_invalid(self):
+            """Falsey values (Such as an empty string) are rejected."""
+            self.session._session_key = ''
             self.assertIsNone(self.session.session_key)
-            self.assertTrue(self.session.modified)
-            self.assertTrue(self.session.accessed)
 
-        def test_cycle(self):
-            self.session['a'], self.session['b'] = 'c', 'd'
-            self.session.save()
-            prev_key = self.session.session_key
-            prev_data = list(self.session.items())
-            self.session.cycle_key()
-            self.assertNotEqual(self.session.session_key, prev_key)
-            self.assertEqual(list(self.session.items()), prev_data)
+        def test_session_key_too_short_invalid(self):
+            """Strings shorter than 8 characters are rejected."""
+            self.session._session_key = '1234567'
+            self.assertIsNone(self.session.session_key)
 
-        def test_save_doesnt_clear_data(self):
-            self.session['a'] = 'b'
-            self.session.save()
-            self.assertEqual(self.session['a'], 'b')
+    def test_session_key_valid_string_saved(self):
+        """Strings of length 8 and up are accepted and stored."""
+        self.session._session_key = '12345678'
+        self.assertEqual(self.session.session_key, '12345678')
 
-        def test_invalid_key(self):
-            # Submitting an invalid session key (either by guessing, or if the db has
-            # removed the key) results in a new key being generated.
-            try:
-                session = self.backend('1')
-                try:
-                    session.save()
-                except AttributeError:
-                    self.fail(
-                        "The session object did not save properly. "
-                        "Middleware may be saving cache items without namespaces."
-                    )
-                self.assertNotEqual(session.session_key, '1')
-                self.assertEqual(session.get('cat'), None)
-                session.delete()
-            finally:
-                # Some backends leave a stale cache entry for the invalid
-                # session key; make sure that entry is manually deleted
-                session.delete('1')
+    def test_session_key_is_read_only(self):
+        def set_session_key(session):
+            session.session_key = session._get_new_session_key()
+        self.assertRaises(AttributeError, set_session_key, self.session)
 
-        if VERSION[:2] != (1, 8):
-            def test_session_key_empty_string_invalid(self):
-                """Falsey values (Such as an empty string) are rejected."""
-                self.session._session_key = ''
-                self.assertIsNone(self.session.session_key)
+    # Custom session expiry
+    def test_default_expiry(self):
+        # A normal session has a max age equal to settings
+        self.assertEqual(self.session.get_expiry_age(), settings.SESSION_COOKIE_AGE)
 
-            def test_session_key_too_short_invalid(self):
-                """Strings shorter than 8 characters are rejected."""
-                self.session._session_key = '1234567'
-                self.assertIsNone(self.session.session_key)
+        # So does a custom session with an idle expiration time of 0 (but it'll
+        # expire at browser close)
+        self.session.set_expiry(0)
+        self.assertEqual(self.session.get_expiry_age(), settings.SESSION_COOKIE_AGE)
 
-        def test_session_key_valid_string_saved(self):
-            """Strings of length 8 and up are accepted and stored."""
-            self.session._session_key = '12345678'
-            self.assertEqual(self.session.session_key, '12345678')
+    def test_custom_expiry_seconds(self):
+        modification = timezone.now()
 
-        def test_session_key_is_read_only(self):
-            def set_session_key(session):
-                session.session_key = session._get_new_session_key()
-            self.assertRaises(AttributeError, set_session_key, self.session)
+        self.session.set_expiry(10)
 
-        # Custom session expiry
-        def test_default_expiry(self):
-            # A normal session has a max age equal to settings
-            self.assertEqual(self.session.get_expiry_age(), settings.SESSION_COOKIE_AGE)
+        date = self.session.get_expiry_date(modification=modification)
+        self.assertEqual(date, modification + timedelta(seconds=10))
 
-            # So does a custom session with an idle expiration time of 0 (but it'll
-            # expire at browser close)
+        age = self.session.get_expiry_age(modification=modification)
+        self.assertEqual(age, 10)
+
+    def test_custom_expiry_timedelta(self):
+        modification = timezone.now()
+
+        # Mock timezone.now, because set_expiry calls it on this code path.
+        original_now = timezone.now
+        try:
+            timezone.now = lambda: modification
+            self.session.set_expiry(timedelta(seconds=10))
+        finally:
+            timezone.now = original_now
+
+        date = self.session.get_expiry_date(modification=modification)
+        self.assertEqual(date, modification + timedelta(seconds=10))
+
+        age = self.session.get_expiry_age(modification=modification)
+        self.assertEqual(age, 10)
+
+    def test_custom_expiry_datetime(self):
+        modification = timezone.now()
+
+        self.session.set_expiry(modification + timedelta(seconds=10))
+
+        date = self.session.get_expiry_date(modification=modification)
+        self.assertEqual(date, modification + timedelta(seconds=10))
+
+        age = self.session.get_expiry_age(modification=modification)
+        self.assertEqual(age, 10)
+
+    def test_custom_expiry_reset(self):
+        self.session.set_expiry(None)
+        self.session.set_expiry(10)
+        self.session.set_expiry(None)
+        self.assertEqual(self.session.get_expiry_age(), settings.SESSION_COOKIE_AGE)
+
+    def test_get_expire_at_browser_close(self):
+        # Tests get_expire_at_browser_close with different settings and different
+        # set_expiry calls
+        with override_settings(SESSION_EXPIRE_AT_BROWSER_CLOSE=False):
+            self.session.set_expiry(10)
+            self.assertFalse(self.session.get_expire_at_browser_close())
+
             self.session.set_expiry(0)
-            self.assertEqual(self.session.get_expiry_age(), settings.SESSION_COOKIE_AGE)
+            self.assertTrue(self.session.get_expire_at_browser_close())
 
-        def test_custom_expiry_seconds(self):
-            modification = timezone.now()
+            self.session.set_expiry(None)
+            self.assertFalse(self.session.get_expire_at_browser_close())
 
+        with override_settings(SESSION_EXPIRE_AT_BROWSER_CLOSE=True):
             self.session.set_expiry(10)
+            self.assertFalse(self.session.get_expire_at_browser_close())
 
-            date = self.session.get_expiry_date(modification=modification)
-            self.assertEqual(date, modification + timedelta(seconds=10))
+            self.session.set_expiry(0)
+            self.assertTrue(self.session.get_expire_at_browser_close())
 
-            age = self.session.get_expiry_age(modification=modification)
-            self.assertEqual(age, 10)
+            self.session.set_expiry(None)
+            self.assertTrue(self.session.get_expire_at_browser_close())
 
-        def test_custom_expiry_timedelta(self):
-            modification = timezone.now()
+    def test_decode(self):
+        # Ensure we can decode what we encode
+        data = {'a test key': 'a test value'}
+        encoded = self.session.encode(data)
+        self.assertEqual(self.session.decode(encoded), data)
 
-            # Mock timezone.now, because set_expiry calls it on this code path.
-            original_now = timezone.now
+    def test_decode_failure_logged_to_security(self):
+        bad_encode = base64.b64encode(b'flaskdj:alkdjf')
+        with patch_logger('django.security.SuspiciousSession', 'warning') as calls:
+            self.assertEqual({}, self.session.decode(bad_encode))
+            # check that the failed decode is logged
+            self.assertEqual(len(calls), 1)
+            self.assertIn('corrupted', calls[0])
+
+    def test_actual_expiry(self):
+        # this doesn't work with JSONSerializer (serializing timedelta)
+        with override_settings(SESSION_SERIALIZER='django.contrib.sessions.serializers.PickleSerializer'):
+            self.session = self.backend()  # reinitialize after overriding settings
+
+            # Regression test for #19200
+            old_session_key = None
+            new_session_key = None
             try:
-                timezone.now = lambda: modification
-                self.session.set_expiry(timedelta(seconds=10))
+                self.session['foo'] = 'bar'
+                self.session.set_expiry(-timedelta(seconds=10))
+                self.session.save()
+                old_session_key = self.session.session_key
+                # With an expiry date in the past, the session expires instantly.
+                new_session = self.backend(self.session.session_key)
+                new_session_key = new_session.session_key
+                self.assertNotIn('foo', new_session)
             finally:
-                timezone.now = original_now
-
-            date = self.session.get_expiry_date(modification=modification)
-            self.assertEqual(date, modification + timedelta(seconds=10))
-
-            age = self.session.get_expiry_age(modification=modification)
-            self.assertEqual(age, 10)
-
-        def test_custom_expiry_datetime(self):
-            modification = timezone.now()
-
-            self.session.set_expiry(modification + timedelta(seconds=10))
-
-            date = self.session.get_expiry_date(modification=modification)
-            self.assertEqual(date, modification + timedelta(seconds=10))
-
-            age = self.session.get_expiry_age(modification=modification)
-            self.assertEqual(age, 10)
-
-        def test_custom_expiry_reset(self):
-            self.session.set_expiry(None)
-            self.session.set_expiry(10)
-            self.session.set_expiry(None)
-            self.assertEqual(self.session.get_expiry_age(), settings.SESSION_COOKIE_AGE)
-
-        def test_get_expire_at_browser_close(self):
-            # Tests get_expire_at_browser_close with different settings and different
-            # set_expiry calls
-            with override_settings(SESSION_EXPIRE_AT_BROWSER_CLOSE=False):
-                self.session.set_expiry(10)
-                self.assertFalse(self.session.get_expire_at_browser_close())
-
-                self.session.set_expiry(0)
-                self.assertTrue(self.session.get_expire_at_browser_close())
-
-                self.session.set_expiry(None)
-                self.assertFalse(self.session.get_expire_at_browser_close())
-
-            with override_settings(SESSION_EXPIRE_AT_BROWSER_CLOSE=True):
-                self.session.set_expiry(10)
-                self.assertFalse(self.session.get_expire_at_browser_close())
-
-                self.session.set_expiry(0)
-                self.assertTrue(self.session.get_expire_at_browser_close())
-
-                self.session.set_expiry(None)
-                self.assertTrue(self.session.get_expire_at_browser_close())
-
-        def test_decode(self):
-            # Ensure we can decode what we encode
-            data = {'a test key': 'a test value'}
-            encoded = self.session.encode(data)
-            self.assertEqual(self.session.decode(encoded), data)
-
-        def test_decode_failure_logged_to_security(self):
-            bad_encode = base64.b64encode(b'flaskdj:alkdjf')
-            with patch_logger('django.security.SuspiciousSession', 'warning') as calls:
-                self.assertEqual({}, self.session.decode(bad_encode))
-                # check that the failed decode is logged
-                self.assertEqual(len(calls), 1)
-                self.assertIn('corrupted', calls[0])
-
-        def test_actual_expiry(self):
-            # this doesn't work with JSONSerializer (serializing timedelta)
-            with override_settings(SESSION_SERIALIZER='django.contrib.sessions.serializers.PickleSerializer'):
-                self.session = self.backend()  # reinitialize after overriding settings
-
-                # Regression test for #19200
-                old_session_key = None
-                new_session_key = None
-                try:
-                    self.session['foo'] = 'bar'
-                    self.session.set_expiry(-timedelta(seconds=10))
-                    self.session.save()
-                    old_session_key = self.session.session_key
-                    # With an expiry date in the past, the session expires instantly.
-                    new_session = self.backend(self.session.session_key)
-                    new_session_key = new_session.session_key
-                    self.assertNotIn('foo', new_session)
-                finally:
-                    self.session.delete(old_session_key)
-                    self.session.delete(new_session_key)
-
-    # class SessionTestsMixin(object): pass
+                self.session.delete(old_session_key)
+                self.session.delete(new_session_key)
 
 
 class SessionTests(SessionTestsMixin, TestCase):

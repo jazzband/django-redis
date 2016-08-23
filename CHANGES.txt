@@ -1,6 +1,11 @@
 Changelog
 =========
 
+* UPCOMING *
+------------
+
+- Now only support Django 1.8 and above. Support for older versions has been dropped.
+
 Version 4.4.4
 -------------
 
@@ -311,4 +316,3 @@ Version 2.1
 
 - Many bug fixes.
 - Client side sharding.
-

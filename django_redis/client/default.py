@@ -8,19 +8,10 @@ import warnings
 import zlib
 from collections import OrderedDict
 
-try:
-    from django.utils.encoding import smart_text
-except ImportError:
-    from django.utils.encoding import smart_unicode as smart_text
-
 from django.conf import settings
-from django.core.cache.backends.base import get_key_func
+from django.core.cache.backends.base import DEFAULT_TIMEOUT, get_key_func
 from django.core.exceptions import ImproperlyConfigured
-
-try:
-    from django.core.cache.backends.base import DEFAULT_TIMEOUT
-except ImportError:
-    DEFAULT_TIMEOUT = object()
+from django.utils.encoding import smart_text
 
 from redis.exceptions import ConnectionError
 from redis.exceptions import ResponseError

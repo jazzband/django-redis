@@ -65,11 +65,7 @@ CACHES = {
     },
 }
 
-if django.VERSION[1] >= 8:
-    TEST_RUNNER = 'django.test.runner.DiscoverRunner'
-else:
-    TEST_RUNNER = 'django.test.simple.DjangoTestSuiteRunner'
-
+TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 
 INSTALLED_APPS = (
     "django.contrib.sessions",

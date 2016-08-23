@@ -9,16 +9,9 @@ def get_redis_connection(alias='default', write=True):
     Helper used for obtaining a raw redis client.
     """
 
-    try:
-        from django.core.cache import caches
-    except ImportError:
-        # Django <1.7
-        from django.core.cache import get_cache
-    else:
-        def get_cache(alias):
-            return caches[alias]
+    from django.core.cache import caches
 
-    cache = get_cache(alias)
+    cache = caches[alias]
 
     if not hasattr(cache, "client"):
         raise NotImplementedError("This backend does not support this feature")
