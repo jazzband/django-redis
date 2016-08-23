@@ -8,11 +8,7 @@ from collections import OrderedDict
 from redis.exceptions import ConnectionError
 
 from django.conf import settings
-
-try:
-    from django.utils.encoding import smart_text
-except ImportError:
-    from django.utils.encoding import smart_unicode as smart_text
+from django.utils.encoding import smart_text
 
 from ..hash_ring import HashRing
 from ..exceptions import ConnectionInterrupted
