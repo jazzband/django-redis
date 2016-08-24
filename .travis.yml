@@ -15,6 +15,7 @@ install:
   - pip install mock
   - pip install msgpack-python>=0.4.6
   - pip install redis>=2.10.0
+  - pip install fakeredis
 
 script:
   - (cd tests && python runtests.py)
