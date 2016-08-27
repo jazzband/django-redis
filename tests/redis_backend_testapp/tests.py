@@ -28,6 +28,9 @@ from django_redis.serializers import json as json_serializer
 from django_redis.serializers import msgpack as msgpack_serializer
 
 
+FAKE_REDIS = settings.CACHES["default"]["OPTIONS"].get("REDIS_CLIENT_CLASS") \
+             == "fakeredis.FakeStrictRedis"
+
 herd.CACHE_HERD_TIMEOUT = 2
 
 if sys.version_info[0] < 3:
@@ -342,6 +345,8 @@ class DjangoRedisCacheTests(TestCase):
         self.assertFalse(bool(res))
 
     def test_incr(self):
+        if FAKE_REDIS:
+            raise unittest.SkipTest("FakeRedis doesn't support eval")
         try:
             self.cache.set("num", 1)
 
@@ -374,6 +379,8 @@ class DjangoRedisCacheTests(TestCase):
             print(e)
 
     def test_incr_error(self):
+        if FAKE_REDIS:
+            raise unittest.SkipTest("FakeRedis doesn't support eval")
         try:
             with self.assertRaises(ValueError):
                 # key not exists
@@ -396,6 +403,8 @@ class DjangoRedisCacheTests(TestCase):
         self.assertEqual(res, False)
 
     def test_decr(self):
+        if FAKE_REDIS:
+            raise unittest.SkipTest("FakeRedis doesn't support eval")
         try:
             self.cache.set("num", 20)
 
@@ -470,6 +479,9 @@ class DjangoRedisCacheTests(TestCase):
         cache.close()
 
     def test_ttl(self):
+        if FAKE_REDIS:
+            raise unittest.SkipTest("FakeRedis ttl is broken, see https://github.com/jamesls/fakeredis/issues/119")
+
         cache = caches["default"]
         _params = cache._params
         _is_herd = (_params["OPTIONS"]["CLIENT_CLASS"] ==
@@ -505,6 +517,9 @@ class DjangoRedisCacheTests(TestCase):
         self.assertEqual(ttl, 0)
 
     def test_persist(self):
+        if FAKE_REDIS:
+            raise unittest.SkipTest("FakeRedis ttl is broken, see https://github.com/jamesls/fakeredis/issues/119")
+
         self.cache.set("foo", "bar", timeout=20)
         self.cache.persist("foo")
 
@@ -518,6 +533,8 @@ class DjangoRedisCacheTests(TestCase):
         self.assertAlmostEqual(ttl, 20)
 
     def test_lock(self):
+        if FAKE_REDIS:
+            raise unittest.SkipTest("FakeRedis doesn't support locks")
         lock = self.cache.lock("foobar")
         lock.acquire(blocking=True)
 
