@@ -11,7 +11,7 @@ from .exceptions import ConnectionInterrupted
 DJANGO_REDIS_IGNORE_EXCEPTIONS = getattr(settings, "DJANGO_REDIS_IGNORE_EXCEPTIONS", False)
 DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS = getattr(settings, "DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS", False)
 DJANGO_REDIS_LOGGER = getattr(settings, "DJANGO_REDIS_LOGGER", False)
-
+DJANGO_REDIS_DELETE_PATTERN_SCAN_COUNT = getattr(settings, "DJANGO_REDIS_DELETE_PATTERN_SCAN_COUNT", 10)
 
 if DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS:
     logger = logging.getLogger((DJANGO_REDIS_LOGGER or __name__))
@@ -92,6 +92,7 @@ class RedisCache(BaseCache):
 
     @omit_exception
     def delete_pattern(self, *args, **kwargs):
+        kwargs['count'] = kwargs.get('count', DJANGO_REDIS_DELETE_PATTERN_SCAN_COUNT)
         return self.client.delete_pattern(*args, **kwargs)
 
     @omit_exception
