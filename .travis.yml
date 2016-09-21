@@ -16,14 +16,19 @@ install:
   - pip install msgpack-python>=0.4.6
   - pip install redis>=2.10.0
   - pip install fakeredis
+  - pip install coverage
+  - pip install codecov
 
 script:
-  - (cd tests && python runtests.py)
-  - (cd tests && python runtests-sharded.py)
-  - (cd tests && python runtests-herd.py)
-  - (cd tests && python runtests-json.py)
-  - (cd tests && python runtests-msgpack.py)
-  - (cd tests && python runtests-zlib.py)
+  - (cd tests && coverage run runtests.py)
+  - (cd tests && coverage run runtests-sharded.py)
+  - (cd tests && coverage run runtests-herd.py)
+  - (cd tests && coverage run runtests-json.py)
+  - (cd tests && coverage run runtests-msgpack.py)
+  - (cd tests && coverage run runtests-zlib.py)
+
+after_success:
+  - codecov
 
 services:
   - redis-server
