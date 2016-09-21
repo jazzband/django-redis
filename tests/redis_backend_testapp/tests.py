@@ -53,33 +53,9 @@ def reverse_key(key):
 class DjangoRedisConnectionStrings(TestCase):
     def setUp(self):
         self.cf = pool.get_connection_factory(options={})
-        self.constring1 = "127.0.0.1:6379:1"
-        self.constring2 = "localhost:6379:2"
-        self.constring3 = "unix:/tmp/foo.bar:2"
         self.constring4 = "unix://tmp/foo.bar?db=1"
         self.constring5 = "redis://localhost/2"
         self.constring6 = "rediss://localhost:3333?db=2"
-
-    def test_old_connection_strings_detection(self):
-        with patch.object(pool.ConnectionFactory, "adapt_old_url_format") as mc:
-            mc.return_value = {"url": "/foo/bar"}
-            res1 = self.cf.make_connection_params(self.constring1)
-            res2 = self.cf.make_connection_params(self.constring2)
-            res3 = self.cf.make_connection_params(self.constring3)
-            res4 = self.cf.make_connection_params(self.constring4)
-            res5 = self.cf.make_connection_params(self.constring5)
-            res6 = self.cf.make_connection_params(self.constring6)
-
-            self.assertEqual(mc.call_count, 3)
-
-    def test_old_connection_strings(self):
-        res1 = self.cf.adapt_old_url_format(self.constring1)
-        res2 = self.cf.adapt_old_url_format(self.constring2)
-        res3 = self.cf.adapt_old_url_format(self.constring3)
-
-        self.assertEqual(res1, "redis://127.0.0.1:6379?db=1")
-        self.assertEqual(res2, "redis://localhost:6379?db=2")
-        self.assertEqual(res3, "unix:///tmp/foo.bar?db=2")
 
     def test_new_connection_strings(self):
         res1 = self.cf.make_connection_params(self.constring4)
