@@ -3,7 +3,6 @@
 from __future__ import absolute_import, unicode_literals, print_function
 
 import base64
-import os
 import unittest
 import sys
 import time
@@ -16,7 +15,7 @@ except ImportError:
     from mock import patch
 
 from django.conf import settings
-from django.core.cache import cache, caches
+from django.core.cache import cache
 from django import VERSION
 from django.test import TestCase
 
@@ -461,7 +460,7 @@ class DjangoRedisCacheTests(TestCase):
             print(e)
 
     def test_delete_pattern(self):
-        for key in ["foo-aa","foo-ab", "foo-bb","foo-bc"]:
+        for key in ["foo-aa", "foo-ab", "foo-bb", "foo-bc"]:
             self.cache.set(key, "foo")
 
         res = self.cache.delete_pattern("*foo-a*")
