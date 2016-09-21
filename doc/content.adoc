@@ -128,11 +128,26 @@ There are several ways to specify a database number:
 - A `db` querystring option, e.g. redis://localhost?db=0
 - If using the redis:// scheme, the path argument of the url, e.g. `redis://localhost/0`
 
+In some circumstances the password you should use to connect redis
+is not URL-safe, in this case you can escape it or just use the
+convenience option in `OPTIONS` dict:
 
-NOTE: if you are coming fron django-redis < 3.8.x, you are probably using redis_cache. Since
-django-redis 3.8.x, `redis_cache` module is deprecated in favor to `django_redis`. The
-`redis_cache` module will be removed in 3.9.x versions.
+[source, python]
+----
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "PASSWORD": "mysecret"
+        }
+    }
+}
+----
 
+Take care, that this option does not overwrites the password in the uri, so if you
+have set the password in the uri, this settings will be ignored.
 
 
 Configure as session backend
