@@ -239,7 +239,7 @@ class DefaultClient(object):
         except _main_exceptions as e:
             raise ConnectionInterrupted(connection=client, parent=e)
 
-    def delete_pattern(self, pattern, version=None, prefix=None, client=None):
+    def delete_pattern(self, pattern, version=None, prefix=None, client=None, count=None):
         """
         Remove all keys matching pattern.
         """
@@ -248,9 +248,17 @@ class DefaultClient(object):
             client = self.get_client(write=True)
 
         pattern = self.make_key(pattern, version=version, prefix=prefix)
+
+        kwargs = {
+            'match': pattern,
+        }
+
+        if count:
+            kwargs['count'] = count
+
         try:
             count = 0
-            for key in client.scan_iter(pattern):
+            for key in client.scan_iter(**kwargs):
                 client.delete(key)
                 count += 1
             return count
