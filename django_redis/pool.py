@@ -44,6 +44,10 @@ class ConnectionFactory(object):
             "parser_class": self.get_parser_cls(),
         }
 
+        password = self.options.get("PASSWORD", None)
+        if password:
+            kwargs["password"] = password
+
         socket_timeout = self.options.get("SOCKET_TIMEOUT", None)
         if socket_timeout:
             assert isinstance(socket_timeout, (int, float)), \
@@ -107,7 +111,13 @@ class ConnectionFactory(object):
         """
         cp_params = dict(params)
         cp_params.update(self.pool_cls_kwargs)
-        return self.pool_cls.from_url(**cp_params)
+        pool = self.pool_cls.from_url(**cp_params)
+
+        if "password" in params:
+            pool.connection_kwargs["password"] = params["password"]
+            pool.reset()
+
+        return pool
 
 
 def get_connection_factory(path=None, options=None):
