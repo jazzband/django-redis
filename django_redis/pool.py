@@ -13,12 +13,12 @@ from . import util
 class ConnectionFactory(object):
 
     # Store connection pool by cache backend options.
-    # _pools is a process-global, as
-    # otherwise _pools is cleared every time ConnectionFactory is instiated,
-    # as Django creates new cache client (DefaultClient) instance for every request.
-    _pools = {}
+    #
+    # _pools is a process-global, as otherwise _pools is cleared every time
+    # ConnectionFactory is instiated, as Django creates new cache client
+    # (DefaultClient) instance for every request.
 
-    oldparams_rx = re.compile("^(?:[^:]+:\d{1,5}:\d+|unix:[\w/\-\.]+:\d+)$", flags=re.I)
+    _pools = {}
 
     def __init__(self, options):
         pool_cls_path = options.get("CONNECTION_POOL_CLASS",
@@ -33,41 +33,11 @@ class ConnectionFactory(object):
 
         self.options = options
 
-    def adapt_old_url_format(self, url):
-        warnings.warn("Using deprecated connection string format.", DeprecationWarning)
-
-        password = self.options.get("PASSWORD", None)
-        try:
-            host, port, db = url.split(":")
-            port = port if host == "unix" else int(port)
-            db = int(db)
-
-            if host == "unix":
-                if password:
-                    url = "unix://:{password}@{port}?db={db}"
-                else:
-                    url = "unix://{port}?db={db}"
-            else:
-                if password:
-                    url = "redis://:{password}@{host}:{port}?db={db}"
-                else:
-                    url = "redis://{host}:{port}?db={db}"
-
-            return url.format(password=password,
-                              host=host,
-                              port=port,
-                              db=db)
-
-        except (ValueError, TypeError):
-            raise ImproperlyConfigured("Incorrect format '%s'" % (url))
-
     def make_connection_params(self, url):
         """
         Given a main connection parameters, build a complete
         dict of connection parameters.
         """
-        if self.oldparams_rx.match(url):
-            url = self.adapt_old_url_format(url)
 
         kwargs = {
             "url": url,
