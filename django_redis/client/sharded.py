@@ -238,16 +238,22 @@ class ShardClient(DefaultClient):
         decoded_keys = (smart_text(k) for k in keys)
         return [self.reverse_key(k) for k in decoded_keys]
 
-    def delete_pattern(self, pattern, version=None, client=None):
+    def delete_pattern(self, pattern, version=None, client=None, count=None):
         """
         Remove all keys matching pattern.
         """
 
         pattern = self.make_key(pattern, version=version)
 
+        kwargs = {
+            'match': pattern,
+        }
+        if count:
+            kwargs['count'] = count
+
         keys = []
         for server, connection in self._serverdict.items():
-            keys.extend([key for key in connection.scan_iter(pattern)])
+            keys.extend([key for key in connection.scan_iter(**kwargs)])
 
         res = 0
         if keys:

@@ -252,7 +252,6 @@ class DefaultClient(object):
         kwargs = {
             'match': pattern,
         }
-
         if count:
             kwargs['count'] = count
 
