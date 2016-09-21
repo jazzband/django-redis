@@ -113,7 +113,7 @@ class ConnectionFactory(object):
         cp_params.update(self.pool_cls_kwargs)
         pool = self.pool_cls.from_url(**cp_params)
 
-        if pool.connection_kwargs.get("password", None) is None
+        if pool.connection_kwargs.get("password", None) is None:
             pool.connection_kwargs["password"] = params.get("password", None)
             pool.reset()
 
