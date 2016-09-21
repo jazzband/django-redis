@@ -18,6 +18,7 @@ from django.conf import settings
 from django.core.cache import cache
 from django import VERSION
 from django.test import TestCase
+from django.test import override_settings
 
 import django_redis.cache
 from django_redis import pool
@@ -472,14 +473,24 @@ class DjangoRedisCacheTests(TestCase):
         res = self.cache.delete_pattern("*foo-a*")
         self.assertFalse(bool(res))
 
-    @patch('django_redis.client.DefaultClient.get_client')
-    def test_delete_pattern_with_custom_count(self, get_client_mock):
+    @patch('django_redis.cache.RedisCache.client')
+    def test_delete_pattern_with_custom_count(self, client_mock):
         for key in ["foo-aa", "foo-ab", "foo-bb", "foo-bc"]:
             self.cache.set(key, "foo")
 
         self.cache.delete_pattern("*foo-a*", count=2)
 
-        get_client_mock.return_value.scan_iter.assert_called_once_with(count=2, match=":1:*foo-a*")
+        client_mock.delete_pattern.assert_called_once_with("*foo-a*", count=2)
+
+    @patch('django_redis.cache.RedisCache.client')
+    def test_delete_pattern_with_settings_default_scan_count(self, client_mock):
+        for key in ["foo-aa", "foo-ab", "foo-bb", "foo-bc"]:
+            self.cache.set(key, "foo")
+        expected_count = django_redis.cache.DJANGO_REDIS_DELETE_PATTERN_SCAN_COUNT
+
+        self.cache.delete_pattern("*foo-a*")
+
+        client_mock.delete_pattern.assert_called_once_with("*foo-a*", count=expected_count)
 
     def test_close(self):
         cache = caches["default"]
