@@ -28,7 +28,7 @@ script:
   - (cd tests && coverage run runtests-zlib.py)
 
 after_success:
-  - codecov
+  - (cd tests && codecov)
 
 services:
   - redis-server
