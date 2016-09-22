@@ -94,7 +94,7 @@ class RedisCache(BaseCache):
 
     @omit_exception
     def delete_pattern(self, *args, **kwargs):
-        kwargs['count'] = kwargs.get('count', DJANGO_REDIS_DELETE_PATTERN_SCAN_COUNT)
+        kwargs['itersize'] = kwargs.get('itersize', DJANGO_REDIS_DELETE_PATTERN_SCAN_COUNT)
         return self.client.delete_pattern(*args, **kwargs)
 
     @omit_exception

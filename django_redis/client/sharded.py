@@ -245,9 +245,7 @@ class ShardClient(DefaultClient):
 
         pattern = self.make_key(pattern, version=version)
 
-        kwargs = {
-            'match': pattern,
-        }
+        kwargs = {'match': pattern, }
         if count:
             kwargs['count'] = count
 
