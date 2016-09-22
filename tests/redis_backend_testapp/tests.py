@@ -491,7 +491,7 @@ class DjangoRedisCacheTests(TestCase):
     def test_delete_pattern_with_settings_default_scan_count(self, client_mock):
         for key in ["foo-aa", "foo-ab", "foo-bb", "foo-bc"]:
             self.cache.set(key, "foo")
-        expected_count = django_redis.cache.DJANGO_REDIS_DELETE_PATTERN_SCAN_COUNT
+        expected_count = django_redis.cache.DJANGO_REDIS_SCAN_ITERSIZE
 
         self.cache.delete_pattern("*foo-a*")
 
