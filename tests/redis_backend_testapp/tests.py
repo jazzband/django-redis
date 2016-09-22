@@ -26,6 +26,7 @@ import fakeredis
 import django_redis.cache
 from django_redis import pool
 from django_redis.client import DefaultClient
+from django_redis.client import ShardClient
 from django_redis.client import herd
 
 from django_redis.serializers import json as json_serializer
@@ -1001,3 +1002,47 @@ class TestDefaultClient(TestCase):
 
         get_client_mock.return_value.scan_iter.assert_called_once_with(
             count=90210, match=make_key_mock.return_value)
+
+
+class TestShardClient(TestCase):
+
+    @patch('redis_backend_testapp.tests.DefaultClient.make_key')
+    @patch('redis_backend_testapp.tests.ShardClient.__init__', return_value=None)
+    def test_delete_pattern_calls_scan_iter_with_count_if_itersize_given(
+            self, init_mock, make_key_mock):
+        client = ShardClient()
+        client._backend = Mock()
+        connection = Mock()
+        connection.scan_iter.return_value = []
+        client._serverdict = {'test': connection}
+
+        client.delete_pattern(pattern='foo*', itersize=10)
+
+        connection.scan_iter.assert_called_once_with(count=10, match=make_key_mock.return_value)
+
+    @patch('redis_backend_testapp.tests.DefaultClient.make_key')
+    @patch('redis_backend_testapp.tests.ShardClient.__init__', return_value=None)
+    def test_delete_pattern_calls_scan_iter(self, init_mock, make_key_mock):
+        client = ShardClient()
+        client._backend = Mock()
+        connection = Mock()
+        connection.scan_iter.return_value = []
+        client._serverdict = {'test': connection}
+
+        client.delete_pattern(pattern='foo*')
+
+        connection.scan_iter.assert_called_once_with(match=make_key_mock.return_value)
+
+    @patch('redis_backend_testapp.tests.DefaultClient.make_key')
+    @patch('redis_backend_testapp.tests.ShardClient.__init__', return_value=None)
+    def test_delete_pattern_calls_delete_for_given_keys(self, init_mock, make_key_mock):
+        client = ShardClient()
+        client._backend = Mock()
+        connection = Mock()
+        connection.scan_iter.return_value = [Mock(), Mock()]
+        connection.delete.return_value = 0
+        client._serverdict = {'test': connection}
+
+        client.delete_pattern(pattern='foo*')
+
+        connection.delete.assert_called_once_with(*connection.scan_iter.return_value)
