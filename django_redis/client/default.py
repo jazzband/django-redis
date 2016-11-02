@@ -279,7 +279,18 @@ class DefaultClient(object):
         """
         Flush all cache keys.
         """
-        self.delete_pattern("*", client=client)
+
+        if client is None:
+            client = self.get_client(write=True)
+
+        try:
+            count = 0
+            for key in client.scan_iter("*"):
+                client.delete(key)
+                count += 1
+            return count
+        except _main_exceptions as e:
+            raise ConnectionInterrupted(connection=client, parent=e)
 
     def decode(self, value):
         """
