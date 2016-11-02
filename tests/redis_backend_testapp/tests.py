@@ -555,21 +555,6 @@ class DjangoRedisCacheTests(TestCase):
         except NotImplementedError:
             pass
 
-    def test_clear_with_cache_prefix(self):
-        """
-        Tests that cache.clear() does only delete keys which starts with the
-        correct prefix configured with KEY_PREFIX.
-        """
-        cache_normal = caches['sample']
-        cache_with_prefix = caches['with_prefix']
-        cache_normal.set('some_key', 'some_value')
-        cache_with_prefix.set('other_key', 'other_value')
-
-        cache_with_prefix.clear()
-
-        self.assertIsNone(cache_with_prefix.get('other_key'))
-        self.assertEqual(cache_normal.get('some_key'), 'some_value')
-
     def test_zlib_compressor(self):
         pass
 
