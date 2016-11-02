@@ -1,6 +1,14 @@
 Changelog
 =========
 
+Version 4.6.0
+-------------
+
+Date: unreleased
+
+- Fix incorrect behavior of `clear()` method.
+
+
 Version 4.5.0
 -------------
 
