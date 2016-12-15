@@ -107,10 +107,6 @@ class DefaultClient(object):
         Persist a value to the cache, and set an optional expiration time.
         Also supports optional nx parameter. If set to True - will use redis setnx instead of set.
         """
-
-        if not client:
-            client, index = self.get_client(write=True)
-
         nkey = self.make_key(key, version=version)
         nvalue = self.encode(value)
 
@@ -121,26 +117,36 @@ class DefaultClient(object):
         if timeout == DEFAULT_TIMEOUT:
             timeout = self._backend.default_timeout
 
-        try:
-            if timeout is not None:
-                if timeout > 0:
-                    # Convert to milliseconds
-                    timeout = int(timeout * 1000)
-                elif timeout <= 0:
-                    if nx:
-                        # Using negative timeouts when nx is True should
-                        # not expire (in our case delete) the value if it exists.
-                        # Obviously expire not existent value is noop.
-                        timeout = None
-                    else:
-                        # redis doesn't support negative timeouts in ex flags
-                        # so it seems that it's better to just delete the key
-                        # than to set it and than expire in a pipeline
-                        return self.delete(key, client=client, version=version)
+        original_client = client
+        tried = []
+        while True:
+            try:
+                if not client:
+                    client, index = self.get_client(write=True, tried=tried)
 
-            return client.set(nkey, nvalue, nx=nx, px=timeout, xx=xx)
-        except _main_exceptions as e:
-            raise ConnectionInterrupted(connection=client, parent=e)
+                if timeout is not None:
+                    if timeout > 0:
+                        # Convert to milliseconds
+                        timeout = int(timeout * 1000)
+                    elif timeout <= 0:
+                        if nx:
+                            # Using negative timeouts when nx is True should
+                            # not expire (in our case delete) the value if it exists.
+                            # Obviously expire not existent value is noop.
+                            timeout = None
+                        else:
+                            # redis doesn't support negative timeouts in ex flags
+                            # so it seems that it's better to just delete the key
+                            # than to set it and than expire in a pipeline
+                            return self.delete(key, client=client, version=version)
+
+                return client.set(nkey, nvalue, nx=nx, px=timeout, xx=xx)
+            except _main_exceptions as e:
+                if not original_client and len(tried) < len(self._server):
+                    tried.append(index)
+                    client = None
+                    continue
+                raise ConnectionInterrupted(connection=client, parent=e)
 
     def incr_version(self, key, delta=1, version=None, client=None):
         """
