@@ -46,6 +46,7 @@ class DefaultClient(object):
 
         self._clients = [None] * len(self._server)
         self._options = params.get("OPTIONS", {})
+        self._slave_read_only = self._options.get('SLAVE_READ_ONLY', True)
 
         serializer_path = self._options.get("SERIALIZER", "django_redis.serializers.pickle.PickleSerializer")
         serializer_cls = load_class(serializer_path)
@@ -142,7 +143,7 @@ class DefaultClient(object):
 
                 return client.set(nkey, nvalue, nx=nx, px=timeout, xx=xx)
             except _main_exceptions as e:
-                if not original_client and len(tried) < len(self._server):
+                if not original_client and not self._slave_read_only and len(tried) < len(self._server):
                     tried.append(index)
                     client = None
                     continue
