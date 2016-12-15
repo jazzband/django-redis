@@ -61,7 +61,7 @@ class DefaultClient(object):
     def __contains__(self, key):
         return self.has_key(key)
 
-    def get_next_client_index(self, write=True):
+    def get_next_client_index(self, write=True, tried=[]):
         """
         Return a next index for read client.
         This function implements a default behavior for
@@ -70,6 +70,10 @@ class DefaultClient(object):
         Overwrite this function if you want a specific
         behavior.
         """
+        if tried and len(tried) < len(self._server):
+            not_tried = [i for i in range(0, len(self._server)) if i not in tried]
+            return random.choice(not_tried)
+
         if write or len(self._server) == 1:
             return 0
 
