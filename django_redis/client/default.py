@@ -79,7 +79,7 @@ class DefaultClient(object):
 
         return random.randint(1, len(self._server) - 1)
 
-    def get_client(self, write=True):
+    def get_client(self, write=True, tried=[]):
         """
         Method used for obtain a raw redis client.
 
@@ -87,12 +87,12 @@ class DefaultClient(object):
         operations for obtain a native redis client/connection
         instance.
         """
-        index = self.get_next_client_index(write=write)
+        index = self.get_next_client_index(write=write, tried=tried)
 
         if self._clients[index] is None:
             self._clients[index] = self.connect(index)
 
-        return self._clients[index]
+        return self._clients[index], index
 
     def connect(self, index=0):
         """
@@ -109,7 +109,7 @@ class DefaultClient(object):
         """
 
         if not client:
-            client = self.get_client(write=True)
+            client, index = self.get_client(write=True)
 
         nkey = self.make_key(key, version=version)
         nvalue = self.encode(value)
@@ -149,7 +149,7 @@ class DefaultClient(object):
         """
 
         if client is None:
-            client = self.get_client(write=True)
+            client, index = self.get_client(write=True)
 
         if version is None:
             version = self._backend.version
@@ -189,7 +189,7 @@ class DefaultClient(object):
         Returns decoded value if key is found, the default if not.
         """
         if client is None:
-            client = self.get_client(write=False)
+            client, index = self.get_client(write=False)
 
         key = self.make_key(key, version=version)
 
@@ -205,7 +205,7 @@ class DefaultClient(object):
 
     def persist(self, key, version=None, client=None):
         if client is None:
-            client = self.get_client(write=True)
+            client, index = self.get_client(write=True)
 
         key = self.make_key(key, version=version)
 
@@ -214,7 +214,7 @@ class DefaultClient(object):
 
     def expire(self, key, timeout, version=None, client=None):
         if client is None:
-            client = self.get_client(write=True)
+            client, index = self.get_client(write=True)
 
         key = self.make_key(key, version=version)
 
@@ -224,7 +224,7 @@ class DefaultClient(object):
     def lock(self, key, version=None, timeout=None, sleep=0.1,
              blocking_timeout=None, client=None):
         if client is None:
-            client = self.get_client(write=True)
+            client, index = self.get_client(write=True)
 
         key = self.make_key(key, version=version)
         return client.lock(key, timeout=timeout, sleep=sleep,
@@ -235,7 +235,7 @@ class DefaultClient(object):
         Remove a key from the cache.
         """
         if client is None:
-            client = self.get_client(write=True)
+            client, index = self.get_client(write=True)
 
         try:
             return client.delete(self.make_key(key, version=version,
@@ -249,7 +249,7 @@ class DefaultClient(object):
         """
 
         if client is None:
-            client = self.get_client(write=True)
+            client, index = self.get_client(write=True)
 
         pattern = self.make_key(pattern, version=version, prefix=prefix)
         try:
@@ -267,7 +267,7 @@ class DefaultClient(object):
         """
 
         if client is None:
-            client = self.get_client(write=True)
+            client, index = self.get_client(write=True)
 
         keys = [self.make_key(k, version=version) for k in keys]
 
@@ -285,7 +285,7 @@ class DefaultClient(object):
         """
 
         if client is None:
-            client = self.get_client(write=True)
+            client, index = self.get_client(write=True)
 
         try:
             count = 0
@@ -329,7 +329,7 @@ class DefaultClient(object):
         """
 
         if client is None:
-            client = self.get_client(write=False)
+            client, index = self.get_client(write=False)
 
         if not keys:
             return {}
@@ -359,7 +359,7 @@ class DefaultClient(object):
         the default cache timeout will be used.
         """
         if client is None:
-            client = self.get_client(write=True)
+            client, index = self.get_client(write=True)
 
         try:
             pipeline = client.pipeline()
@@ -371,7 +371,7 @@ class DefaultClient(object):
 
     def _incr(self, key, delta=1, version=None, client=None):
         if client is None:
-            client = self.get_client(write=True)
+            client, index = self.get_client(write=True)
 
         key = self.make_key(key, version=version)
 
@@ -431,7 +431,7 @@ class DefaultClient(object):
         If key is a non volatile key, it returns None.
         """
         if client is None:
-            client = self.get_client(write=False)
+            client, index = self.get_client(write=False)
 
         key = self.make_key(key, version=version)
         if not client.exists(key):
@@ -455,7 +455,7 @@ class DefaultClient(object):
         """
 
         if client is None:
-            client = self.get_client(write=False)
+            client, index = self.get_client(write=False)
 
         key = self.make_key(key, version=version)
         try:
@@ -470,7 +470,7 @@ class DefaultClient(object):
         """
 
         if client is None:
-            client = self.get_client(write=False)
+            client, index = self.get_client(write=False)
 
         pattern = self.make_key(search, version=version)
         for item in client.scan_iter(match=pattern, count=itersize):
@@ -486,7 +486,7 @@ class DefaultClient(object):
         """
 
         if client is None:
-            client = self.get_client(write=False)
+            client, index = self.get_client(write=False)
 
         pattern = self.make_key(search, version=version)
         try:
