@@ -62,7 +62,7 @@ class DefaultClient(object):
     def __contains__(self, key):
         return self.has_key(key)
 
-    def get_next_client_index(self, write=True, tried=[]):
+    def get_next_client_index(self, write=True, tried=()):
         """
         Return a next index for read client.
         This function implements a default behavior for
@@ -80,7 +80,7 @@ class DefaultClient(object):
 
         return random.randint(1, len(self._server) - 1)
 
-    def get_client(self, write=True, tried=[], show_index=False):
+    def get_client(self, write=True, tried=(), show_index=False):
         """
         Method used for obtain a raw redis client.
 
@@ -88,7 +88,7 @@ class DefaultClient(object):
         operations for obtain a native redis client/connection
         instance.
         """
-        index = self.get_next_client_index(write=write, tried=tried)
+        index = self.get_next_client_index(write=write, tried=tried or [])
 
         if self._clients[index] is None:
             self._clients[index] = self.connect(index)
