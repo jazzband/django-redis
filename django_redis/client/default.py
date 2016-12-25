@@ -46,6 +46,7 @@ class DefaultClient(object):
 
         self._clients = [None] * len(self._server)
         self._options = params.get("OPTIONS", {})
+        self._slave_read_only = self._options.get('SLAVE_READ_ONLY', True)
 
         serializer_path = self._options.get("SERIALIZER", "django_redis.serializers.pickle.PickleSerializer")
         serializer_cls = load_class(serializer_path)
@@ -61,7 +62,7 @@ class DefaultClient(object):
     def __contains__(self, key):
         return self.has_key(key)
 
-    def get_next_client_index(self, write=True):
+    def get_next_client_index(self, write=True, tried=()):
         """
         Return a next index for read client.
         This function implements a default behavior for
@@ -70,12 +71,16 @@ class DefaultClient(object):
         Overwrite this function if you want a specific
         behavior.
         """
+        if tried and len(tried) < len(self._server):
+            not_tried = [i for i in range(0, len(self._server)) if i not in tried]
+            return random.choice(not_tried)
+
         if write or len(self._server) == 1:
             return 0
 
         return random.randint(1, len(self._server) - 1)
 
-    def get_client(self, write=True):
+    def get_client(self, write=True, tried=(), show_index=False):
         """
         Method used for obtain a raw redis client.
 
@@ -83,12 +88,15 @@ class DefaultClient(object):
         operations for obtain a native redis client/connection
         instance.
         """
-        index = self.get_next_client_index(write=write)
+        index = self.get_next_client_index(write=write, tried=tried or [])
 
         if self._clients[index] is None:
             self._clients[index] = self.connect(index)
 
-        return self._clients[index]
+        if show_index:
+            return self._clients[index], index
+        else:
+            return self._clients[index]
 
     def connect(self, index=0):
         """
@@ -103,10 +111,6 @@ class DefaultClient(object):
         Persist a value to the cache, and set an optional expiration time.
         Also supports optional nx parameter. If set to True - will use redis setnx instead of set.
         """
-
-        if not client:
-            client = self.get_client(write=True)
-
         nkey = self.make_key(key, version=version)
         nvalue = self.encode(value)
 
@@ -117,26 +121,36 @@ class DefaultClient(object):
         if timeout == DEFAULT_TIMEOUT:
             timeout = self._backend.default_timeout
 
-        try:
-            if timeout is not None:
-                if timeout > 0:
-                    # Convert to milliseconds
-                    timeout = int(timeout * 1000)
-                elif timeout <= 0:
-                    if nx:
-                        # Using negative timeouts when nx is True should
-                        # not expire (in our case delete) the value if it exists.
-                        # Obviously expire not existent value is noop.
-                        timeout = None
-                    else:
-                        # redis doesn't support negative timeouts in ex flags
-                        # so it seems that it's better to just delete the key
-                        # than to set it and than expire in a pipeline
-                        return self.delete(key, client=client, version=version)
+        original_client = client
+        tried = []
+        while True:
+            try:
+                if not client:
+                    client, index = self.get_client(write=True, tried=tried, show_index=True)
 
-            return client.set(nkey, nvalue, nx=nx, px=timeout, xx=xx)
-        except _main_exceptions as e:
-            raise ConnectionInterrupted(connection=client, parent=e)
+                if timeout is not None:
+                    if timeout > 0:
+                        # Convert to milliseconds
+                        timeout = int(timeout * 1000)
+                    elif timeout <= 0:
+                        if nx:
+                            # Using negative timeouts when nx is True should
+                            # not expire (in our case delete) the value if it exists.
+                            # Obviously expire not existent value is noop.
+                            timeout = None
+                        else:
+                            # redis doesn't support negative timeouts in ex flags
+                            # so it seems that it's better to just delete the key
+                            # than to set it and than expire in a pipeline
+                            return self.delete(key, client=client, version=version)
+
+                return client.set(nkey, nvalue, nx=nx, px=timeout, xx=xx)
+            except _main_exceptions as e:
+                if not original_client and not self._slave_read_only and len(tried) < len(self._server):
+                    tried.append(index)
+                    client = None
+                    continue
+                raise ConnectionInterrupted(connection=client, parent=e)
 
     def incr_version(self, key, delta=1, version=None, client=None):
         """
