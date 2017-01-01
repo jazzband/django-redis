@@ -8,9 +8,11 @@ from django.core.cache.backends.base import BaseCache
 from .util import load_class
 from .exceptions import ConnectionInterrupted
 
+
 DJANGO_REDIS_IGNORE_EXCEPTIONS = getattr(settings, "DJANGO_REDIS_IGNORE_EXCEPTIONS", False)
 DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS = getattr(settings, "DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS", False)
 DJANGO_REDIS_LOGGER = getattr(settings, "DJANGO_REDIS_LOGGER", False)
+DJANGO_REDIS_SCAN_ITERSIZE = getattr(settings, "DJANGO_REDIS_SCAN_ITERSIZE", 10)
 
 
 if DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS:
@@ -92,6 +94,7 @@ class RedisCache(BaseCache):
 
     @omit_exception
     def delete_pattern(self, *args, **kwargs):
+        kwargs['itersize'] = kwargs.get('itersize', DJANGO_REDIS_SCAN_ITERSIZE)
         return self.client.delete_pattern(*args, **kwargs)
 
     @omit_exception

@@ -3,7 +3,6 @@
 from __future__ import absolute_import, unicode_literals, print_function
 
 import base64
-import os
 import unittest
 import sys
 import time
@@ -15,13 +14,19 @@ try:
 except ImportError:
     from mock import patch
 
+from mock import Mock
+
 from django.conf import settings
-from django.core.cache import cache, caches
+from django.core.cache import cache
 from django import VERSION
 from django.test import TestCase
 
+import fakeredis
+
 import django_redis.cache
 from django_redis import pool
+from django_redis.client import DefaultClient
+from django_redis.client import ShardClient
 from django_redis.client import herd
 
 from django_redis.serializers import json as json_serializer
@@ -437,7 +442,7 @@ class DjangoRedisCacheTests(TestCase):
             print(e)
 
     def test_delete_pattern(self):
-        for key in ["foo-aa","foo-ab", "foo-bb","foo-bc"]:
+        for key in ["foo-aa", "foo-ab", "foo-bb", "foo-bc"]:
             self.cache.set(key, "foo")
 
         res = self.cache.delete_pattern("*foo-a*")
@@ -448,6 +453,25 @@ class DjangoRedisCacheTests(TestCase):
 
         res = self.cache.delete_pattern("*foo-a*")
         self.assertFalse(bool(res))
+
+    @patch('django_redis.cache.RedisCache.client')
+    def test_delete_pattern_with_custom_count(self, client_mock):
+        for key in ["foo-aa", "foo-ab", "foo-bb", "foo-bc"]:
+            self.cache.set(key, "foo")
+
+        self.cache.delete_pattern("*foo-a*", itersize=2)
+
+        client_mock.delete_pattern.assert_called_once_with("*foo-a*", itersize=2)
+
+    @patch('django_redis.cache.RedisCache.client')
+    def test_delete_pattern_with_settings_default_scan_count(self, client_mock):
+        for key in ["foo-aa", "foo-ab", "foo-bb", "foo-bc"]:
+            self.cache.set(key, "foo")
+        expected_count = django_redis.cache.DJANGO_REDIS_SCAN_ITERSIZE
+
+        self.cache.delete_pattern("*foo-a*")
+
+        client_mock.delete_pattern.assert_called_once_with("*foo-a*", itersize=expected_count)
 
     def test_close(self):
         cache = caches["default"]
@@ -902,3 +926,84 @@ class SessionTests(SessionTestsMixin, TestCase):
 
     def test_actual_expiry(self):
         pass
+
+
+class TestDefaultClient(TestCase):
+
+    @patch('redis_backend_testapp.tests.DefaultClient.get_client')
+    @patch('redis_backend_testapp.tests.DefaultClient.__init__', return_value=None)
+    def test_delete_pattern_calls_get_client_given_no_client(self, init_mock, get_client_mock):
+        client = DefaultClient()
+        client._backend = Mock()
+
+        client.delete_pattern(pattern='foo*')
+
+        get_client_mock.assert_called_once_with(write=True)
+
+    @patch('redis_backend_testapp.tests.DefaultClient.make_key')
+    @patch('redis_backend_testapp.tests.DefaultClient.__init__', return_value=None)
+    def test_delete_pattern_calls_make_key(self, init_mock, make_key_mock):
+        client = DefaultClient()
+        client._backend = Mock()
+        redis_client = fakeredis.FakeStrictRedis()
+        client.delete_pattern(pattern='foo*', client=redis_client)
+
+        make_key_mock.assert_called_once_with('foo*', version=None, prefix=None)
+
+    @patch('redis_backend_testapp.tests.DefaultClient.make_key')
+    @patch('redis_backend_testapp.tests.DefaultClient.get_client', return_value=Mock())
+    @patch('redis_backend_testapp.tests.DefaultClient.__init__', return_value=None)
+    def test_delete_pattern_calls_scan_iter_with_count_if_itersize_given(
+            self, init_mock, get_client_mock, make_key_mock):
+        client = DefaultClient()
+        client._backend = Mock()
+        get_client_mock.return_value.scan_iter.return_value = []
+
+        client.delete_pattern(pattern='foo*', itersize=90210)
+
+        get_client_mock.return_value.scan_iter.assert_called_once_with(
+            count=90210, match=make_key_mock.return_value)
+
+
+class TestShardClient(TestCase):
+
+    @patch('redis_backend_testapp.tests.DefaultClient.make_key')
+    @patch('redis_backend_testapp.tests.ShardClient.__init__', return_value=None)
+    def test_delete_pattern_calls_scan_iter_with_count_if_itersize_given(
+            self, init_mock, make_key_mock):
+        client = ShardClient()
+        client._backend = Mock()
+        connection = Mock()
+        connection.scan_iter.return_value = []
+        client._serverdict = {'test': connection}
+
+        client.delete_pattern(pattern='foo*', itersize=10)
+
+        connection.scan_iter.assert_called_once_with(count=10, match=make_key_mock.return_value)
+
+    @patch('redis_backend_testapp.tests.DefaultClient.make_key')
+    @patch('redis_backend_testapp.tests.ShardClient.__init__', return_value=None)
+    def test_delete_pattern_calls_scan_iter(self, init_mock, make_key_mock):
+        client = ShardClient()
+        client._backend = Mock()
+        connection = Mock()
+        connection.scan_iter.return_value = []
+        client._serverdict = {'test': connection}
+
+        client.delete_pattern(pattern='foo*')
+
+        connection.scan_iter.assert_called_once_with(match=make_key_mock.return_value)
+
+    @patch('redis_backend_testapp.tests.DefaultClient.make_key')
+    @patch('redis_backend_testapp.tests.ShardClient.__init__', return_value=None)
+    def test_delete_pattern_calls_delete_for_given_keys(self, init_mock, make_key_mock):
+        client = ShardClient()
+        client._backend = Mock()
+        connection = Mock()
+        connection.scan_iter.return_value = [Mock(), Mock()]
+        connection.delete.return_value = 0
+        client._serverdict = {'test': connection}
+
+        client.delete_pattern(pattern='foo*')
+
+        connection.delete.assert_called_once_with(*connection.scan_iter.return_value)
