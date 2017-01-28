@@ -1,5 +1,4 @@
 import functools
-import warnings
 import logging
 
 from django.conf import settings

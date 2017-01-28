@@ -5,7 +5,6 @@ from __future__ import absolute_import, unicode_literals
 import random
 import socket
 import warnings
-import zlib
 from collections import OrderedDict
 
 from django.conf import settings

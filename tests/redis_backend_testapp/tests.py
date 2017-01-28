@@ -609,10 +609,6 @@ class DjangoOmitExceptionsTests(TestCase):
 
 from django.contrib.sessions.backends.cache import SessionStore as CacheSession
 
-from django.contrib.sessions.serializers import (
-    JSONSerializer, PickleSerializer,
-)
-from django.core import management
 from django.core.cache import caches
 from django.test import override_settings
 from django.test.utils import patch_logger

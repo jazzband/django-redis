@@ -4,7 +4,6 @@ from __future__ import absolute_import, unicode_literals
 
 import json
 
-from django.core.exceptions import ImproperlyConfigured
 from django.utils.encoding import force_bytes, force_text
 
 from .base import BaseSerializer

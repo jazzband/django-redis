@@ -12,8 +12,6 @@
 # database backends as possible.  You may want to create a separate settings
 # file for each of the backends you test against.
 
-import django
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3'
