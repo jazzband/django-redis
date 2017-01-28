@@ -11,6 +11,7 @@ from django.conf import settings
 from django.core.cache.backends.base import DEFAULT_TIMEOUT, get_key_func
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.encoding import smart_text
+from django.utils import six
 
 from redis.exceptions import ConnectionError
 from redis.exceptions import ResponseError
@@ -23,7 +24,7 @@ try:
 except ImportError:
     _main_exceptions = (ConnectionError, socket.timeout)
 
-from ..util import CacheKey, load_class, integer_types
+from ..util import CacheKey, load_class
 from ..exceptions import ConnectionInterrupted, CompressorError
 from .. import pool
 
@@ -330,7 +331,7 @@ class DefaultClient(object):
         Encode the given value.
         """
 
-        if isinstance(value, bool) or not isinstance(value, integer_types):
+        if isinstance(value, bool) or not isinstance(value, six.integer_types):
             value = self._serializer.dumps(value)
             value = self._compressor.compress(value)
             return value

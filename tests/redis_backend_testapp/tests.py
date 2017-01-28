@@ -20,6 +20,7 @@ from django.conf import settings
 from django.core.cache import cache
 from django import VERSION
 from django.test import TestCase
+from django.utils import six
 
 import fakeredis
 
@@ -38,12 +39,7 @@ FAKE_REDIS = settings.CACHES["default"]["OPTIONS"].get("REDIS_CLIENT_CLASS") \
 
 herd.CACHE_HERD_TIMEOUT = 2
 
-if sys.version_info[0] < 3:
-    text_type = unicode
-    bytes_type = str
-else:
-    text_type = str
-    bytes_type = bytes
+if six.PY3:
     long = int
 
 
@@ -166,20 +162,20 @@ class DjangoRedisCacheTests(TestCase):
         res = self.cache.get("test_key")
 
         type(res)
-        self.assertIsInstance(res, text_type)
+        self.assertIsInstance(res, six.text_type)
         self.assertEqual(res, "hello"*1000)
 
         self.cache.set("test_key", "2")
         res = self.cache.get("test_key")
 
-        self.assertIsInstance(res, text_type)
+        self.assertIsInstance(res, six.text_type)
         self.assertEqual(res, "2")
 
     def test_save_unicode(self):
         self.cache.set("test_key", "heló")
         res = self.cache.get("test_key")
 
-        self.assertIsInstance(res, text_type)
+        self.assertIsInstance(res, six.text_type)
         self.assertEqual(res, "heló")
 
     def test_save_dict(self):
