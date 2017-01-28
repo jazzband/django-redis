@@ -4,6 +4,7 @@ python:
   - "3.5"
   - "3.4"
   - "2.7"
+cache: pip
 
 env:
   - DJANGO="Django>=1.10,<1.11"
