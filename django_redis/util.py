@@ -42,5 +42,6 @@ def load_class(path):
 
     return klass
 
+
 def default_reverse_key(key):
     return key.split(':', 2)[2]

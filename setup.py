@@ -8,27 +8,27 @@ Full featured redis cache backend for Django.
 """
 
 setup(
-    name = "django-redis",
-    url = "https://github.com/niwibe/django-redis",
-    author = "Andrei Antoukh",
-    author_email = "niwi@niwi.nz",
+    name="django-redis",
+    url="https://github.com/niwibe/django-redis",
+    author="Andrei Antoukh",
+    author_email="niwi@niwi.nz",
     version=__version__,
-    packages = [
+    packages=[
         "django_redis",
         "django_redis.client",
         "django_redis.serializers",
         "django_redis.compressors"
     ],
-    description = description.strip(),
+    description=description.strip(),
     install_requires=[
         "redis>=2.10.0",
     ],
     zip_safe=False,
-    include_package_data = True,
-    package_data = {
+    include_package_data=True,
+    package_data={
         "": ["*.html"],
     },
-    classifiers = [
+    classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Environment :: Web Environment",
         "Framework :: Django :: 1.8",

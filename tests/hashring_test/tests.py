@@ -36,4 +36,4 @@ class HashRingTest(TestCase):
 
     def test_hashring_brute_force(self):
         for key in ("test{0}".format(x) for x in range(10000)):
-            node = self.ring.get_node(key)
+            self.ring.get_node(key)

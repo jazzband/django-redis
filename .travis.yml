@@ -15,6 +15,9 @@ install:
   - pip install $DJANGO
   - pip install -r requirements.txt
 
+before_script:
+  - flake8
+
 script:
   - (cd tests && python runtests.py)
   - (cd tests && python runtests-sharded.py)
