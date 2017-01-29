@@ -4,6 +4,14 @@ Changelog
 Version 4.7.0
 -------------
 
+Date: UNRELEASED
+
+- Drop deprecated exception with typo ConnectionInterrumped. Use
+  ConnectionInterrupted instead.
+
+Version 4.7.0
+-------------
+
 Date: 2017-01-02
 
 - Add the ability to enable write to slave when master is not available.
