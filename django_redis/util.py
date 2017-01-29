@@ -5,15 +5,7 @@ import sys
 from importlib import import_module
 
 from django.core.exceptions import ImproperlyConfigured
-from django.conf import settings
-from django.core.cache.backends.base import get_key_func
 from django.utils.encoding import smart_bytes, smart_text
-
-from redis import ConnectionPool as RedisConnectionPool
-from redis.connection import UnixDomainSocketConnection, Connection
-from redis.connection import DefaultParser
-
-from collections import defaultdict
 
 if sys.version_info[0] < 3:
     integer_types = (int, long,)

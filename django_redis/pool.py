@@ -1,10 +1,5 @@
-import re
-import warnings
-
 from django.conf import settings
-from django.core.exceptions import ImproperlyConfigured
 
-from redis import StrictRedis
 from redis.connection import DefaultParser
 
 from . import util
