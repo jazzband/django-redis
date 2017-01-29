@@ -13,10 +13,7 @@ env:
 
 install:
   - pip install $DJANGO
-  - pip install mock
-  - pip install msgpack-python>=0.4.6
-  - pip install redis>=2.10.0
-  - pip install fakeredis
+  - pip install -r requirements.txt
 
 script:
   - (cd tests && python runtests.py)
