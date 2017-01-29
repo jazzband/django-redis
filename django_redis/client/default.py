@@ -12,20 +12,14 @@ from django.core.cache.backends.base import DEFAULT_TIMEOUT, get_key_func
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.encoding import smart_text
 
-from redis.exceptions import ConnectionError
-from redis.exceptions import ResponseError
-
-# Compatibility with redis-py 2.10.x+
-
-try:
-    from redis.exceptions import TimeoutError, ResponseError
-    _main_exceptions = (TimeoutError, ResponseError, ConnectionError, socket.timeout)
-except ImportError:
-    _main_exceptions = (ConnectionError, socket.timeout)
+from redis.exceptions import ConnectionError, ResponseError, TimeoutError
 
 from ..util import CacheKey, load_class, integer_types
 from ..exceptions import ConnectionInterrupted, CompressorError
 from .. import pool
+
+
+_main_exceptions = (TimeoutError, ResponseError, ConnectionError, socket.timeout)
 
 
 class DefaultClient(object):
