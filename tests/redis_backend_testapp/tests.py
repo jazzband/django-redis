@@ -93,11 +93,11 @@ class DjangoRedisCacheTestCustomKeyFunction(TestCase):
         self.assertTrue(bool(res))
 
         keys = self.cache.keys("foo*")
-        self.assertEqual(set(keys), set(["foo-bb", "foo-bc"]))
+        self.assertEqual(set(keys), {"foo-bb", "foo-bc"})
         # ensure our custom function was actually called
         try:
             self.assertEqual(set(k.decode('utf-8') for k in self.cache.raw_client.keys('*')),
-                set(['#1#foo-bc', '#1#foo-bb']))
+                {'#1#foo-bc', '#1#foo-bb'})
         except (NotImplementedError, AttributeError):
             # not all clients support .keys()
             pass
@@ -449,7 +449,7 @@ class DjangoRedisCacheTests(TestCase):
         self.assertTrue(bool(res))
 
         keys = self.cache.keys("foo*")
-        self.assertEqual(set(keys), set(["foo-bb", "foo-bc"]))
+        self.assertEqual(set(keys), {"foo-bb", "foo-bc"})
 
         res = self.cache.delete_pattern("*foo-a*")
         self.assertFalse(bool(res))
@@ -557,7 +557,7 @@ class DjangoRedisCacheTests(TestCase):
 
         # Test simple result
         result = set(cache.iter_keys("foo*"))
-        self.assertEqual(result, set(["foo1", "foo2", "foo3"]))
+        self.assertEqual(result, {"foo1", "foo2", "foo3"})
 
         # Test limited result
         result = list(cache.iter_keys("foo*", itersize=2))
