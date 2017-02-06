@@ -5,23 +5,15 @@ import socket
 import time
 from collections import OrderedDict
 
-from redis.exceptions import ConnectionError
+from redis.exceptions import ConnectionError, ResponseError, TimeoutError
 
 from django.conf import settings
 
 from .default import DEFAULT_TIMEOUT, DefaultClient
 from ..exceptions import ConnectionInterrupted
 
-from redis.exceptions import ConnectionError
-from redis.exceptions import ResponseError
 
-# Compatibility with redis-py 2.10.x+
-
-try:
-    from redis.exceptions import TimeoutError, ResponseError
-    _main_exceptions = (TimeoutError, ResponseError, ConnectionError, socket.timeout)
-except ImportError:
-    _main_exceptions = (ConnectionError, socket.timeout)
+_main_exceptions = (ConnectionError, ResponseError, TimeoutError, socket.timeout)
 
 
 class Marker(object):
