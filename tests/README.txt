@@ -1,15 +1,12 @@
 Test requirements
 -----------------
 
-python packages
+Python packages
 ~~~~~~~~~~~~~~~
 
-the following packages can be installed with pip
+Install the development requirements using the requirements.txt file:
 
-* redis (https://github.com/andymccurdy/redis-py)
-* hiredis (https://github.com/redis/hiredis)
-* django (https://www.djangoproject.com/)
-* msgpack-python (http://msgpack.org/)
+    pip install -r requirements.txt
 
 redis
 ~~~~~

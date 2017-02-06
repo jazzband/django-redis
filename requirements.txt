@@ -1,0 +1,5 @@
+DJANGO>=1.8
+fakeredis
+mock
+msgpack-python>=0.4.6
+redis>=2.10.0
