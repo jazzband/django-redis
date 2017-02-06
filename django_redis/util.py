@@ -1,18 +1,13 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import absolute_import, unicode_literals
-import sys
 from importlib import import_module
 
 from django.core.exceptions import ImproperlyConfigured
-from django.utils.encoding import smart_bytes, smart_text
-
-if sys.version_info[0] < 3:
-    integer_types = (int, long,)
-else:
-    integer_types = (int,)
+from django.utils.encoding import smart_text, python_2_unicode_compatible
 
 
+@python_2_unicode_compatible
 class CacheKey(str):
     """
     A stub string class that we can use to check if a key was created already.
@@ -20,16 +15,8 @@ class CacheKey(str):
     def __init__(self, key):
         self._key = key
 
-    if sys.version_info[0] < 3:
-        def __str__(self):
-            return smart_bytes(self._key)
-
-        def __unicode__(self):
-            return smart_text(self._key)
-
-    else:
-        def __str__(self):
-            return smart_text(self._key)
+    def __str__(self):
+        return smart_text(self._key)
 
     def original_key(self):
         key = self._key.rsplit(":", 1)[1]
