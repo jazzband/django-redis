@@ -15,7 +15,8 @@ development_settings.py
 versiontools*
 _build*
 doc/index.html
-dist*
+/build/
+/dist/
 *.swp
 \#*
 .\#*
