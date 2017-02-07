@@ -4,7 +4,6 @@ from __future__ import absolute_import, unicode_literals, print_function
 
 import base64
 import unittest
-import sys
 import time
 import datetime
 from datetime import timedelta
@@ -17,10 +16,12 @@ except ImportError:
 from mock import Mock
 
 from django.conf import settings
-from django.core.cache import cache
+from django.core.cache import cache, caches
 from django import VERSION
-from django.test import TestCase
-from django.utils import six
+from django.test import TestCase, override_settings
+from django.test.utils import patch_logger
+from django.utils import six, timezone
+from django.contrib.sessions.backends.cache import SessionStore as CacheSession
 
 import fakeredis
 
@@ -34,8 +35,7 @@ from django_redis.serializers import json as json_serializer
 from django_redis.serializers import msgpack as msgpack_serializer
 
 
-FAKE_REDIS = settings.CACHES["default"]["OPTIONS"].get("REDIS_CLIENT_CLASS") \
-             == "fakeredis.FakeStrictRedis"
+FAKE_REDIS = settings.CACHES["default"]["OPTIONS"].get("REDIS_CLIENT_CLASS") == "fakeredis.FakeStrictRedis"
 
 herd.CACHE_HERD_TIMEOUT = 2
 
@@ -92,7 +92,8 @@ class DjangoRedisCacheTestCustomKeyFunction(TestCase):
         self.assertEqual(set(keys), {"foo-bb", "foo-bc"})
         # ensure our custom function was actually called
         try:
-            self.assertEqual(set(k.decode('utf-8') for k in self.cache.raw_client.keys('*')),
+            self.assertEqual(
+                {k.decode('utf-8') for k in self.cache.raw_client.keys('*')},
                 {'#1#foo-bc', '#1#foo-bb'})
         except (NotImplementedError, AttributeError):
             # not all clients support .keys()
@@ -158,12 +159,12 @@ class DjangoRedisCacheTests(TestCase):
         self.assertEqual(res, 2)
 
     def test_save_string(self):
-        self.cache.set("test_key", "hello"*1000)
+        self.cache.set("test_key", "hello" * 1000)
         res = self.cache.get("test_key")
 
         type(res)
         self.assertIsInstance(res, six.text_type)
-        self.assertEqual(res, "hello"*1000)
+        self.assertEqual(res, "hello" * 1000)
 
         self.cache.set("test_key", "2")
         res = self.cache.get("test_key")
@@ -185,13 +186,13 @@ class DjangoRedisCacheTests(TestCase):
 
         if isinstance(self.cache.client._serializer,
                       msgpack_serializer.MSGPackSerializer):
-            #MSGPackSerializer serializers use the isoformat for datetimes
-            #https://github.com/msgpack/msgpack-python/issues/12
+            # MSGPackSerializer serializers use the isoformat for datetimes
+            # https://github.com/msgpack/msgpack-python/issues/12
             now_dt = datetime.datetime.now().isoformat()
         else:
             now_dt = datetime.datetime.now()
 
-        test_dict = {"id":1, "date": now_dt, "name": "Foo"}
+        test_dict = {"id": 1, "date": now_dt, "name": "Foo"}
 
         self.cache.set("test_key", test_dict)
         res = self.cache.get("test_key")
@@ -268,7 +269,7 @@ class DjangoRedisCacheTests(TestCase):
         self.cache.set("b", 2)
         self.cache.set("c", 3)
 
-        res = self.cache.get_many(["a","b","c"])
+        res = self.cache.get_many(["a", "b", "c"])
         self.assertEqual(res, {"a": 1, "b": 2, "c": 3})
 
     def test_get_many_unicode(self):
@@ -276,7 +277,7 @@ class DjangoRedisCacheTests(TestCase):
         self.cache.set("b", "2")
         self.cache.set("c", "3")
 
-        res = self.cache.get_many(["a","b","c"])
+        res = self.cache.get_many(["a", "b", "c"])
         self.assertEqual(res, {"a": "1", "b": "2", "c": "3"})
 
     def test_set_many(self):
@@ -297,24 +298,24 @@ class DjangoRedisCacheTests(TestCase):
 
     def test_delete_many(self):
         self.cache.set_many({"a": 1, "b": 2, "c": 3})
-        res = self.cache.delete_many(["a","b"])
+        res = self.cache.delete_many(["a", "b"])
         self.assertTrue(bool(res))
 
         res = self.cache.get_many(["a", "b", "c"])
         self.assertEqual(res, {"c": 3})
 
-        res = self.cache.delete_many(["a","b"])
+        res = self.cache.delete_many(["a", "b"])
         self.assertFalse(bool(res))
 
     def test_delete_many_generator(self):
         self.cache.set_many({"a": 1, "b": 2, "c": 3})
-        res = self.cache.delete_many(key for key in ["a","b"])
+        res = self.cache.delete_many(key for key in ["a", "b"])
         self.assertTrue(bool(res))
 
         res = self.cache.get_many(["a", "b", "c"])
         self.assertEqual(res, {"c": 3})
 
-        res = self.cache.delete_many(["a","b"])
+        res = self.cache.delete_many(["a", "b"])
         self.assertFalse(bool(res))
 
     def test_delete_many_empty_generator(self):
@@ -335,7 +336,7 @@ class DjangoRedisCacheTests(TestCase):
             res = self.cache.get("num")
             self.assertEqual(res, 12)
 
-            #max 64 bit signed int
+            # max 64 bit signed int
             self.cache.set("num", 9223372036854775807)
 
             self.cache.incr("num")
@@ -364,7 +365,6 @@ class DjangoRedisCacheTests(TestCase):
                 self.cache.incr('numnum')
         except NotImplementedError:
             raise unittest.SkipTest("`incr` not supported in herd client")
-
 
     def test_get_set_bool(self):
         self.cache.set("bool", True)
@@ -403,7 +403,7 @@ class DjangoRedisCacheTests(TestCase):
             res = self.cache.get("num")
             self.assertEqual(res, 19)
 
-            #max 64 bit signed int + 1
+            # max 64 bit signed int + 1
             self.cache.set("num", 9223372036854775808)
 
             self.cache.decr("num")
@@ -567,7 +567,7 @@ class DjangoRedisCacheTests(TestCase):
         try:
             cache = caches["sample"]
             client = cache.client
-            client._server = ["foo", "bar",]
+            client._server = ["foo", "bar"]
             client._clients = ["Foo", "Bar"]
 
             self.assertEqual(client.get_client(write=True), "Foo")
@@ -577,9 +577,6 @@ class DjangoRedisCacheTests(TestCase):
 
     def test_zlib_compressor(self):
         pass
-
-
-import django_redis.cache
 
 
 class DjangoOmitExceptionsTests(TestCase):
@@ -602,13 +599,6 @@ class DjangoOmitExceptionsTests(TestCase):
         self.assertEqual(self.cache.get("key", "default"), "default")
         self.assertEqual(self.cache.get("key", default="default"), "default")
 
-
-from django.contrib.sessions.backends.cache import SessionStore as CacheSession
-
-from django.core.cache import caches
-from django.test import override_settings
-from django.test.utils import patch_logger
-from django.utils import six, timezone
 
 class SessionTestsMixin(object):
     # This does not inherit from TestCase to avoid any tests being run with this

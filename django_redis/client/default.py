@@ -49,7 +49,7 @@ class DefaultClient(object):
         compressor_cls = load_class(compressor_path)
 
         self._serializer = serializer_cls(options=self._options)
-        self._compressor = compressor_cls(options=self._options);
+        self._compressor = compressor_cls(options=self._options)
 
         self.connection_factory = pool.get_connection_factory(options=self._options)
 

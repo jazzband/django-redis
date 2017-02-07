@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+
 class BaseCompressor(object):
     def __init__(self, options):
         self._options = options
