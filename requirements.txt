@@ -4,3 +4,4 @@ flake8
 mock
 msgpack-python>=0.4.6
 redis>=2.10.0
+dill==0.2.6
