@@ -7,10 +7,13 @@ from __future__ import absolute_import, unicode_literals
 # when python3 come the unique supported
 # python version
 try:
-    import cPickle as pickle
-except ImportError:
-    import pickle
-
+    import dill as pickle 
+except:
+    try:
+        import cPickle as pickle
+    except ImportError:
+        import pickle
+        
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.encoding import force_bytes
 
