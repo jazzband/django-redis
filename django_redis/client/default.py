@@ -518,6 +518,7 @@ class DefaultClient(object):
 
     def close(self, **kwargs):
         if getattr(settings, "DJANGO_REDIS_CLOSE_CONNECTION", False):
-            for c in self.client.connection_pool._available_connections:
-                c.disconnect()
-            del self._client
+            for i in range(len(self._clients)):
+                for c in self._clients[i].connection_pool._available_connections:
+                    c.disconnect()
+                self._clients[i] = None
