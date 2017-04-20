@@ -17,7 +17,7 @@ from .default import DefaultClient, DEFAULT_TIMEOUT
 
 
 class ShardClient(DefaultClient):
-    _findhash = re.compile('.*\{(.*)\}.*', re.I)
+    _findhash = re.compile(r'.*\{(.*)\}.*', re.I)
 
     def __init__(self, *args, **kwargs):
         super(ShardClient, self).__init__(*args, **kwargs)
