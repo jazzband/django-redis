@@ -251,7 +251,7 @@ class ShardClient(DefaultClient):
 
         keys = []
         for server, connection in self._serverdict.items():
-            keys.extend([key for key in connection.scan_iter(**kwargs)])
+            keys.extend(key for key in connection.scan_iter(**kwargs))
 
         res = 0
         if keys:
