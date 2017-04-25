@@ -1,13 +1,19 @@
 Changelog
 =========
 
-Version 4.7.0
+Version 4.8.0
 -------------
 
-Date: UNRELEASED
+Date: 2017-04-25
 
 - Drop deprecated exception with typo ConnectionInterrumped. Use
   ConnectionInterrupted instead.
+- Remove many workarounds related to old and not supported versions
+  of django and redis-py.
+- Code cleaning and flake8 compliance fixes.
+- Add better impl for `close` method.
+- Fix compatibility warnings with python 3.6
+
 
 Version 4.7.0
 -------------
