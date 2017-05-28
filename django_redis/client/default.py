@@ -345,15 +345,16 @@ class DefaultClient(object):
 
         recovered_data = OrderedDict()
 
-        new_keys = [self.make_key(k, version=version) for k in keys]
-        map_keys = dict(zip(new_keys, keys))
+        map_keys = OrderedDict(
+            (self.make_key(k, version=version), k) for k in keys
+        )
 
         try:
-            results = client.mget(*new_keys)
+            results = client.mget(*map_keys)
         except _main_exceptions as e:
             raise ConnectionInterrupted(connection=client, parent=e)
 
-        for key, value in zip(new_keys, results):
+        for key, value in zip(map_keys, results):
             if value is None:
                 continue
             recovered_data[map_keys[key]] = self.decode(value)
