@@ -366,6 +366,21 @@ class DjangoRedisCacheTests(TestCase):
         except NotImplementedError:
             raise unittest.SkipTest("`incr` not supported in herd client")
 
+    def test_incr_ignore_check(self):
+        if FAKE_REDIS:
+            raise unittest.SkipTest("FakeRedis doesn't support eval")
+        try:
+            self.cache.incr('numnum')
+            res = self.cache.get("numnum")
+            self.assertEqual(res, 1)
+
+            self.cache.incr('num2', 2)
+            res = self.cache.get("num2")
+            self.assertEqual(res, 2)
+
+        except NotImplementedError:
+            raise unittest.SkipTest("`incr` not supported in herd client")
+
     def test_get_set_bool(self):
         self.cache.set("bool", True)
         res = self.cache.get("bool")
