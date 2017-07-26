@@ -1,5 +1,6 @@
 include LICENSE
 include AUTHORS.rst
 include README.rst
+include CHANGES.txt
 recursive-include tests README.txt *.py
 recursive-include doc Makefile *.adoc *.html
