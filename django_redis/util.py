@@ -8,7 +8,7 @@ from django.utils.encoding import smart_text, python_2_unicode_compatible
 
 
 @python_2_unicode_compatible
-class CacheKey(str):
+class CacheKey(object):
     """
     A stub string class that we can use to check if a key was created already.
     """
