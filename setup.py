@@ -21,6 +21,7 @@ setup(
     ],
     description=description.strip(),
     install_requires=[
+        "future>=0.16.0",
         "redis>=2.10.0",
     ],
     zip_safe=False,
