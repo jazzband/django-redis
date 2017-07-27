@@ -151,6 +151,11 @@ class DjangoRedisCacheTests(TestCase):
         res = self.cache.get("test_key_nx", None)
         self.assertEqual(res, None)
 
+    def test_unicode_keys(self):
+        self.cache.set('ключ', 'value')
+        res = self.cache.get('ключ')
+        self.assertEqual(res, 'value')
+
     def test_save_and_integer(self):
         self.cache.set("test_key", 2)
         res = self.cache.get("test_key", "Foo")
