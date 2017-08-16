@@ -13,12 +13,6 @@ matrix:
     - python: 3.5
       env: DJANGO="Django>=1.8,<1.9"
     - python: 2.7
-      env: DJANGO="Django>=1.9,<1.10"
-    - python: 3.4
-      env: DJANGO="Django>=1.9,<1.10"
-    - python: 3.5
-      env: DJANGO="Django>=1.9,<1.10"
-    - python: 2.7
       env: DJANGO="Django>=1.10,<1.11"
     - python: 3.4
       env: DJANGO="Django>=1.10,<1.11"
