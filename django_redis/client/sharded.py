@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import absolute_import, unicode_literals
-from future.builtins import str
 
 import re
 from collections import OrderedDict
@@ -11,6 +10,7 @@ from redis.exceptions import ConnectionError
 from django.conf import settings
 from django.utils.encoding import smart_text
 
+from ..compat import text_type
 from ..hash_ring import HashRing
 from ..exceptions import ConnectionInterrupted
 from ..util import CacheKey
@@ -39,7 +39,7 @@ class ShardClient(DefaultClient):
         return connection_dict
 
     def get_server_name(self, _key):
-        key = str(_key)
+        key = text_type(_key)
         g = self._findhash.match(key)
         if g is not None and len(g.groups()) > 0:
             key = g.groups()[0]
