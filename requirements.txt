@@ -1,7 +1,6 @@
 Django>=1.8
 fakeredis
 flake8
-future>=0.16.0
 mock
 msgpack-python>=0.4.6
 redis>=2.10.0
