@@ -298,6 +298,12 @@ class DjangoRedisCacheTests(TestCase):
         res = self.cache.get("test_key", None)
         self.assertEqual(res, 222)
 
+    def test_timeout_tiny(self):
+        # timeouts are rounded to milliseconds; timeout < 1ms deletes the value
+        self.cache.set("test_key", 222, timeout=0.00001)
+        res = self.cache.get("test_key", None)
+        self.assertIsNone(res)
+
     def test_set_add(self):
         self.cache.set("add_key", "Initial value")
         self.cache.add("add_key", "New value")
