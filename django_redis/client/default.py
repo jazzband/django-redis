@@ -123,10 +123,10 @@ class DefaultClient(object):
                     client, index = self.get_client(write=True, tried=tried, show_index=True)
 
                 if timeout is not None:
-                    if timeout > 0:
-                        # Convert to milliseconds
-                        timeout = int(timeout * 1000)
-                    elif timeout <= 0:
+                    # Convert to milliseconds
+                    timeout = int(timeout * 1000)
+
+                    if timeout <= 0:
                         if nx:
                             # Using negative timeouts when nx is True should
                             # not expire (in our case delete) the value if it exists.
