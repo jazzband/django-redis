@@ -393,8 +393,6 @@ class DefaultClient(object):
                 else return false end
                 """
                 value = client.eval(lua, 1, key, delta)
-                if value is None:
-                    raise ValueError("Key '%s' not found" % key)
             except ResponseError:
                 # if cached value or total value is greater than 64 bit signed
                 # integer.
@@ -418,15 +416,15 @@ class DefaultClient(object):
 
     def incr(self, key, delta=1, version=None, client=None):
         """
-        Add delta to value in the cache. If the key does not exist, raise a
-        ValueError exception.
+        Add delta to value in the cache. If the key does not exist,
+        it is set to 0 before performing the operation.
         """
         return self._incr(key=key, delta=delta, version=version, client=client)
 
     def decr(self, key, delta=1, version=None, client=None):
         """
-        Decreace delta to value in the cache. If the key does not exist, raise a
-        ValueError exception.
+        Subtract delta from value in the cache. If the key does not exist,
+        it is set to 0 before performing the operation.
         """
         return self._incr(key=key, delta=-delta, version=version,
                           client=client)
