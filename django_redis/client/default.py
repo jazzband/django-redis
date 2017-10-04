@@ -54,7 +54,7 @@ class DefaultClient(object):
         self.connection_factory = pool.get_connection_factory(options=self._options)
 
     def __contains__(self, key):
-        return key in self
+        return self.has_key(key)
 
     def get_next_client_index(self, write=True, tried=()):
         """
