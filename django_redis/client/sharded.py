@@ -9,8 +9,8 @@ from redis.exceptions import ConnectionError
 
 from django.conf import settings
 from django.utils.encoding import smart_text
+from django.utils.six import text_type
 
-from ..compat import text_type
 from ..hash_ring import HashRing
 from ..exceptions import ConnectionInterrupted
 from ..util import CacheKey
