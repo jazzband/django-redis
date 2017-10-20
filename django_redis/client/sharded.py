@@ -5,16 +5,15 @@ from __future__ import absolute_import, unicode_literals
 import re
 from collections import OrderedDict
 
-from redis.exceptions import ConnectionError
-
 from django.conf import settings
 from django.utils.encoding import smart_text
+from redis.exceptions import ConnectionError
 
 from ..compat import text_type
-from ..hash_ring import HashRing
 from ..exceptions import ConnectionInterrupted
+from ..hash_ring import HashRing
 from ..util import CacheKey
-from .default import DefaultClient, DEFAULT_TIMEOUT
+from .default import DEFAULT_TIMEOUT, DefaultClient
 
 
 class ShardClient(DefaultClient):

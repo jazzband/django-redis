@@ -10,15 +10,13 @@ from collections import OrderedDict
 from django.conf import settings
 from django.core.cache.backends.base import DEFAULT_TIMEOUT, get_key_func
 from django.core.exceptions import ImproperlyConfigured
-from django.utils.encoding import smart_text
 from django.utils import six
-
+from django.utils.encoding import smart_text
 from redis.exceptions import ConnectionError, ResponseError, TimeoutError
 
-from ..util import CacheKey, load_class
-from ..exceptions import ConnectionInterrupted, CompressorError
 from .. import pool
-
+from ..exceptions import CompressorError, ConnectionInterrupted
+from ..util import CacheKey, load_class
 
 _main_exceptions = (TimeoutError, ResponseError, ConnectionError, socket.timeout)
 
