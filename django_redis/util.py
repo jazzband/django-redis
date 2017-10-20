@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import absolute_import, unicode_literals
+
 from importlib import import_module
 
 from django.core.exceptions import ImproperlyConfigured
-from django.utils.encoding import smart_text, python_2_unicode_compatible
+from django.utils.encoding import python_2_unicode_compatible, smart_text
 
 
 @python_2_unicode_compatible

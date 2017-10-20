@@ -2,7 +2,6 @@ from setuptools import setup
 
 from django_redis import __version__
 
-
 description = """
 Full featured redis cache backend for Django.
 """

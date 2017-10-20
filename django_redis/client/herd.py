@@ -5,13 +5,11 @@ import socket
 import time
 from collections import OrderedDict
 
+from django.conf import settings
 from redis.exceptions import ConnectionError, ResponseError, TimeoutError
 
-from django.conf import settings
-
-from .default import DEFAULT_TIMEOUT, DefaultClient
 from ..exceptions import ConnectionInterrupted
-
+from .default import DEFAULT_TIMEOUT, DefaultClient
 
 _main_exceptions = (ConnectionError, ResponseError, TimeoutError, socket.timeout)
 
