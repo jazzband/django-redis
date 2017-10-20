@@ -21,6 +21,7 @@ setup(
     ],
     description=description.strip(),
     install_requires=[
+        "Django>=1.8",
         "redis>=2.10.0",
     ],
     zip_safe=False,
