@@ -35,12 +35,12 @@ before_script:
   - flake8
 
 script:
-  - (cd tests && python runtests.py)
-  - (cd tests && python runtests-sharded.py)
-  - (cd tests && python runtests-herd.py)
-  - (cd tests && python runtests-json.py)
-  - (cd tests && python runtests-msgpack.py)
-  - (cd tests && python runtests-zlib.py)
+  - python tests/runtests.py
+  - python tests/runtests-sharded.py
+  - python tests/runtests-herd.py
+  - python tests/runtests-json.py
+  - python tests/runtests-msgpack.py
+  - python tests/runtests-zlib.py
 
 services:
   - redis-server
