@@ -3,6 +3,7 @@
 from __future__ import absolute_import, print_function, unicode_literals
 
 import base64
+import copy
 import datetime
 import time
 import unittest
@@ -66,10 +67,12 @@ class DjangoRedisConnectionStrings(TestCase):
 
 class DjangoRedisCacheTestCustomKeyFunction(TestCase):
     def setUp(self):
-        self.old_kf = settings.CACHES['default'].get('KEY_FUNCTION')
-        self.old_rkf = settings.CACHES['default'].get('REVERSE_KEY_FUNCTION')
-        settings.CACHES['default']['KEY_FUNCTION'] = 'redis_backend_testapp.tests.make_key'
-        settings.CACHES['default']['REVERSE_KEY_FUNCTION'] = 'redis_backend_testapp.tests.reverse_key'
+        caches_setting = copy.deepcopy(settings.CACHES)
+        caches_setting['default']['KEY_FUNCTION'] = 'redis_backend_testapp.tests.make_key'
+        caches_setting['default']['REVERSE_KEY_FUNCTION'] = 'redis_backend_testapp.tests.reverse_key'
+        cm = override_settings(CACHES=caches_setting)
+        cm.enable()
+        self.addCleanup(cm.disable)
 
         self.cache = caches['default']
         try:
@@ -94,10 +97,6 @@ class DjangoRedisCacheTestCustomKeyFunction(TestCase):
         except (NotImplementedError, AttributeError):
             # not all clients support .keys()
             pass
-
-    def tearDown(self):
-        settings.CACHES['default']['KEY_FUNCTION'] = self.old_kf
-        settings.CACHES['default']['REVERSE_KEY_FUNCTION'] = self.old_rkf
 
 
 class DjangoRedisCacheTests(TestCase):
@@ -584,13 +583,15 @@ class DjangoOmitExceptionsTests(TestCase):
     def setUp(self):
         self._orig_setting = django_redis.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS
         django_redis.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS = True
+        caches_setting = copy.deepcopy(settings.CACHES)
+        caches_setting["doesnotexist"]["IGNORE_EXCEPTIONS"] = True
+        cm = override_settings(CACHES=caches_setting)
+        cm.enable()
+        self.addCleanup(cm.disable)
         self.cache = caches["doesnotexist"]
-        self.cache._orig_ignore_exceptions = self.cache._ignore_exceptions
-        self.cache._ignore_exceptions = True
 
     def tearDown(self):
         django_redis.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS = self._orig_setting
-        self.cache._ignore_exceptions = self.cache._orig_ignore_exceptions
 
     def test_get_many_returns_default_arg(self):
         self.assertEqual(self.cache.get_many(["key1", "key2", "key3"]), {})
