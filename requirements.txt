@@ -1,5 +1,4 @@
 Django>=1.8
-fakeredis
 flake8
 mock
 msgpack-python>=0.4.6

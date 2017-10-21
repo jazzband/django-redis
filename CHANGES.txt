@@ -1,6 +1,11 @@
 Changelog
 =========
 
+UNRELEASED
+----------
+
+- Remove fakeredis support.
+
 Version 4.8.0
 -------------
 
