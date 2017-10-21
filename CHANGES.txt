@@ -1,6 +1,11 @@
 Changelog
 =========
 
+UNRELEASED
+----------
+
+- Escape `KEY_PREFIX` and `VERSION` when used in glob expressions.
+
 Version 4.8.0
 -------------
 

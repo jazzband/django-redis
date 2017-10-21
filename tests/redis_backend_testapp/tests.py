@@ -3,6 +3,7 @@
 from __future__ import absolute_import, unicode_literals, print_function
 
 import base64
+import copy
 import unittest
 import time
 import datetime
@@ -66,6 +67,49 @@ class DjangoRedisConnectionStrings(TestCase):
         self.assertEqual(res1["url"], self.constring4)
         self.assertEqual(res2["url"], self.constring5)
         self.assertEqual(res3["url"], self.constring6)
+
+
+class DjangoRedisCacheTestEscapePrefix(TestCase):
+    def setUp(self):
+
+        caches_setting = copy.deepcopy(settings.CACHES)
+        caches_setting['default']['KEY_PREFIX'] = '*'
+        cm = override_settings(CACHES=caches_setting)
+        cm.enable()
+        self.addCleanup(cm.disable)
+
+        self.cache = caches['default']
+        try:
+            self.cache.clear()
+        except Exception:
+            pass
+        self.other = caches['with_prefix']
+        try:
+            self.other.clear()
+        except Exception:
+            pass
+
+    def test_delete_pattern(self):
+        self.cache.set('a', '1')
+        self.other.set('b', '2')
+        self.cache.delete_pattern('*')
+        self.assertIs(self.cache.has_key('a'), False)
+        self.assertEqual(self.other.get('b'), '2')
+
+    def test_iter_keys(self):
+        if isinstance(self.cache.client, ShardClient):
+            raise unittest.SkipTest("ShardClient doesn't support iter_keys")
+
+        self.cache.set('a', '1')
+        self.other.set('b', '2')
+        self.assertEqual(list(self.cache.iter_keys('*')), ['a'])
+
+    def test_keys(self):
+        self.cache.set('a', '1')
+        self.other.set('b', '2')
+        keys = self.cache.keys('*')
+        self.assertIn('a', keys)
+        self.assertNotIn('b', keys)
 
 
 class DjangoRedisCacheTestCustomKeyFunction(TestCase):
@@ -922,26 +966,27 @@ class TestDefaultClient(TestCase):
     def test_delete_pattern_calls_get_client_given_no_client(self, init_mock, get_client_mock):
         client = DefaultClient()
         client._backend = Mock()
+        client._backend.key_prefix = ''
 
         client.delete_pattern(pattern='foo*')
 
         get_client_mock.assert_called_once_with(write=True)
 
-    @patch('redis_backend_testapp.tests.DefaultClient.make_key')
+    @patch('redis_backend_testapp.tests.DefaultClient.make_pattern')
     @patch('redis_backend_testapp.tests.DefaultClient.__init__', return_value=None)
-    def test_delete_pattern_calls_make_key(self, init_mock, make_key_mock):
+    def test_delete_pattern_calls_make_pattern(self, init_mock, make_pattern_mock):
         client = DefaultClient()
         client._backend = Mock()
         redis_client = fakeredis.FakeStrictRedis()
         client.delete_pattern(pattern='foo*', client=redis_client)
 
-        make_key_mock.assert_called_once_with('foo*', version=None, prefix=None)
+        make_pattern_mock.assert_called_once_with('foo*', version=None, prefix=None)
 
-    @patch('redis_backend_testapp.tests.DefaultClient.make_key')
+    @patch('redis_backend_testapp.tests.DefaultClient.make_pattern')
     @patch('redis_backend_testapp.tests.DefaultClient.get_client', return_value=Mock())
     @patch('redis_backend_testapp.tests.DefaultClient.__init__', return_value=None)
     def test_delete_pattern_calls_scan_iter_with_count_if_itersize_given(
-            self, init_mock, get_client_mock, make_key_mock):
+            self, init_mock, get_client_mock, make_pattern_mock):
         client = DefaultClient()
         client._backend = Mock()
         get_client_mock.return_value.scan_iter.return_value = []
@@ -949,7 +994,7 @@ class TestDefaultClient(TestCase):
         client.delete_pattern(pattern='foo*', itersize=90210)
 
         get_client_mock.return_value.scan_iter.assert_called_once_with(
-            count=90210, match=make_key_mock.return_value)
+            count=90210, match=make_pattern_mock.return_value)
 
 
 class TestShardClient(TestCase):
