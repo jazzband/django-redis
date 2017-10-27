@@ -3,6 +3,7 @@
 from __future__ import absolute_import, unicode_literals
 
 import random
+import re
 import socket
 import warnings
 from collections import OrderedDict
@@ -19,6 +20,13 @@ from ..exceptions import CompressorError, ConnectionInterrupted
 from ..util import CacheKey, load_class
 
 _main_exceptions = (TimeoutError, ResponseError, ConnectionError, socket.timeout)
+
+
+special_re = re.compile('([*?[])')
+
+
+def glob_escape(s):
+    return special_re.sub(r'[\1]', s)
 
 
 class DefaultClient(object):
@@ -253,7 +261,7 @@ class DefaultClient(object):
         if client is None:
             client = self.get_client(write=True)
 
-        pattern = self.make_key(pattern, version=version, prefix=prefix)
+        pattern = self.make_pattern(pattern, version=version, prefix=prefix)
 
         kwargs = {'match': pattern, }
         if itersize:
@@ -476,7 +484,7 @@ class DefaultClient(object):
         if client is None:
             client = self.get_client(write=False)
 
-        pattern = self.make_key(search, version=version)
+        pattern = self.make_pattern(search, version=version)
         for item in client.scan_iter(match=pattern, count=itersize):
             item = smart_text(item)
             yield self.reverse_key(item)
@@ -492,7 +500,7 @@ class DefaultClient(object):
         if client is None:
             client = self.get_client(write=False)
 
-        pattern = self.make_key(search, version=version)
+        pattern = self.make_pattern(search, version=version)
         try:
             encoding_map = [smart_text(k) for k in client.keys(pattern)]
             return [self.reverse_key(k) for k in encoding_map]
@@ -510,6 +518,20 @@ class DefaultClient(object):
             version = self._backend.version
 
         return CacheKey(self._backend.key_func(key, prefix, version))
+
+    def make_pattern(self, pattern, version=None, prefix=None):
+        if isinstance(pattern, CacheKey):
+            return pattern
+
+        if prefix is None:
+            prefix = self._backend.key_prefix
+        prefix = glob_escape(prefix)
+
+        if version is None:
+            version = self._backend.version
+        version = glob_escape(str(version))
+
+        return CacheKey(self._backend.key_func(pattern, prefix, version))
 
     def close(self, **kwargs):
         if getattr(settings, "DJANGO_REDIS_CLOSE_CONNECTION", False):

@@ -55,7 +55,7 @@ CACHES = {
     },
     "with_prefix": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "127.0.0.1:6379:1",
+        "LOCATION": "redis://127.0.0.1:6379?db=1",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.ShardClient",
         },
