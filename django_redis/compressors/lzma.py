@@ -4,8 +4,8 @@ from __future__ import absolute_import
 
 import lzma
 
-from .base import BaseCompressor
 from ..exceptions import CompressorError
+from .base import BaseCompressor
 
 
 class LzmaCompressor(BaseCompressor):

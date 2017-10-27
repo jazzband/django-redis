@@ -33,6 +33,7 @@ install:
 
 before_script:
   - flake8
+  - isort --check-only --diff
 
 script:
   - python tests/runtests.py

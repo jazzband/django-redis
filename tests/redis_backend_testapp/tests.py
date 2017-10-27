@@ -1,38 +1,34 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import absolute_import, unicode_literals, print_function
+from __future__ import absolute_import, print_function, unicode_literals
 
 import base64
-import unittest
-import time
 import datetime
+import time
+import unittest
 from datetime import timedelta
+
+import fakeredis
+from django import VERSION
+from django.conf import settings
+from django.contrib.sessions.backends.cache import SessionStore as CacheSession
+from django.core.cache import cache, caches
+from django.test import TestCase, override_settings
+from django.test.utils import patch_logger
+from django.utils import six, timezone
+from mock import Mock
+
+import django_redis.cache
+from django_redis import pool
+from django_redis.client import DefaultClient, ShardClient, herd
+from django_redis.serializers import (
+    json as json_serializer, msgpack as msgpack_serializer,
+)
 
 try:
     from unittest.mock import patch
 except ImportError:
     from mock import patch
-
-from mock import Mock
-
-from django.conf import settings
-from django.core.cache import cache, caches
-from django import VERSION
-from django.test import TestCase, override_settings
-from django.test.utils import patch_logger
-from django.utils import six, timezone
-from django.contrib.sessions.backends.cache import SessionStore as CacheSession
-
-import fakeredis
-
-import django_redis.cache
-from django_redis import pool
-from django_redis.client import DefaultClient
-from django_redis.client import ShardClient
-from django_redis.client import herd
-
-from django_redis.serializers import json as json_serializer
-from django_redis.serializers import msgpack as msgpack_serializer
 
 
 FAKE_REDIS = settings.CACHES["default"]["OPTIONS"].get("REDIS_CLIENT_CLASS") == "fakeredis.FakeStrictRedis"
