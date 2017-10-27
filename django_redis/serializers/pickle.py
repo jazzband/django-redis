@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import absolute_import, unicode_literals
+from ..compat import PY3
 
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.encoding import force_bytes
@@ -33,4 +34,6 @@ class PickleSerializer(BaseSerializer):
         return pickle.dumps(value, self._pickle_version)
 
     def loads(self, value):
+        if PY3:
+            return pickle.loads(force_bytes(value), fix_imports=True, encoding='bytes')
         return pickle.loads(force_bytes(value))
