@@ -32,8 +32,8 @@ install:
   - pip install -r requirements.txt
 
 before_script:
-  - (cd django_redis; flake8)
-  - (cd django_redis; isort --check-only --diff)
+  - flake8 django_redis tests
+  - isort --check-only --diff --recursive django_redis tests
 
 script:
   - python tests/runtests.py

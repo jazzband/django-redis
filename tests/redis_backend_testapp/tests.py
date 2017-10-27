@@ -9,7 +9,6 @@ import time
 import unittest
 from datetime import timedelta
 
-import fakeredis
 from django import VERSION
 from django.conf import settings
 from django.contrib.sessions.backends.cache import SessionStore as CacheSession
@@ -17,7 +16,6 @@ from django.core.cache import cache, caches
 from django.test import TestCase, override_settings
 from django.test.utils import patch_logger
 from django.utils import six, timezone
-from django.contrib.sessions.backends.cache import SessionStore as CacheSession
 
 import django_redis.cache
 from django_redis import pool
