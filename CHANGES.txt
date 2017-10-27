@@ -5,6 +5,8 @@ UNRELEASED
 ----------
 
 - Escape `KEY_PREFIX` and `VERSION` when used in glob expressions.
+- Remove fakeredis support.
+
 
 Version 4.8.0
 -------------
