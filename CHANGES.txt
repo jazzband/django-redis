@@ -5,6 +5,7 @@ UNRELEASED
 ----------
 
 - Escape `KEY_PREFIX` and `VERSION` when used in glob expressions.
+- Improve handling timeouts less than 1ms.
 - Remove fakeredis support.
 
 
