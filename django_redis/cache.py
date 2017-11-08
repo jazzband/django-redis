@@ -1,17 +1,21 @@
 import functools
 import logging
+import time
+from threading import RLock
 
 from django.conf import settings
 from django.core.cache.backends.base import BaseCache
 
-from .util import load_class
 from .exceptions import ConnectionInterrupted
-
+from .util import load_class
 
 DJANGO_REDIS_IGNORE_EXCEPTIONS = getattr(settings, "DJANGO_REDIS_IGNORE_EXCEPTIONS", False)
 DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS = getattr(settings, "DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS", False)
 DJANGO_REDIS_LOGGER = getattr(settings, "DJANGO_REDIS_LOGGER", False)
 DJANGO_REDIS_SCAN_ITERSIZE = getattr(settings, "DJANGO_REDIS_SCAN_ITERSIZE", 10)
+DJANGO_REDIS_EXCEPTION_THRESHOLD = getattr(settings, "DJANGO_REDIS_EXCEPTION_THRESHOLD", None)
+DJANGO_REDIS_EXCEPTION_THRESHOLD_TIME_WINDOW = getattr(settings, "DJANGO_REDIS_EXCEPTION_TIME_WINDOW", 1)
+DJANGO_REDIS_EXCEPTION_THRESHOLD_COOLDOWN = getattr(settings, "DJANGO_REDIS_EXCEPTION_THRESHOLD_COOLDOWN", 5)
 
 
 if DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS:
@@ -30,8 +34,15 @@ def omit_exception(method=None, return_value=None):
     @functools.wraps(method)
     def _decorator(self, *args, **kwargs):
         try:
+            if self._exception_threshold and self._exception_threshold_hit():
+                if DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS:
+                    logger.error("Django Redis exception threshold reached! Skipping cache call.")
+                    return return_value
+
             return method(self, *args, **kwargs)
         except ConnectionInterrupted as e:
+            if self._exception_threshold:
+                self._incr_exception_counter()
             if self._ignore_exceptions:
                 if DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS:
                     logger.error(str(e))
@@ -53,6 +64,52 @@ class RedisCache(BaseCache):
         self._client = None
 
         self._ignore_exceptions = options.get("IGNORE_EXCEPTIONS", DJANGO_REDIS_IGNORE_EXCEPTIONS)
+        self._exception_threshold = float(options.get("EXCEPTION_THRESHOLD", DJANGO_REDIS_EXCEPTION_THRESHOLD))
+        self._exception_threshold_cooldown = float(options.get(
+            "EXCEPTION_THRESHOLD_COOLDOWN", DJANGO_REDIS_EXCEPTION_THRESHOLD_COOLDOWN))
+        self._exception_threshold_time_window = float(options.get(
+            "EXCEPTION_THRESHOLD_TIME_WINDOW", DJANGO_REDIS_EXCEPTION_THRESHOLD_TIME_WINDOW))
+        RedisCache._window_end_time = (time.time() + self._exception_threshold_time_window)
+
+    _exception_counter_lock = RLock()
+    _exception_counter = 0
+    _exception_threshold_reset_at_time = None
+    _window_end_time = None
+
+    def _incr_exception_counter(self):
+        now = time.time()
+        with RedisCache._exception_counter_lock:
+            if RedisCache._exception_threshold_reset_at_time:
+                # threshold already hit don't do anything
+                return
+
+            if RedisCache._window_end_time < now:
+                # if past window, reset everything
+                RedisCache._exception_counter = 0
+                RedisCache._window_end_time = (time.time() + self._exception_threshold_time_window)
+
+            if RedisCache._exception_counter > self._exception_threshold:
+                # exceeded threshold
+                RedisCache._exception_threshold_reset_at_time = (
+                    time.time() + self._exception_threshold_cooldown)
+                RedisCache._exception_counter = 0
+            else:
+                RedisCache._exception_counter += 1
+
+    @staticmethod
+    def _exception_threshold_hit():
+        now = time.time()
+
+        if not RedisCache._exception_threshold_reset_at_time:
+            return False
+
+        if RedisCache._exception_threshold_reset_at_time >= now:
+            return True
+
+        with RedisCache._exception_counter_lock:
+            # reset threshold
+            RedisCache._exception_threshold_reset_at_time = None
+        return False
 
     @property
     def client(self):
