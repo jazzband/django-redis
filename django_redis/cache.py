@@ -64,7 +64,9 @@ class RedisCache(BaseCache):
         self._client = None
 
         self._ignore_exceptions = options.get("IGNORE_EXCEPTIONS", DJANGO_REDIS_IGNORE_EXCEPTIONS)
-        self._exception_threshold = float(options.get("EXCEPTION_THRESHOLD", DJANGO_REDIS_EXCEPTION_THRESHOLD))
+        self._exception_threshold = options.get("EXCEPTION_THRESHOLD", DJANGO_REDIS_EXCEPTION_THRESHOLD)
+        if self._exception_threshold is not None:
+            self._exception_threshold = float(self._exception_threshold)
         self._exception_threshold_cooldown = float(options.get(
             "EXCEPTION_THRESHOLD_COOLDOWN", DJANGO_REDIS_EXCEPTION_THRESHOLD_COOLDOWN))
         self._exception_threshold_time_window = float(options.get(
