@@ -242,9 +242,6 @@ class ShardClient(DefaultClient):
         """
         Remove all keys matching pattern.
         """
-
-        # import pdb; pdb.set_trace()
-
         pattern = self.make_pattern(pattern, version=version, prefix=prefix)
         kwargs = {'match': pattern}
         if itersize:
