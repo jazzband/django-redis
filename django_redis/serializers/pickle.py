@@ -3,7 +3,6 @@
 from __future__ import absolute_import, unicode_literals
 
 from django.core.exceptions import ImproperlyConfigured
-from django.utils.encoding import force_bytes
 
 from .base import BaseSerializer
 
@@ -33,4 +32,4 @@ class PickleSerializer(BaseSerializer):
         return pickle.dumps(value, self._pickle_version)
 
     def loads(self, value):
-        return pickle.loads(force_bytes(value))
+        return pickle.loads(value)
