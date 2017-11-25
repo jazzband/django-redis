@@ -20,9 +20,8 @@ from django.utils import six, timezone
 import django_redis.cache
 from django_redis import pool
 from django_redis.client import DefaultClient, ShardClient, herd
-from django_redis.serializers import (
-    json as json_serializer, msgpack as msgpack_serializer,
-)
+from django_redis.serializers.json import JSONSerializer
+from django_redis.serializers.msgpack import MSGPackSerializer
 
 try:
     from unittest.mock import patch, Mock
@@ -219,14 +218,9 @@ class DjangoRedisCacheTests(TestCase):
         self.assertEqual(res, "heló")
 
     def test_save_dict(self):
-        if isinstance(self.cache.client._serializer,
-                      json_serializer.JSONSerializer):
-            self.skipTest("Datetimes are not JSON serializable")
-
-        if isinstance(self.cache.client._serializer,
-                      msgpack_serializer.MSGPackSerializer):
-            # MSGPackSerializer serializers use the isoformat for datetimes
-            # https://github.com/msgpack/msgpack-python/issues/12
+        if isinstance(self.cache.client._serializer, (JSONSerializer, MSGPackSerializer)):
+            # JSONSerializer and MSGPackSerializer use the isoformat for
+            # datetimes.
             now_dt = datetime.datetime.now().isoformat()
         else:
             now_dt = datetime.datetime.now()
