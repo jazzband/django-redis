@@ -59,8 +59,7 @@ Requirements
 Django version support
 ^^^^^^^^^^^^^^^^^^^^^^
 
-- *django-redis 3.8.x* will maintain support for django 1.4, 1.5, 1.6, 1.7 (and maybe 1.8)
-- *django-redis 4.4.x* will maintain support for django 1.6, 1.7, 1.8, 1.9 and 1.10
+- *django-redis* supports Django 1.8, 1.10, 1.11, and 2.0.
 
 
 Redis Server Support

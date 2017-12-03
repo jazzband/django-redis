@@ -4,6 +4,7 @@ Changelog
 UNRELEASED
 ----------
 
+- Add testing and support for Django 2.0. No actual code changes were required.
 - Escape `KEY_PREFIX` and `VERSION` when used in glob expressions.
 - Improve handling timeouts less than 1ms.
 - Remove fakeredis support.
