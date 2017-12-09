@@ -626,7 +626,9 @@ class DjangoOmitExceptionsTests(TestCase):
         self.assertEqual(self.cache.get("key", default="default"), "default")
 
 
-class SessionTestsMixin(object):
+# Copied from Django's sessions test suite. Keep in sync with upstream.
+# https://github.com/django/django/blob/master/tests/sessions_tests/tests.py
+class SessionTestsMixin:
     # This does not inherit from TestCase to avoid any tests being run with this
     # class, which wouldn't work, and to allow different TestCase subclasses to
     # be used.
@@ -643,15 +645,15 @@ class SessionTestsMixin(object):
         self.session.delete()
 
     def test_new_session(self):
-        self.assertFalse(self.session.modified)
-        self.assertFalse(self.session.accessed)
+        self.assertIs(self.session.modified, False)
+        self.assertIs(self.session.accessed, False)
 
     def test_get_empty(self):
-        self.assertEqual(self.session.get('cat'), None)
+        self.assertIsNone(self.session.get('cat'))
 
     def test_store(self):
         self.session['cat'] = "dog"
-        self.assertTrue(self.session.modified)
+        self.assertIs(self.session.modified, True)
         self.assertEqual(self.session.pop('cat'), 'dog')
 
     def test_pop(self):
@@ -661,26 +663,36 @@ class SessionTestsMixin(object):
         self.modified = False
 
         self.assertEqual(self.session.pop('some key'), 'exists')
-        self.assertTrue(self.session.accessed)
-        self.assertTrue(self.session.modified)
-        self.assertEqual(self.session.get('some key'), None)
+        self.assertIs(self.session.accessed, True)
+        self.assertIs(self.session.modified, True)
+        self.assertIsNone(self.session.get('some key'))
 
     def test_pop_default(self):
         self.assertEqual(self.session.pop('some key', 'does not exist'),
                          'does not exist')
-        self.assertTrue(self.session.accessed)
-        self.assertFalse(self.session.modified)
+        self.assertIs(self.session.accessed, True)
+        self.assertIs(self.session.modified, False)
+
+    @unittest.skipIf(VERSION < (1, 9), 'Requires Django 1.9+')
+    def test_pop_default_named_argument(self):
+        self.assertEqual(self.session.pop('some key', default='does not exist'), 'does not exist')
+        self.assertIs(self.session.accessed, True)
+        self.assertIs(self.session.modified, False)
+
+    def test_pop_no_default_keyerror_raised(self):
+        with self.assertRaises(KeyError):
+            self.session.pop('some key')
 
     def test_setdefault(self):
         self.assertEqual(self.session.setdefault('foo', 'bar'), 'bar')
         self.assertEqual(self.session.setdefault('foo', 'baz'), 'bar')
-        self.assertTrue(self.session.accessed)
-        self.assertTrue(self.session.modified)
+        self.assertIs(self.session.accessed, True)
+        self.assertIs(self.session.modified, True)
 
     def test_update(self):
         self.session.update({'update key': 1})
-        self.assertTrue(self.session.accessed)
-        self.assertTrue(self.session.modified)
+        self.assertIs(self.session.accessed, True)
+        self.assertIs(self.session.modified, True)
         self.assertEqual(self.session.get('update key', None), 1)
 
     def test_has_key(self):
@@ -688,44 +700,34 @@ class SessionTestsMixin(object):
         self.session.modified = False
         self.session.accessed = False
         self.assertIn('some key', self.session)
-        self.assertTrue(self.session.accessed)
-        self.assertFalse(self.session.modified)
+        self.assertIs(self.session.accessed, True)
+        self.assertIs(self.session.modified, False)
 
     def test_values(self):
         self.assertEqual(list(self.session.values()), [])
-        self.assertTrue(self.session.accessed)
+        self.assertIs(self.session.accessed, True)
         self.session['some key'] = 1
+        self.session.modified = False
+        self.session.accessed = False
         self.assertEqual(list(self.session.values()), [1])
+        self.assertIs(self.session.accessed, True)
+        self.assertIs(self.session.modified, False)
 
-    def test_iterkeys(self):
+    def test_keys(self):
         self.session['x'] = 1
         self.session.modified = False
         self.session.accessed = False
-        i = six.iterkeys(self.session)
-        self.assertTrue(hasattr(i, '__iter__'))
-        self.assertTrue(self.session.accessed)
-        self.assertFalse(self.session.modified)
-        self.assertEqual(list(i), ['x'])
+        self.assertEqual(list(self.session.keys()), ['x'])
+        self.assertIs(self.session.accessed, True)
+        self.assertIs(self.session.modified, False)
 
-    def test_itervalues(self):
+    def test_items(self):
         self.session['x'] = 1
         self.session.modified = False
         self.session.accessed = False
-        i = six.itervalues(self.session)
-        self.assertTrue(hasattr(i, '__iter__'))
-        self.assertTrue(self.session.accessed)
-        self.assertFalse(self.session.modified)
-        self.assertEqual(list(i), [1])
-
-    def test_iteritems(self):
-        self.session['x'] = 1
-        self.session.modified = False
-        self.session.accessed = False
-        i = six.iteritems(self.session)
-        self.assertTrue(hasattr(i, '__iter__'))
-        self.assertTrue(self.session.accessed)
-        self.assertFalse(self.session.modified)
-        self.assertEqual(list(i), [('x', 1)])
+        self.assertEqual(list(self.session.items()), [('x', 1)])
+        self.assertIs(self.session.accessed, True)
+        self.assertIs(self.session.modified, False)
 
     def test_clear(self):
         self.session['x'] = 1
@@ -734,31 +736,28 @@ class SessionTestsMixin(object):
         self.assertEqual(list(self.session.items()), [('x', 1)])
         self.session.clear()
         self.assertEqual(list(self.session.items()), [])
-        self.assertTrue(self.session.accessed)
-        self.assertTrue(self.session.modified)
+        self.assertIs(self.session.accessed, True)
+        self.assertIs(self.session.modified, True)
 
     def test_save(self):
-        if (hasattr(self.session, '_cache') and 'DummyCache' in
-                settings.CACHES[settings.SESSION_CACHE_ALIAS]['BACKEND']):
-            raise unittest.SkipTest("Session saving tests require a real cache backend")
         self.session.save()
-        self.assertTrue(self.session.exists(self.session.session_key))
+        self.assertIs(self.session.exists(self.session.session_key), True)
 
     def test_delete(self):
         self.session.save()
         self.session.delete(self.session.session_key)
-        self.assertFalse(self.session.exists(self.session.session_key))
+        self.assertIs(self.session.exists(self.session.session_key), False)
 
     def test_flush(self):
         self.session['foo'] = 'bar'
         self.session.save()
         prev_key = self.session.session_key
         self.session.flush()
-        self.assertFalse(self.session.exists(prev_key))
+        self.assertIs(self.session.exists(prev_key), False)
         self.assertNotEqual(self.session.session_key, prev_key)
         self.assertIsNone(self.session.session_key)
-        self.assertTrue(self.session.modified)
-        self.assertTrue(self.session.accessed)
+        self.assertIs(self.session.modified, True)
+        self.assertIs(self.session.accessed, True)
 
     def test_cycle(self):
         self.session['a'], self.session['b'] = 'c', 'd'
@@ -766,8 +765,19 @@ class SessionTestsMixin(object):
         prev_key = self.session.session_key
         prev_data = list(self.session.items())
         self.session.cycle_key()
+        self.assertIs(self.session.exists(prev_key), False)
         self.assertNotEqual(self.session.session_key, prev_key)
         self.assertEqual(list(self.session.items()), prev_data)
+
+    @unittest.skipIf(VERSION < (1, 11), 'Requires Django 1.11+')
+    def test_cycle_with_no_session_cache(self):
+        self.session['a'], self.session['b'] = 'c', 'd'
+        self.session.save()
+        prev_data = self.session.items()
+        self.session = self.backend(self.session.session_key)
+        self.assertIs(hasattr(self.session, '_session_cache'), False)
+        self.session.cycle_key()
+        self.assertCountEqual(self.session.items(), prev_data)
 
     def test_save_doesnt_clear_data(self):
         self.session['a'] = 'b'
@@ -779,31 +789,26 @@ class SessionTestsMixin(object):
         # removed the key) results in a new key being generated.
         try:
             session = self.backend('1')
-            try:
-                session.save()
-            except AttributeError:
-                self.fail(
-                    "The session object did not save properly. "
-                    "Middleware may be saving cache items without namespaces."
-                )
+            session.save()
             self.assertNotEqual(session.session_key, '1')
-            self.assertEqual(session.get('cat'), None)
+            self.assertIsNone(session.get('cat'))
             session.delete()
         finally:
             # Some backends leave a stale cache entry for the invalid
             # session key; make sure that entry is manually deleted
             session.delete('1')
 
-    if VERSION[:2] != (1, 8):
-        def test_session_key_empty_string_invalid(self):
-            """Falsey values (Such as an empty string) are rejected."""
-            self.session._session_key = ''
-            self.assertIsNone(self.session.session_key)
+    @unittest.skipIf(VERSION < (1, 9), 'Requires Django 1.9+')
+    def test_session_key_empty_string_invalid(self):
+        """Falsey values (Such as an empty string) are rejected."""
+        self.session._session_key = ''
+        self.assertIsNone(self.session.session_key)
 
-        def test_session_key_too_short_invalid(self):
-            """Strings shorter than 8 characters are rejected."""
-            self.session._session_key = '1234567'
-            self.assertIsNone(self.session.session_key)
+    @unittest.skipIf(VERSION < (1, 9), 'Requires Django 1.9+')
+    def test_session_key_too_short_invalid(self):
+        """Strings shorter than 8 characters are rejected."""
+        self.session._session_key = '1234567'
+        self.assertIsNone(self.session.session_key)
 
     def test_session_key_valid_string_saved(self):
         """Strings of length 8 and up are accepted and stored."""
@@ -813,7 +818,8 @@ class SessionTestsMixin(object):
     def test_session_key_is_read_only(self):
         def set_session_key(session):
             session.session_key = session._get_new_session_key()
-        self.assertRaises(AttributeError, set_session_key, self.session)
+        with self.assertRaises(AttributeError):
+            set_session_key(self.session)
 
     # Custom session expiry
     def test_default_expiry(self):
@@ -875,23 +881,23 @@ class SessionTestsMixin(object):
         # set_expiry calls
         with override_settings(SESSION_EXPIRE_AT_BROWSER_CLOSE=False):
             self.session.set_expiry(10)
-            self.assertFalse(self.session.get_expire_at_browser_close())
+            self.assertIs(self.session.get_expire_at_browser_close(), False)
 
             self.session.set_expiry(0)
-            self.assertTrue(self.session.get_expire_at_browser_close())
+            self.assertIs(self.session.get_expire_at_browser_close(), True)
 
             self.session.set_expiry(None)
-            self.assertFalse(self.session.get_expire_at_browser_close())
+            self.assertIs(self.session.get_expire_at_browser_close(), False)
 
         with override_settings(SESSION_EXPIRE_AT_BROWSER_CLOSE=True):
             self.session.set_expiry(10)
-            self.assertFalse(self.session.get_expire_at_browser_close())
+            self.assertIs(self.session.get_expire_at_browser_close(), False)
 
             self.session.set_expiry(0)
-            self.assertTrue(self.session.get_expire_at_browser_close())
+            self.assertIs(self.session.get_expire_at_browser_close(), True)
 
             self.session.set_expiry(None)
-            self.assertTrue(self.session.get_expire_at_browser_close())
+            self.assertIs(self.session.get_expire_at_browser_close(), True)
 
     def test_decode(self):
         # Ensure we can decode what we encode
@@ -908,21 +914,65 @@ class SessionTestsMixin(object):
             self.assertIn('corrupted', calls[0])
 
     def test_actual_expiry(self):
-        # Regression test for #19200
-        old_session_key = None
-        new_session_key = None
-        try:
-            self.session['foo'] = 'bar'
-            self.session.set_expiry(-timedelta(seconds=10))
-            self.session.save()
-            old_session_key = self.session.session_key
-            # With an expiry date in the past, the session expires instantly.
-            new_session = self.backend(self.session.session_key)
-            new_session_key = new_session.session_key
-            self.assertNotIn('foo', new_session)
-        finally:
-            self.session.delete(old_session_key)
-            self.session.delete(new_session_key)
+        # this doesn't work with JSONSerializer (serializing timedelta)
+        with override_settings(SESSION_SERIALIZER='django.contrib.sessions.serializers.PickleSerializer'):
+            self.session = self.backend()  # reinitialize after overriding settings
+
+            # Regression test for #19200
+            old_session_key = None
+            new_session_key = None
+            try:
+                self.session['foo'] = 'bar'
+                self.session.set_expiry(-timedelta(seconds=10))
+                self.session.save()
+                old_session_key = self.session.session_key
+                # With an expiry date in the past, the session expires instantly.
+                new_session = self.backend(self.session.session_key)
+                new_session_key = new_session.session_key
+                self.assertNotIn('foo', new_session)
+            finally:
+                self.session.delete(old_session_key)
+                self.session.delete(new_session_key)
+
+    @unittest.skipIf(VERSION < (2, 0), 'Requires Django 2.0+')
+    def test_session_load_does_not_create_record(self):
+        """
+        Loading an unknown session key does not create a session record.
+
+        Creating session records on load is a DOS vulnerability.
+        """
+        session = self.backend('someunknownkey')
+        session.load()
+
+        self.assertIsNone(session.session_key)
+        self.assertIs(session.exists(session.session_key), False)
+        # provided unknown key was cycled, not reused
+        self.assertNotEqual(session.session_key, 'someunknownkey')
+
+    @unittest.skipIf(VERSION < (1, 10), 'Requires Django 1.10+')
+    def test_session_save_does_not_resurrect_session_logged_out_in_other_context(self):
+        """
+        Sessions shouldn't be resurrected by a concurrent request.
+        """
+        from django.contrib.sessions.backends.base import UpdateError
+
+        # Create new session.
+        s1 = self.backend()
+        s1['test_data'] = 'value1'
+        s1.save(must_create=True)
+
+        # Logout in another context.
+        s2 = self.backend(s1.session_key)
+        s2.delete()
+
+        # Modify session in first context.
+        s1['test_data'] = 'value2'
+        with self.assertRaises(UpdateError):
+            # This should throw an exception as the session is deleted, not
+            # resurrect the session.
+            s1.save()
+
+        self.assertEqual(s1.load(), {})
 
 
 class SessionTests(SessionTestsMixin, TestCase):
