@@ -106,8 +106,8 @@ class DjangoRedisCacheTestEscapePrefix(TestCase):
 class DjangoRedisCacheTestCustomKeyFunction(TestCase):
     def setUp(self):
         caches_setting = copy.deepcopy(settings.CACHES)
-        caches_setting['default']['KEY_FUNCTION'] = 'redis_backend_testapp.tests.make_key'
-        caches_setting['default']['REVERSE_KEY_FUNCTION'] = 'redis_backend_testapp.tests.reverse_key'
+        caches_setting['default']['KEY_FUNCTION'] = 'test_backend.make_key'
+        caches_setting['default']['REVERSE_KEY_FUNCTION'] = 'test_backend.reverse_key'
         cm = override_settings(CACHES=caches_setting)
         cm.enable()
         self.addCleanup(cm.disable)
@@ -933,8 +933,8 @@ class SessionTests(SessionTestsMixin, TestCase):
 
 
 class TestDefaultClient(TestCase):
-    @patch('redis_backend_testapp.tests.DefaultClient.get_client')
-    @patch('redis_backend_testapp.tests.DefaultClient.__init__', return_value=None)
+    @patch('test_backend.DefaultClient.get_client')
+    @patch('test_backend.DefaultClient.__init__', return_value=None)
     def test_delete_pattern_calls_get_client_given_no_client(self, init_mock, get_client_mock):
         client = DefaultClient()
         client._backend = Mock()
@@ -943,9 +943,9 @@ class TestDefaultClient(TestCase):
         client.delete_pattern(pattern='foo*')
         get_client_mock.assert_called_once_with(write=True)
 
-    @patch('redis_backend_testapp.tests.DefaultClient.make_pattern')
-    @patch('redis_backend_testapp.tests.DefaultClient.get_client', return_value=Mock())
-    @patch('redis_backend_testapp.tests.DefaultClient.__init__', return_value=None)
+    @patch('test_backend.DefaultClient.make_pattern')
+    @patch('test_backend.DefaultClient.get_client', return_value=Mock())
+    @patch('test_backend.DefaultClient.__init__', return_value=None)
     def test_delete_pattern_calls_make_pattern(
             self, init_mock, get_client_mock, make_pattern_mock):
         client = DefaultClient()
@@ -961,9 +961,9 @@ class TestDefaultClient(TestCase):
 
         make_pattern_mock.assert_called_once_with('foo*', **kwargs)
 
-    @patch('redis_backend_testapp.tests.DefaultClient.make_pattern')
-    @patch('redis_backend_testapp.tests.DefaultClient.get_client', return_value=Mock())
-    @patch('redis_backend_testapp.tests.DefaultClient.__init__', return_value=None)
+    @patch('test_backend.DefaultClient.make_pattern')
+    @patch('test_backend.DefaultClient.get_client', return_value=Mock())
+    @patch('test_backend.DefaultClient.__init__', return_value=None)
     def test_delete_pattern_calls_scan_iter_with_count_if_itersize_given(
             self, init_mock, get_client_mock, make_pattern_mock):
         client = DefaultClient()
@@ -979,8 +979,8 @@ class TestDefaultClient(TestCase):
 
 class TestShardClient(TestCase):
 
-    @patch('redis_backend_testapp.tests.DefaultClient.make_pattern')
-    @patch('redis_backend_testapp.tests.ShardClient.__init__', return_value=None)
+    @patch('test_backend.DefaultClient.make_pattern')
+    @patch('test_backend.ShardClient.__init__', return_value=None)
     def test_delete_pattern_calls_scan_iter_with_count_if_itersize_given(
             self, init_mock, make_pattern_mock):
         client = ShardClient()
@@ -995,8 +995,8 @@ class TestShardClient(TestCase):
 
         connection.scan_iter.assert_called_once_with(count=10, match=make_pattern_mock.return_value)
 
-    @patch('redis_backend_testapp.tests.DefaultClient.make_pattern')
-    @patch('redis_backend_testapp.tests.ShardClient.__init__', return_value=None)
+    @patch('test_backend.DefaultClient.make_pattern')
+    @patch('test_backend.ShardClient.__init__', return_value=None)
     def test_delete_pattern_calls_scan_iter(self, init_mock, make_pattern_mock):
         client = ShardClient()
         client._backend = Mock()
@@ -1009,8 +1009,8 @@ class TestShardClient(TestCase):
 
         connection.scan_iter.assert_called_once_with(match=make_pattern_mock.return_value)
 
-    @patch('redis_backend_testapp.tests.DefaultClient.make_pattern')
-    @patch('redis_backend_testapp.tests.ShardClient.__init__', return_value=None)
+    @patch('test_backend.DefaultClient.make_pattern')
+    @patch('test_backend.ShardClient.__init__', return_value=None)
     def test_delete_pattern_calls_delete_for_given_keys(self, init_mock, make_pattern_mock):
         client = ShardClient()
         client._backend = Mock()

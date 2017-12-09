@@ -48,6 +48,4 @@ TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 
 INSTALLED_APPS = (
     "django.contrib.sessions",
-    'redis_backend_testapp',
-    'hashring_test',
 )
