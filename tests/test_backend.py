@@ -12,7 +12,7 @@ from datetime import timedelta
 from django import VERSION
 from django.conf import settings
 from django.contrib.sessions.backends.cache import SessionStore as CacheSession
-from django.core.cache import cache, caches
+from django.core.cache import DEFAULT_CACHE_ALIAS, cache, caches
 from django.test import TestCase, override_settings
 from django.test.utils import patch_logger
 from django.utils import six, timezone
@@ -269,7 +269,7 @@ class DjangoRedisCacheTests(TestCase):
         self.assertEqual(res2, None)
 
         # nx=True should not overwrite expire of key already in db
-        self.cache.set("test_key", 222, 0)
+        self.cache.set("test_key", 222, None)
         self.cache.set("test_key", 222, -1, nx=True)
         res = self.cache.get("test_key", None)
         self.assertEqual(res, 222)
@@ -279,13 +279,13 @@ class DjangoRedisCacheTests(TestCase):
         res = self.cache.get("test_key", None)
         self.assertIsNone(res)
 
-        self.cache.set("test_key", 222, timeout=0)
+        self.cache.set("test_key", 222, timeout=None)
         self.cache.set("test_key", 222, timeout=-1)
         res = self.cache.get("test_key", None)
         self.assertIsNone(res)
 
         # nx=True should not overwrite expire of key already in db
-        self.cache.set("test_key", 222, timeout=0)
+        self.cache.set("test_key", 222, timeout=None)
         self.cache.set("test_key", 222, timeout=-1, nx=True)
         res = self.cache.get("test_key", None)
         self.assertEqual(res, 222)
@@ -979,7 +979,9 @@ class SessionTests(SessionTestsMixin, TestCase):
     backend = CacheSession
 
     def test_actual_expiry(self):
-        pass
+        if isinstance(caches[DEFAULT_CACHE_ALIAS].client._serializer, MSGPackSerializer):
+            raise unittest.SkipTest("msgpack serializer doesn't support datetime serialization")
+        super(SessionTests, self).test_actual_expiry()
 
 
 class TestDefaultClient(TestCase):
