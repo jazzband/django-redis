@@ -5,7 +5,6 @@ from __future__ import absolute_import, unicode_literals
 import random
 import re
 import socket
-import warnings
 from collections import OrderedDict
 
 from django.conf import settings
@@ -113,10 +112,6 @@ class DefaultClient(object):
         """
         nkey = self.make_key(key, version=version)
         nvalue = self.encode(value)
-
-        if timeout is True:
-            warnings.warn("Using True as timeout value, is now deprecated.", DeprecationWarning)
-            timeout = self._backend.default_timeout
 
         if timeout == DEFAULT_TIMEOUT:
             timeout = self._backend.default_timeout
