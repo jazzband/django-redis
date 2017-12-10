@@ -132,7 +132,7 @@ class DefaultClient(object):
                             # Using negative timeouts when nx is True should
                             # not expire (in our case delete) the value if it exists.
                             # Obviously expire not existent value is noop.
-                            timeout = None
+                            return not self.has_key(key, version=version, client=client)
                         else:
                             # redis doesn't support negative timeouts in ex flags
                             # so it seems that it's better to just delete the key

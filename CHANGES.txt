@@ -12,6 +12,8 @@ UNRELEASED
   serializer.
 - The deprecated feature of passing `True` as a timeout value is no longer
   supported.
+- Fix `add()` with a negative timeout to not store key (it is immediately
+  invalid).
 
 
 Version 4.8.0
