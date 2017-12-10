@@ -10,6 +10,8 @@ UNRELEASED
 - Remove fakeredis support.
 - Add datetime, date, time, and timedelta serialization support to the JSON
   serializer.
+- The deprecated feature of passing `True` as a timeout value is no longer
+  supported.
 
 
 Version 4.8.0
