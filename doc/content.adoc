@@ -264,6 +264,21 @@ CACHES = {
 }
 ----
 
+*Lz4* compression support (requires the lz4 <0.12 library):
+
+[source, python]
+----
+import lz4
+
+CACHES = {
+    "default": {
+        # ...
+        "OPTIONS": {
+            "COMPRESSOR": "django_redis.compressors.lz4.Lz4Compressor",
+        }
+    }
+}
+----
 
 Memcached exceptions behavior
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
