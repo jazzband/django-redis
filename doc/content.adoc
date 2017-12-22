@@ -264,7 +264,7 @@ CACHES = {
 }
 ----
 
-*Lz4* compression support (requires the lz4 <0.12 library):
+*Lz4* compression support (requires the lz4 library):
 
 [source, python]
 ----
