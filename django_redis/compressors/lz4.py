@@ -10,7 +10,7 @@ from .base import BaseCompressor
 
 
 class Lz4Compressor(BaseCompressor):
-    min_length = 100
+    min_length = 15
     preset = 8
 
     def compress(self, value):
