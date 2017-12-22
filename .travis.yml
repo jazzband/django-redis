@@ -48,6 +48,7 @@ script:
   - python tests/runtests-json.py
   - python tests/runtests-msgpack.py
   - python tests/runtests-zlib.py
+  - python tests/runtests-lz4.py
 
 services:
   - redis-server
