@@ -14,11 +14,11 @@ class Lz4Compressor(BaseCompressor):
 
     def compress(self, value):
         if len(value) > self.min_length:
-            return _compress(value, return_bytearray=False, store_size=False)
+            return _compress(value)
         return value
 
     def decompress(self, value):
         try:
-            return _decompress(value, return_bytearray=False)
+            return _decompress(value)
         except Exception as e:
             raise CompressorError(e)
