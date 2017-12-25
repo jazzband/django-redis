@@ -5,4 +5,4 @@ mock
 msgpack-python>=0.4.6
 redis>=2.10.0
 wheel
-lz4
+lz4==0.13
