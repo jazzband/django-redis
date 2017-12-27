@@ -673,7 +673,6 @@ class SessionTestsMixin:
         self.assertIs(self.session.accessed, True)
         self.assertIs(self.session.modified, False)
 
-    @unittest.skipIf(VERSION < (1, 9), 'Requires Django 1.9+')
     def test_pop_default_named_argument(self):
         self.assertEqual(self.session.pop('some key', default='does not exist'), 'does not exist')
         self.assertIs(self.session.accessed, True)
@@ -769,7 +768,6 @@ class SessionTestsMixin:
         self.assertNotEqual(self.session.session_key, prev_key)
         self.assertEqual(list(self.session.items()), prev_data)
 
-    @unittest.skipIf(VERSION < (1, 11), 'Requires Django 1.11+')
     def test_cycle_with_no_session_cache(self):
         self.session['a'], self.session['b'] = 'c', 'd'
         self.session.save()
@@ -798,13 +796,11 @@ class SessionTestsMixin:
             # session key; make sure that entry is manually deleted
             session.delete('1')
 
-    @unittest.skipIf(VERSION < (1, 9), 'Requires Django 1.9+')
     def test_session_key_empty_string_invalid(self):
         """Falsey values (Such as an empty string) are rejected."""
         self.session._session_key = ''
         self.assertIsNone(self.session.session_key)
 
-    @unittest.skipIf(VERSION < (1, 9), 'Requires Django 1.9+')
     def test_session_key_too_short_invalid(self):
         """Strings shorter than 8 characters are rejected."""
         self.session._session_key = '1234567'
@@ -949,7 +945,6 @@ class SessionTestsMixin:
         # provided unknown key was cycled, not reused
         self.assertNotEqual(session.session_key, 'someunknownkey')
 
-    @unittest.skipIf(VERSION < (1, 10), 'Requires Django 1.10+')
     def test_session_save_does_not_resurrect_session_logged_out_in_other_context(self):
         """
         Sessions shouldn't be resurrected by a concurrent request.
