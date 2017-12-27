@@ -14,6 +14,7 @@ UNRELEASED
   supported.
 - Fix `add()` with a negative timeout to not store key (it is immediately
   invalid).
+- Remove support for Django < 1.11.
 
 
 Version 4.8.0
