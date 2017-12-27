@@ -599,9 +599,6 @@ class DjangoRedisCacheTests(TestCase):
         except NotImplementedError:
             pass
 
-    def test_zlib_compressor(self):
-        pass
-
 
 class DjangoOmitExceptionsTests(TestCase):
     def setUp(self):
