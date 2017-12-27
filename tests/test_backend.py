@@ -13,7 +13,7 @@ from django import VERSION
 from django.conf import settings
 from django.contrib.sessions.backends.cache import SessionStore as CacheSession
 from django.core.cache import DEFAULT_CACHE_ALIAS, cache, caches
-from django.test import TestCase, override_settings
+from django.test import override_settings
 from django.test.utils import patch_logger
 from django.utils import six, timezone
 
@@ -43,7 +43,7 @@ def reverse_key(key):
     return key.split("#", 2)[2]
 
 
-class DjangoRedisConnectionStrings(TestCase):
+class DjangoRedisConnectionStrings(unittest.TestCase):
     def setUp(self):
         self.cf = pool.get_connection_factory(options={})
         self.constring4 = "unix://tmp/foo.bar?db=1"
@@ -60,7 +60,7 @@ class DjangoRedisConnectionStrings(TestCase):
         self.assertEqual(res3["url"], self.constring6)
 
 
-class DjangoRedisCacheTestEscapePrefix(TestCase):
+class DjangoRedisCacheTestEscapePrefix(unittest.TestCase):
     def setUp(self):
 
         caches_setting = copy.deepcopy(settings.CACHES)
@@ -103,7 +103,7 @@ class DjangoRedisCacheTestEscapePrefix(TestCase):
         self.assertNotIn('b', keys)
 
 
-class DjangoRedisCacheTestCustomKeyFunction(TestCase):
+class DjangoRedisCacheTestCustomKeyFunction(unittest.TestCase):
     def setUp(self):
         caches_setting = copy.deepcopy(settings.CACHES)
         caches_setting['default']['KEY_FUNCTION'] = 'test_backend.make_key'
@@ -137,7 +137,7 @@ class DjangoRedisCacheTestCustomKeyFunction(TestCase):
             pass
 
 
-class DjangoRedisCacheTests(TestCase):
+class DjangoRedisCacheTests(unittest.TestCase):
     def setUp(self):
         self.cache = cache
 
@@ -603,7 +603,7 @@ class DjangoRedisCacheTests(TestCase):
         pass
 
 
-class DjangoOmitExceptionsTests(TestCase):
+class DjangoOmitExceptionsTests(unittest.TestCase):
     def setUp(self):
         self._orig_setting = django_redis.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS
         django_redis.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS = True
@@ -974,8 +974,11 @@ class SessionTestsMixin:
 
         self.assertEqual(s1.load(), {})
 
+    if six.PY2:
+        assertCountEqual = unittest.TestCase.assertItemsEqual
 
-class SessionTests(SessionTestsMixin, TestCase):
+
+class SessionTests(SessionTestsMixin, unittest.TestCase):
     backend = CacheSession
 
     def test_actual_expiry(self):
@@ -984,7 +987,7 @@ class SessionTests(SessionTestsMixin, TestCase):
         super(SessionTests, self).test_actual_expiry()
 
 
-class TestDefaultClient(TestCase):
+class TestDefaultClient(unittest.TestCase):
     @patch('test_backend.DefaultClient.get_client')
     @patch('test_backend.DefaultClient.__init__', return_value=None)
     def test_delete_pattern_calls_get_client_given_no_client(self, init_mock, get_client_mock):
@@ -1029,7 +1032,7 @@ class TestDefaultClient(TestCase):
             count=90210, match=make_pattern_mock.return_value)
 
 
-class TestShardClient(TestCase):
+class TestShardClient(unittest.TestCase):
 
     @patch('test_backend.DefaultClient.make_pattern')
     @patch('test_backend.ShardClient.__init__', return_value=None)

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from django.test import TestCase
+import unittest
 
 from django_redis.hash_ring import HashRing
 
@@ -16,7 +16,7 @@ class Node(object):
         return "<Node {}>".format(self.id)
 
 
-class HashRingTest(TestCase):
+class HashRingTest(unittest.TestCase):
     def setUp(self):
         self.node0 = Node(0)
         self.node1 = Node(1)
