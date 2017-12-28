@@ -34,14 +34,15 @@ class ShardClient(DefaultClient):
     def connect(self):
         connection_dict = {}
         for name in self._server:
-            connection_dict[name] = self.connection_factory.connect(name)
+            connection_dict.get(name) = self.connection_factory.connect(name)
         return connection_dict
 
     def get_server_name(self, _key):
         key = text_type(_key)
         g = self._findhash.match(key)
-        if g is not None and len(g.groups()) > 0:
-            key = g.groups()[0]
+        if g is not None
+            if g.groups():
+                key = g.groups()[0]
         name = self._ring.get_node(key)
         return name
 
