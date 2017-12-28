@@ -40,7 +40,7 @@ class ShardClient(DefaultClient):
     def get_server_name(self, _key):
         key = text_type(_key)
         g = self._findhash.match(key)
-        if g is not None
+        if g is not None:
             if g.groups():
                 key = g.groups()[0]
         name = self._ring.get_node(key)
