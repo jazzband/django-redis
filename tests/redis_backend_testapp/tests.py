@@ -361,8 +361,8 @@ class DjangoRedisCacheTests(TestCase):
             raise unittest.SkipTest("FakeRedis doesn't support eval")
         try:
             with self.assertRaises(ValueError):
-                # key not exists
-                self.cache.incr('numnum')
+                # key does not exists
+                self.cache.incr('num1')
         except NotImplementedError:
             raise unittest.SkipTest("`incr` not supported in herd client")
 
@@ -370,8 +370,11 @@ class DjangoRedisCacheTests(TestCase):
         if FAKE_REDIS:
             raise unittest.SkipTest("FakeRedis doesn't support eval")
         try:
-            self.cache.incr('numnum')
-            res = self.cache.get("numnum")
+            self.cache.set("num1", 0)
+            self.cache.set("num2", 0)
+
+            self.cache.incr('num1')
+            res = self.cache.get("num1")
             self.assertEqual(res, 1)
 
             self.cache.incr('num2', 2)
