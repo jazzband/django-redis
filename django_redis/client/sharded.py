@@ -5,15 +5,15 @@ from __future__ import absolute_import, unicode_literals
 import re
 from collections import OrderedDict
 
-from redis.exceptions import ConnectionError
-
 from django.conf import settings
 from django.utils.encoding import smart_text
+from django.utils.six import text_type
+from redis.exceptions import ConnectionError
 
-from ..hash_ring import HashRing
 from ..exceptions import ConnectionInterrupted
+from ..hash_ring import HashRing
 from ..util import CacheKey
-from .default import DefaultClient, DEFAULT_TIMEOUT
+from .default import DEFAULT_TIMEOUT, DefaultClient
 
 
 class ShardClient(DefaultClient):
@@ -38,7 +38,7 @@ class ShardClient(DefaultClient):
         return connection_dict
 
     def get_server_name(self, _key):
-        key = str(_key)
+        key = text_type(_key)
         g = self._findhash.match(key)
         if g is not None and len(g.groups()) > 0:
             key = g.groups()[0]
@@ -238,14 +238,12 @@ class ShardClient(DefaultClient):
         decoded_keys = (smart_text(k) for k in keys)
         return [self.reverse_key(k) for k in decoded_keys]
 
-    def delete_pattern(self, pattern, version=None, client=None, itersize=None):
+    def delete_pattern(self, pattern, version=None, client=None, itersize=None, prefix=None):
         """
         Remove all keys matching pattern.
         """
-
-        pattern = self.make_key(pattern, version=version)
-
-        kwargs = {'match': pattern, }
+        pattern = self.make_pattern(pattern, version=version, prefix=prefix)
+        kwargs = {'match': pattern}
         if itersize:
             kwargs['count'] = itersize
 

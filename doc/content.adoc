@@ -59,8 +59,7 @@ Requirements
 Django version support
 ^^^^^^^^^^^^^^^^^^^^^^
 
-- *django-redis 3.8.x* will maintain support for django 1.4, 1.5, 1.6, 1.7 (and maybe 1.8)
-- *django-redis 4.4.x* will maintain support for django 1.6, 1.7, 1.8, 1.9 and 1.10
+- *django-redis* supports Django 1.8, 1.10, 1.11, and 2.0.
 
 
 Redis Server Support
@@ -166,23 +165,11 @@ SESSION_CACHE_ALIAS = "default"
 Testing with django-redis
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-`django-redis` supports customizing the underlying Redis client (see <<_pluggable_redis_client>>).
-This can be used for testing purposes, e.g., by replacing the default client with `fakeredis` 
-(https://github.com/jamesls/fakeredis) or `mockredis` (https://github.com/locationlabs/mockredis).
-Doing so allows you to run your integration tests without depending on a real Redis server.
-
-.Example setup using `fakeredis`: 
-[source, python]
-----
-import fakeredis
-CACHES = {
-    "default": {
-        "OPTIONS": {
-            "REDIS_CLIENT_CLASS": "fakeredis.FakeStrictRedis",
-        }
-    }
-}
-----
+`django-redis` supports customizing the underlying Redis client (see
+<<_pluggable_redis_client>>). This can be used for testing purposes, e.g., by
+replacing the default client with `mockredis`
+(https://github.com/locationlabs/mockredis). Doing so allows you to run your
+integration tests without depending on a real Redis server.
 
 In case you want to flush all data from the cache after a test, add the
 following lines to your `TestCase`:
@@ -277,6 +264,21 @@ CACHES = {
 }
 ----
 
+*Lz4* compression support (requires the lz4 library):
+
+[source, python]
+----
+import lz4
+
+CACHES = {
+    "default": {
+        # ...
+        "OPTIONS": {
+            "COMPRESSOR": "django_redis.compressors.lz4.Lz4Compressor",
+        }
+    }
+}
+----
 
 Memcached exceptions behavior
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -763,9 +765,8 @@ There's also support for serialization using 'MsgPack' 'http://msgpack.org/'
 Pluggable redis client
 ~~~~~~~~~~~~~~~~~~~~~~
 
-_django_redis_ uses the Redis client `redis.client.StrictClient` by default.
-It is possible to use an alternative client, for example `fakeredis` for
-testing purpose (see <<_testing_with_django_redis>>).
+_django_redis_ uses the Redis client `redis.client.StrictClient` by default. It
+is possible to use an alternative client.
 
 You can customize the client used by setting `REDIS_CLIENT_CLASS` in the
 `CACHES` setting. Optionally, you can provide arguments to this class

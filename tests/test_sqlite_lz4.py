@@ -5,12 +5,6 @@ DATABASES = {
 }
 
 SECRET_KEY = "django_tests_secret_key"
-TIME_ZONE = "America/Chicago"
-LANGUAGE_CODE = "en-us"
-ADMIN_MEDIA_PREFIX = "/static/admin/"
-STATICFILES_DIRS = ()
-
-MIDDLEWARE_CLASSES = []
 
 CACHES = {
     "default": {
@@ -21,7 +15,7 @@ CACHES = {
         ],
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            "REDIS_CLIENT_CLASS": "fakeredis.FakeStrictRedis",
+            "COMPRESSOR": "django_redis.compressors.lz4.Lz4Compressor"
         }
     },
     "doesnotexist": {
@@ -29,7 +23,7 @@ CACHES = {
         "LOCATION": "127.0.0.1:56379:1",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            "REDIS_CLIENT_CLASS": "fakeredis.FakeStrictRedis",
+            "COMPRESSOR": "django_redis.compressors.lz4.Lz4Compressor",
         }
     },
     "sample": {
@@ -37,15 +31,15 @@ CACHES = {
         "LOCATION": "127.0.0.1:6379:1,127.0.0.1:6379:1",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            "REDIS_CLIENT_CLASS": "fakeredis.FakeStrictRedis",
+            "COMPRESSOR": "django_redis.compressors.lz4.Lz4Compressor",
         }
     },
     "with_prefix": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "127.0.0.1:6379:1",
+        "LOCATION": "redis://127.0.0.1:6379?db=1",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            "REDIS_CLIENT_CLASS": "fakeredis.FakeStrictRedis",
+            "COMPRESSOR": "django_redis.compressors.lz4.Lz4Compressor",
         },
         "KEY_PREFIX": "test-prefix",
     },
@@ -53,6 +47,4 @@ CACHES = {
 
 INSTALLED_APPS = (
     "django.contrib.sessions",
-    "redis_backend_testapp",
-    "hashring_test",
 )

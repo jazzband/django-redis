@@ -1,6 +1,21 @@
 Changelog
 =========
 
+UNRELEASED
+----------
+
+- Add testing and support for Django 2.0. No actual code changes were required.
+- Escape `KEY_PREFIX` and `VERSION` when used in glob expressions.
+- Improve handling timeouts less than 1ms.
+- Remove fakeredis support.
+- Add datetime, date, time, and timedelta serialization support to the JSON
+  serializer.
+- The deprecated feature of passing `True` as a timeout value is no longer
+  supported.
+- Fix `add()` with a negative timeout to not store key (it is immediately
+  invalid).
+
+
 Version 4.8.0
 -------------
 
@@ -39,7 +54,7 @@ Date: 2016-09-21
 
 - Now only support Django 1.8 and above. Support for older versions has been dropped.
 - Remove undocumented and deprecated support for old connection string format.
-- Add support for `PASSWORD` option (usefull when the password contains url unsafe
+- Add support for `PASSWORD` option (useful when the password contains url unsafe
   characters).
 - Make the package compatible with fake redis.
 - Fix compatibility issues with latest django version (1.10).

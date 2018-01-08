@@ -2,7 +2,6 @@ from setuptools import setup
 
 from django_redis import __version__
 
-
 description = """
 Full featured redis cache backend for Django.
 """
@@ -21,6 +20,7 @@ setup(
     ],
     description=description.strip(),
     install_requires=[
+        "Django>=1.8",
         "redis>=2.10.0",
     ],
     zip_safe=False,
@@ -33,9 +33,9 @@ setup(
         "Environment :: Web Environment",
         "Framework :: Django",
         "Framework :: Django :: 1.8",
-        "Framework :: Django :: 1.9",
         "Framework :: Django :: 1.10",
         "Framework :: Django :: 1.11",
+        "Framework :: Django :: 2.0",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: BSD License",
         "Operating System :: OS Independent",
@@ -43,6 +43,7 @@ setup(
         "Programming Language :: Python :: 2",
         "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.3",
         "Programming Language :: Python :: 3.4",
         "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",

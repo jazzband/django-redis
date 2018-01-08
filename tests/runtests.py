@@ -3,16 +3,11 @@
 import os
 import sys
 
-sys.path.insert(0, "..")
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "test_sqlite")
 
 if __name__ == "__main__":
     from django.core.management import execute_from_command_line
     args = sys.argv
-
     args.insert(1, "test")
-    if len(args) == 2:
-        args.insert(2, "redis_backend_testapp")
-        args.insert(3, "hashring_test")
-
     execute_from_command_line(args)
