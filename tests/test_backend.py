@@ -401,8 +401,6 @@ class DjangoRedisCacheTests(TestCase):
             raise unittest.SkipTest("`incr` not supported in herd client")
 
     def test_incr_ignore_check(self):
-        if FAKE_REDIS:
-            raise unittest.SkipTest("FakeRedis doesn't support eval")
         try:
             self.cache.set("num1", 0)
             self.cache.set("num2", 0)
