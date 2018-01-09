@@ -402,35 +402,37 @@ class DjangoRedisCacheTests(TestCase):
 
     def test_incr_ignore_check(self):
         try:
-            # key exists check will be skipped and the value will be incremented by '1' which is the default delta
-            self.cache.incr("num", ignore_key_check=True)
-            res = self.cache.get("num")
-            self.assertEqual(res, 1)
-            self.cache.delete("num")
+            # incr with 'ignore_key_check' is supported only on the DefaultClient
+            if isinstance(self.cache, DefaultClient):
+                # key exists check will be skipped and the value will be incremented by '1' which is the default delta
+                self.cache.incr("num", ignore_key_check=True)
+                res = self.cache.get("num")
+                self.assertEqual(res, 1)
+                self.cache.delete("num")
 
-            # since key doesnt exist it is set to the delta value, 10 in this case
-            self.cache.incr("num", 10, ignore_key_check=True)
-            res = self.cache.get("num")
-            self.assertEqual(res, 10)
-            self.cache.delete("num")
+                # since key doesnt exist it is set to the delta value, 10 in this case
+                self.cache.incr("num", 10, ignore_key_check=True)
+                res = self.cache.get("num")
+                self.assertEqual(res, 10)
+                self.cache.delete("num")
 
-            # following are just regression checks to make sure it still works as expected with incr
-            # max 64 bit signed int
-            self.cache.set("num", 9223372036854775807)
+                # following are just regression checks to make sure it still works as expected with incr
+                # max 64 bit signed int
+                self.cache.set("num", 9223372036854775807)
 
-            self.cache.incr("num", ignore_key_check=True)
-            res = self.cache.get("num")
-            self.assertEqual(res, 9223372036854775808)
+                self.cache.incr("num", ignore_key_check=True)
+                res = self.cache.get("num")
+                self.assertEqual(res, 9223372036854775808)
 
-            self.cache.incr("num", 2, ignore_key_check=True)
-            res = self.cache.get("num")
-            self.assertEqual(res, 9223372036854775810)
+                self.cache.incr("num", 2, ignore_key_check=True)
+                res = self.cache.get("num")
+                self.assertEqual(res, 9223372036854775810)
 
-            self.cache.set("num", long(3))
+                self.cache.set("num", long(3))
 
-            self.cache.incr("num", 2, ignore_key_check=True)
-            res = self.cache.get("num")
-            self.assertEqual(res, 5)
+                self.cache.incr("num", 2, ignore_key_check=True)
+                res = self.cache.get("num")
+                self.assertEqual(res, 5)
         except NotImplementedError:
             raise unittest.SkipTest("`incr` not supported in herd client")
 
