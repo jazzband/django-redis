@@ -366,6 +366,44 @@ class DjangoRedisCacheTests(TestCase):
         except NotImplementedError:
             raise unittest.SkipTest("`incr` not supported in herd client")
 
+    def test_incr_by_float_ignore_check(self):
+        try:
+            # incr_by_float with 'ignore_key_check' is supported only on the DefaultClient
+            if isinstance(self.cache, DefaultClient):
+                # key exists check will be skipped and the value will be incremented by '1' which is the default delta
+                self.cache.incr_by_float("num", ignore_key_check=True)
+                res = self.cache.get("num")
+                self.assertAlmostEqual(res, 1.0, 2)
+                self.cache.delete("num")
+
+                # since key doesnt exist it is set to the delta value, 10 in this case
+                self.cache.incr_by_float("num", 10.1034, ignore_key_check=True)
+                res = self.cache.get("num")
+                self.assertAlmostEqual(res, 10.1034, 4)
+                self.cache.delete("num")
+
+                # following are just regression checks to make sure it still works as expected with incr_by_float
+                # max 64 bit signed int
+                self.cache.set("num", 9223372036854775807)
+
+                self.cache.incr_by_float("num", ignore_key_check=True)
+                res = self.cache.get("num")
+                self.assertAlmostEqual(res, 9223372036854775808.0, 2)
+
+                self.cache.incr_by_float("num", 2.2435, ignore_key_check=True)
+                res = self.cache.get("num")
+                self.assertAlmostEqual(res, 9223372036854775810.2, 4)
+
+                self.cache.set("num", long(3))
+
+                self.cache.incr_by_float("num", 2, ignore_key_check=True)
+                res = self.cache.get("num")
+                self.assertAlmostEqual(res, 5.0, 2)
+
+                self.assertAlmostEqual(res, 5, 2)
+        except NotImplementedError:
+            raise unittest.SkipTest("`incr_by_float` not supported in herd client")
+
     def test_get_set_bool(self):
         self.cache.set("bool", True)
         res = self.cache.get("bool")

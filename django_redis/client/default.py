@@ -427,6 +427,60 @@ class DefaultClient(object):
         """
         return self._incr(key=key, delta=delta, version=version, client=client)
 
+    def _incr_by_float(self, key, delta=1.0, version=None, client=None, ignore_key_check=False):
+        if client is None:
+            client = self.get_client(write=True)
+
+        key = self.make_key(key, version=version)
+
+        try:
+            try:
+                # if key expired after exists check, then we get
+                # key with wrong value and ttl -1.
+                # use lua script for atomicity
+                if not ignore_key_check:
+                    lua = """
+                    local exists = redis.call('EXISTS', KEYS[1])
+                    if (exists == 1) then
+                        return redis.call('INCRBYFLOAT', KEYS[1], ARGV[1])
+                    else return false end
+                    """
+                else:
+                    lua = """
+                    return redis.call('INCRBYFLOAT', KEYS[1], ARGV[1])
+                    """
+                value = client.eval(lua, 1, key, delta)
+                if value is None:
+                    raise ValueError("Key '%s' not found" % key)
+            except ResponseError:
+                # if cached value or total value is greater than 64 bit signed
+                # integer.
+                # elif int is encoded. so redis sees the data as string.
+                # In this situations redis will throw ResponseError
+
+                # try to keep TTL of key
+
+                timeout = client.ttl(key)
+                # returns -2 if the key does not exist
+                # means, that key have expired
+                if timeout == -2:
+                    raise ValueError("Key '%s' not found" % key)
+                value = self.get(key, version=version, client=client) + delta
+                self.set(key, value, version=version, timeout=timeout,
+                         client=client)
+        except _main_exceptions as e:
+            raise ConnectionInterrupted(connection=client, parent=e)
+
+        return float(value)
+
+    def incr_by_float(self, key, delta=1.0, version=None, client=None, ignore_key_check=False):
+        """
+        Add delta to value in the cache. If the key does not exist, raise a
+        ValueError exception.
+        """
+        return self._incr_by_float(key=key, delta=delta, version=version, client=client,
+                                   ignore_key_check=ignore_key_check)
+
     def decr(self, key, delta=1, version=None, client=None):
         """
         Decreace delta to value in the cache. If the key does not exist, raise a
