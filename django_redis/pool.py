@@ -1,5 +1,4 @@
 from django.conf import settings
-
 from redis.connection import DefaultParser
 
 from . import util

@@ -4,9 +4,8 @@ import logging
 from django.conf import settings
 from django.core.cache.backends.base import BaseCache
 
-from .util import load_class
 from .exceptions import ConnectionInterrupted
-
+from .util import load_class
 
 DJANGO_REDIS_IGNORE_EXCEPTIONS = getattr(settings, "DJANGO_REDIS_IGNORE_EXCEPTIONS", False)
 DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS = getattr(settings, "DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS", False)

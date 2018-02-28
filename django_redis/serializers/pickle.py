@@ -2,6 +2,10 @@
 
 from __future__ import absolute_import, unicode_literals
 
+from django.core.exceptions import ImproperlyConfigured
+
+from .base import BaseSerializer
+
 # Import the fastest implementation of
 # pickle package. This should be removed
 # when python3 come the unique supported
@@ -10,11 +14,6 @@ try:
     import cPickle as pickle
 except ImportError:
     import pickle
-
-from django.core.exceptions import ImproperlyConfigured
-from django.utils.encoding import force_bytes
-
-from .base import BaseSerializer
 
 
 class PickleSerializer(BaseSerializer):
@@ -33,4 +32,4 @@ class PickleSerializer(BaseSerializer):
         return pickle.dumps(value, self._pickle_version)
 
     def loads(self, value):
-        return pickle.loads(force_bytes(value))
+        return pickle.loads(value)

@@ -16,4 +16,4 @@ redis
 After this, run this command:
 
     python runtests.py
-    python runtests.py <appName>.<TestClass>.<MethodName>
+    python runtests.py <test_file>.<TestClass>.<MethodName>
