@@ -376,7 +376,7 @@ class DefaultClient(object):
         except _main_exceptions as e:
             raise ConnectionInterrupted(connection=client, parent=e)
 
-    def _incr(self, key, delta=1, version=None, client=None):
+    def _incr(self, key, delta=1, version=None, client=None, ignore_key_check=False):
         if client is None:
             client = self.get_client(write=True)
 
@@ -387,12 +387,17 @@ class DefaultClient(object):
                 # if key expired after exists check, then we get
                 # key with wrong value and ttl -1.
                 # use lua script for atomicity
-                lua = """
-                local exists = redis.call('EXISTS', KEYS[1])
-                if (exists == 1) then
+                if not ignore_key_check:
+                    lua = """
+                    local exists = redis.call('EXISTS', KEYS[1])
+                    if (exists == 1) then
+                        return redis.call('INCRBY', KEYS[1], ARGV[1])
+                    else return false end
+                    """
+                else:
+                    lua = """
                     return redis.call('INCRBY', KEYS[1], ARGV[1])
-                else return false end
-                """
+                    """
                 value = client.eval(lua, 1, key, delta)
                 if value is None:
                     raise ValueError("Key '%s' not found" % key)
@@ -417,12 +422,13 @@ class DefaultClient(object):
 
         return value
 
-    def incr(self, key, delta=1, version=None, client=None):
+    def incr(self, key, delta=1, version=None, client=None, ignore_key_check=False):
         """
         Add delta to value in the cache. If the key does not exist, raise a
-        ValueError exception.
+        ValueError exception. if ignore_key_check=True then the key will be
+        created and set to the delta value by default.
         """
-        return self._incr(key=key, delta=delta, version=version, client=client)
+        return self._incr(key=key, delta=delta, version=version, client=client, ignore_key_check=ignore_key_check)
 
     def decr(self, key, delta=1, version=None, client=None):
         """
