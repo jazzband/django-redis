@@ -478,8 +478,9 @@ class DefaultClient(object):
 
     def incr_by_float(self, key, delta=1.0, version=None, client=None, ignore_key_check=False):
         """
-        Add delta to value in the cache. If the key does not exist, raise a
-        ValueError exception.
+        Intended to be used with floating point values. For non-floating point values , please use "incr" method.
+        Add delta to value in the cache. If the key does not exist, raise a ValueError exception.
+        If ignore_key_check=True then the key will be created and set to the delta value by default.
         """
         return self._incr_by_float(key=key, delta=delta, version=version, client=client,
                                    ignore_key_check=ignore_key_check)
