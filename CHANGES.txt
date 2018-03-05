@@ -1,8 +1,10 @@
 Changelog
 =========
 
-UNRELEASED
-----------
+Version 4.9.0
+-------------
+
+Date: 2018-03-01
 
 - Add testing and support for Django 2.0. No actual code changes were required.
 - Escape `KEY_PREFIX` and `VERSION` when used in glob expressions.
@@ -14,6 +16,8 @@ UNRELEASED
   supported.
 - Fix `add()` with a negative timeout to not store key (it is immediately
   invalid).
+- Remove support for Django < 1.11.
+- Add support for atomic incr if key is not set.
 
 
 Version 4.8.0
