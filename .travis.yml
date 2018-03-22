@@ -10,8 +10,8 @@ env:
   - DJANGO="django==1.11.11"
 
 install:
-  - pip install $DJANGO --use-mirrors
-  - pip install redis==2.10.3 --use-mirrors
+  - pip install $DJANGO
+  - pip install redis==2.10.3
   - pip install mock==1.0.1
 
 script:
