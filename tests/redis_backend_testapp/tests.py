@@ -12,7 +12,7 @@ except ImportError:
     from mock import patch
 
 from django.conf import settings
-from django.core.cache import cache, get_cache
+from django.core.cache import cache, caches
 from django.test import TestCase
 
 import django_redis.cache
@@ -84,7 +84,7 @@ class DjangoRedisCacheTestCustomKeyFunction(TestCase):
         settings.CACHES['default']['KEY_FUNCTION'] = 'redis_backend_testapp.tests.make_key'
         settings.CACHES['default']['REVERSE_KEY_FUNCTION'] = 'redis_backend_testapp.tests.reverse_key'
 
-        self.cache = get_cache('default')
+        self.cache = caches['default']
         try:
             self.cache.clear()
         except Exception:
@@ -418,12 +418,12 @@ class DjangoRedisCacheTests(TestCase):
         self.assertFalse(bool(res))
 
     def test_close(self):
-        cache = get_cache("default")
+        cache = caches["default"]
         cache.set("f", "1")
         cache.close()
 
     def test_ttl(self):
-        cache = get_cache("default")
+        cache = caches["default"]
         _params = cache._params
         _is_herd = (_params["OPTIONS"]["CLIENT_CLASS"] ==
                     "django_redis.client.HerdClient")
@@ -457,7 +457,7 @@ class DjangoRedisCacheTests(TestCase):
         self.assertEqual(ttl, 0)
 
     def test_iter_keys(self):
-        cache = get_cache("default")
+        cache = caches["default"]
         _params = cache._params
         _is_shard = (_params["OPTIONS"]["CLIENT_CLASS"] ==
                     "django_redis.client.ShardClient")
@@ -483,7 +483,7 @@ class DjangoRedisCacheTests(TestCase):
 
     def test_master_slave_switching(self):
         try:
-            cache = get_cache("sample")
+            cache = caches["sample"]
             client = cache.client
             client._server = ["foo", "bar",]
             client._clients = ["Foo", "Bar"]
@@ -500,7 +500,7 @@ class DjangoOmitExceptionsTests(TestCase):
     def setUp(self):
         self._orig_setting = django_redis.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS
         django_redis.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS = True
-        self.cache = get_cache("doesnotexist")
+        self.cache = caches["doesnotexist"]
 
     def tearDown(self):
         django_redis.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS = self._orig_setting
