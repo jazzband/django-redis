@@ -39,17 +39,16 @@ Supported django-redis versions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 - Supported stable version: *4.8.0*
-- Supported stable version: *3.8.4*
 
 
 How version number is handled
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Versions like _3.6_, _3.7_, ... are considered major releases
+Versions like _4.6_, _4.7_, ... are considered major releases
 and can contain some backward incompatibilities. For more information
 is very recommended see the changelog before update.
 
-Versions like _3.7.0_, _3.7.1_, ... are considered minor or bug
+Versions like _4.7.0_, _4.7.1_, ... are considered minor or bug
 fix releases and are should contain only bug fixes. No new features.
 
 
@@ -65,7 +64,6 @@ Django version support
 Redis Server Support
 ^^^^^^^^^^^^^^^^^^^^
 
-- *django-redis 3.x.y* will maintain support for redis-server 2.6.x and upper.
 - *django-redis 4.x.y* will maintain support for redis-server 2.8.x and upper.
 
 
@@ -106,8 +104,8 @@ CACHES = {
 }
 ----
 
-django-redis, since 3.8.0, it starts using redis-py native url notation for connection strings,
-that allows better interoperability and have a connection string in more "standard" way.
+django-redis uses the redis-py native url notation for connection strings,
+it allows better interoperability and has a connection string in more "standard" way.
 
 .This is a examples of url format
 ----
@@ -232,7 +230,7 @@ is established.
 Compression support
 ~~~~~~~~~~~~~~~~~~~
 
-_django_redis_ comes with compression support out of the box, but is deactivated by default. 
+_django_redis_ comes with compression support out of the box, but is deactivated by default.
 You can activate it setting up a concrete backend:
 
 
