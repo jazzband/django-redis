@@ -8,7 +8,7 @@ Full featured redis cache backend for Django.
     :target: https://travis-ci.org/niwinz/django-redis
 
 .. image:: https://img.shields.io/pypi/v/django-redis.svg?style=flat
-    :target: https://pypi.python.org/pypi/django-redis
+    :target: https://pypi.org/project/django-redis/
 
 
 Documentation
