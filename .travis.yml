@@ -18,10 +18,26 @@ matrix:
       env: TOXENV=py35-django20
     - python: 3.6
       env: TOXENV=py36-django20
+    - python: 3.7
+      env: TOXENV=py37-django20
+      dist: xenial
+      sudo: required
+    - python: 3.5
+      env: TOXENV=py35-django21
+    - python: 3.6
+      env: TOXENV=py36-django21
+    - python: 3.7
+      env: TOXENV=py37-django21
+      dist: xenial
+      sudo: required
     - python: 3.5
       env: TOXENV=py35-djangomaster
     - python: 3.6
       env: TOXENV=py36-djangomaster
+    - python: 3.7
+      env: TOXENV=py37-djangomaster
+      dist: xenial
+      sudo: required
     - env: TOXENV=lint
 
 install:
