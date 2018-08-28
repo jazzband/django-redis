@@ -506,15 +506,15 @@ The default *redis-py* behavior is to not close connections, recycling them when
 Configure default connection pool
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The default connection pool is simple. You can only customize the maximum number of connections
-in the pool, by setting `CONNECTION_POOL_KWARGS` in the `CACHES` setting:
+The default connection pool is simple. For example, you can customize the maximum number of connections
+in the pool by setting `CONNECTION_POOL_KWARGS` in the `CACHES` setting:
 
 [source, python]
 ----
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        ...
+        # ...
         "OPTIONS": {
             "CONNECTION_POOL_KWARGS": {"max_connections": 100}
         }
@@ -533,6 +533,21 @@ r = get_redis_connection("default")  # Use the name you have defined for Redis i
 connection_pool = r.connection_pool
 print("Created connections so far: %d" % connection_pool._created_connections)
 ----
+
+Since the default connection pool passes all keyword arguments it doesn't use to its connections, you can also customize the connections that the pool makes by adding those options to `CONNECTION_POOL_KWARGS`:
+
+[source, python]
+----
+CACHES = {
+    "default": {
+        # ...
+        "OPTIONS": {
+            "CONNECTION_POOL_KWARGS": {"max_connections": 100, "retry_on_timeout": True}
+        }
+    }
+}
+----
+
 
 Use your own connection pool subclass
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
