@@ -116,6 +116,10 @@ class RedisCache(BaseCache):
         return self.client.incr(*args, **kwargs)
 
     @omit_exception
+    def incr_by_float(self, *args, **kwargs):
+        return self.client.incr_by_float(*args, **kwargs)
+
+    @omit_exception
     def decr(self, *args, **kwargs):
         return self.client.decr(*args, **kwargs)
 
