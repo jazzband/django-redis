@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
-import dill
-
 from __future__ import absolute_import, unicode_literals
+
+import dill
 
 from django.core.exceptions import ImproperlyConfigured
 
 from .base import BaseSerializer
+
 
 class DillSerializer(BaseSerializer):
     def __init__(self, options):
