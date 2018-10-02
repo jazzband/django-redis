@@ -16,6 +16,7 @@ from django.core.cache import DEFAULT_CACHE_ALIAS, cache, caches
 from django.test import override_settings
 from django.test.utils import patch_logger
 from django.utils import six, timezone
+from redis.exceptions import ConnectionError
 
 import django_redis.cache
 from django_redis import pool
@@ -664,7 +665,7 @@ class DjangoOmitExceptionsPriority1Tests(unittest.TestCase):
         self._orig_setting = django_redis.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS
         django_redis.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS = False
         caches_setting = copy.deepcopy(settings.CACHES)
-        caches_setting["doesnotexist"]["IGNORE_EXCEPTIONS"] = True
+        caches_setting["doesnotexist"]["OPTIONS"]["IGNORE_EXCEPTIONS"] = True
         cm = override_settings(CACHES=caches_setting)
         cm.enable()
         self.addCleanup(cm.disable)
@@ -674,6 +675,7 @@ class DjangoOmitExceptionsPriority1Tests(unittest.TestCase):
         django_redis.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS = self._orig_setting
 
     def test_get(self):
+        assert self.cache._ignore_exceptions is True
         self.assertIsNone(self.cache.get("key"))
 
 
@@ -682,7 +684,7 @@ class DjangoOmitExceptionsPriority2Tests(unittest.TestCase):
         self._orig_setting = django_redis.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS
         django_redis.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS = True
         caches_setting = copy.deepcopy(settings.CACHES)
-        caches_setting["doesnotexist"]["IGNORE_EXCEPTIONS"] = False
+        caches_setting["doesnotexist"]["OPTIONS"]["IGNORE_EXCEPTIONS"] = False
         cm = override_settings(CACHES=caches_setting)
         cm.enable()
         self.addCleanup(cm.disable)
@@ -692,7 +694,8 @@ class DjangoOmitExceptionsPriority2Tests(unittest.TestCase):
         django_redis.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS = self._orig_setting
 
     def test_get(self):
-        with self.assertRaises(KeyError):
+        assert self.cache._ignore_exceptions is False
+        with self.assertRaises(ConnectionError):
             self.cache.get("key")
 
 

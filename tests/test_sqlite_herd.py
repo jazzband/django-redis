@@ -10,11 +10,11 @@ CACHES = {
             'CLIENT_CLASS': 'django_redis.client.HerdClient',
         }
     },
-    'doesnotexist': {
-        'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': '127.0.0.1:56379:1',
-        'OPTIONS': {
-            'CLIENT_CLASS': 'django_redis.client.HerdClient',
+    "doesnotexist": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:56379?db=1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
     },
     'sample': {
