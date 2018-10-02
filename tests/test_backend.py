@@ -16,6 +16,7 @@ from django.core.cache import DEFAULT_CACHE_ALIAS, cache, caches
 from django.test import override_settings
 from django.test.utils import patch_logger
 from django.utils import six, timezone
+from redis.exceptions import RedisError
 
 import django_redis.cache
 from django_redis import pool
@@ -692,7 +693,7 @@ class DjangoOmitExceptionsPriority2Tests(unittest.TestCase):
         django_redis.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS = self._orig_setting
 
     def test_get(self):
-        with self.assertRaises(KeyError):
+        with self.assertRaises(RedisError):
             self.cache.get("key")
 
 
