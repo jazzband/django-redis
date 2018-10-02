@@ -16,6 +16,7 @@ from django.core.cache import DEFAULT_CACHE_ALIAS, cache, caches
 from django.test import override_settings
 from django.test.utils import patch_logger
 from django.utils import six, timezone
+from redis.exceptions import ConnectionError
 
 import django_redis.cache
 from django_redis import pool
@@ -641,7 +642,7 @@ class DjangoOmitExceptionsTests(unittest.TestCase):
         self._orig_setting = django_redis.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS
         django_redis.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS = True
         caches_setting = copy.deepcopy(settings.CACHES)
-        caches_setting["doesnotexist"]["IGNORE_EXCEPTIONS"] = True
+        caches_setting["doesnotexist"]["OPTIONS"]["IGNORE_EXCEPTIONS"] = True
         cm = override_settings(CACHES=caches_setting)
         cm.enable()
         self.addCleanup(cm.disable)
@@ -651,9 +652,11 @@ class DjangoOmitExceptionsTests(unittest.TestCase):
         django_redis.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS = self._orig_setting
 
     def test_get_many_returns_default_arg(self):
+        self.assertIs(self.cache._ignore_exceptions, True)
         self.assertEqual(self.cache.get_many(["key1", "key2", "key3"]), {})
 
     def test_get(self):
+        self.assertIs(self.cache._ignore_exceptions, True)
         self.assertIsNone(self.cache.get("key"))
         self.assertEqual(self.cache.get("key", "default"), "default")
         self.assertEqual(self.cache.get("key", default="default"), "default")
@@ -664,7 +667,7 @@ class DjangoOmitExceptionsPriority1Tests(unittest.TestCase):
         self._orig_setting = django_redis.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS
         django_redis.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS = False
         caches_setting = copy.deepcopy(settings.CACHES)
-        caches_setting["doesnotexist"]["IGNORE_EXCEPTIONS"] = True
+        caches_setting["doesnotexist"]["OPTIONS"]["IGNORE_EXCEPTIONS"] = True
         cm = override_settings(CACHES=caches_setting)
         cm.enable()
         self.addCleanup(cm.disable)
@@ -674,6 +677,7 @@ class DjangoOmitExceptionsPriority1Tests(unittest.TestCase):
         django_redis.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS = self._orig_setting
 
     def test_get(self):
+        self.assertIs(self.cache._ignore_exceptions, True)
         self.assertIsNone(self.cache.get("key"))
 
 
@@ -682,7 +686,7 @@ class DjangoOmitExceptionsPriority2Tests(unittest.TestCase):
         self._orig_setting = django_redis.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS
         django_redis.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS = True
         caches_setting = copy.deepcopy(settings.CACHES)
-        caches_setting["doesnotexist"]["IGNORE_EXCEPTIONS"] = False
+        caches_setting["doesnotexist"]["OPTIONS"]["IGNORE_EXCEPTIONS"] = False
         cm = override_settings(CACHES=caches_setting)
         cm.enable()
         self.addCleanup(cm.disable)
@@ -692,7 +696,8 @@ class DjangoOmitExceptionsPriority2Tests(unittest.TestCase):
         django_redis.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS = self._orig_setting
 
     def test_get(self):
-        with self.assertRaises(KeyError):
+        self.assertIs(self.cache._ignore_exceptions, False)
+        with self.assertRaises(ConnectionError):
             self.cache.get("key")
 
 
