@@ -185,6 +185,8 @@ class DefaultClient(object):
 
         Returns ``True`` if the object was added, ``False`` if not.
         """
+        if self.has_key(key):
+            return False
         return self.set(key, value, timeout, version=version, client=client, nx=True)
 
     def get(self, key, default=None, version=None, client=None):

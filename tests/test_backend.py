@@ -297,9 +297,10 @@ class DjangoRedisCacheTests(unittest.TestCase):
 
     def test_set_add(self):
         self.cache.set("add_key", "Initial value")
-        self.cache.add("add_key", "New value")
-        res = cache.get("add_key")
+        res = self.cache.add("add_key", "New value")
+        self.assertFalse(res)
 
+        res = cache.get("add_key")
         self.assertEqual(res, "Initial value")
 
     def test_get_many(self):
