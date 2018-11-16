@@ -974,7 +974,7 @@ class SessionTestsMixin:
         self.assertEqual(self.session.decode(encoded), data)
 
     def test_decode_failure_logged_to_security(self):
-        bad_encode = base64.b64encode(b'flaskdj:alkdjf')
+        bad_encode = base64.b64encode(b'flaskdj:alkdjf').decode()
         with patch_logger('django.security.SuspiciousSession', 'warning') as calls:
             self.assertEqual({}, self.session.decode(bad_encode))
             # check that the failed decode is logged
