@@ -5,23 +5,15 @@ from __future__ import absolute_import, unicode_literals
 from importlib import import_module
 
 from django.core.exceptions import ImproperlyConfigured
-from django.utils.encoding import python_2_unicode_compatible, smart_text
+from django.utils import six
 
 
-@python_2_unicode_compatible
-class CacheKey(object):
+class CacheKey(six.text_type):
     """
     A stub string class that we can use to check if a key was created already.
     """
-    def __init__(self, key):
-        self._key = key
-
-    def __str__(self):
-        return smart_text(self._key)
-
     def original_key(self):
-        key = self._key.rsplit(":", 1)[1]
-        return key
+        return self.rsplit(":", 1)[1]
 
 
 def load_class(path):

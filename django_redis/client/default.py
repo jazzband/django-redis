@@ -473,7 +473,7 @@ class DefaultClient(object):
 
         key = self.make_key(key, version=version)
         try:
-            return client.exists(key)
+            return client.exists(key) == 1
         except _main_exceptions as e:
             raise ConnectionInterrupted(connection=client, parent=e)
 
