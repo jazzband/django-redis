@@ -34,8 +34,9 @@ class DefaultClient(object):
         self._server = server
         self._params = params
 
-        self.reverse_key = get_key_func(params.get("REVERSE_KEY_FUNCTION") or
-                                        "django_redis.util.default_reverse_key")
+        self.reverse_key = get_key_func(
+            params.get("REVERSE_KEY_FUNCTION") or "django_redis.util.default_reverse_key"
+        )
 
         if not self._server:
             raise ImproperlyConfigured("Missing connections string")

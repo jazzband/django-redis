@@ -546,10 +546,8 @@ class DjangoRedisCacheTests(unittest.TestCase):
     def test_ttl(self):
         cache = caches["default"]
         _params = cache._params
-        _is_herd = (_params["OPTIONS"]["CLIENT_CLASS"] ==
-                    "django_redis.client.HerdClient")
-        _is_shard = (_params["OPTIONS"]["CLIENT_CLASS"] ==
-                     "django_redis.client.ShardClient")
+        _is_herd = _params["OPTIONS"]["CLIENT_CLASS"] == "django_redis.client.HerdClient"
+        _is_shard = _params["OPTIONS"]["CLIENT_CLASS"] == "django_redis.client.ShardClient"
 
         # Not supported for shard client.
         if _is_shard:
@@ -602,8 +600,7 @@ class DjangoRedisCacheTests(unittest.TestCase):
     def test_iter_keys(self):
         cache = caches["default"]
         _params = cache._params
-        _is_shard = (_params["OPTIONS"]["CLIENT_CLASS"] ==
-                     "django_redis.client.ShardClient")
+        _is_shard = _params["OPTIONS"]["CLIENT_CLASS"] == "django_redis.client.ShardClient"
 
         if _is_shard:
             return
