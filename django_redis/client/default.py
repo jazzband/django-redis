@@ -541,16 +541,18 @@ class DefaultClient(object):
                     c.disconnect()
                 self._clients[i] = None
 
-    def touch(self, key, timeout=DEFAULT_TIMEOUT, version=None):
+    def touch(self, key, timeout=DEFAULT_TIMEOUT, version=None, client=None):
         """
         Sets a new expiration for a key.
         """
 
-        value = self.get(key, version=version)
+        if client is None:
+            client = self.get_client(write=True)
 
-        if value is None:
+        key = self.make_key(key, version=version)
+
+        if client.exists(key):
+            client.expire(key, timeout)
+            return True
+        else:
             return False
-
-        self.set(key, value, timeout=timeout, version=version)
-
-        return True
