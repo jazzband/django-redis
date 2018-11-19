@@ -541,3 +541,15 @@ class DefaultClient(object):
                 for c in self._clients[i].connection_pool._available_connections:
                     c.disconnect()
                 self._clients[i] = None
+
+    def touch(self, key, timeout=DEFAULT_TIMEOUT, version=None, client=None):
+        """
+        Sets a new expiration for a key.
+        """
+
+        if client is None:
+            client = self.get_client(write=True)
+
+        key = self.make_key(key, version=version)
+
+        return client.expire(key, timeout)

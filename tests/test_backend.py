@@ -633,6 +633,34 @@ class DjangoRedisCacheTests(unittest.TestCase):
         except NotImplementedError:
             pass
 
+    def test_touch_zero_timeout(self):
+        self.cache.set("test_key", 222, timeout=10)
+
+        self.assertEqual(self.cache.touch("test_key", 0), True)
+        res = self.cache.get("test_key", None)
+        self.assertEqual(res, None)
+
+    def test_touch_positive_timeout(self):
+        self.cache.set("test_key", 222, timeout=10)
+
+        self.cache.touch("test_key", 2)
+        self.assertEqual(self.cache.touch("test_key", 2), True)
+        res1 = self.cache.get("test_key", None)
+        time.sleep(2)
+        res2 = self.cache.get("test_key", None)
+        self.assertEqual(res1, 222)
+        self.assertEqual(res2, None)
+
+    def test_touch_negative_timeout(self):
+        self.cache.set("test_key", 222, timeout=10)
+
+        self.assertEqual(self.cache.touch("test_key", -1), True)
+        res = self.cache.get("test_key", None)
+        self.assertEqual(res, None)
+
+    def test_touch_missed_key(self):
+        self.assertEqual(self.cache.touch("test_key", -1), False)
+
 
 class DjangoOmitExceptionsTests(unittest.TestCase):
     def setUp(self):
