@@ -12,11 +12,12 @@ from django.core.cache.backends.base import DEFAULT_TIMEOUT, get_key_func
 from django.core.exceptions import ImproperlyConfigured
 from django.utils import six
 from django.utils.encoding import smart_text
+from django.utils.module_loading import import_string
 from redis.exceptions import ConnectionError, ResponseError, TimeoutError
 
 from .. import pool
 from ..exceptions import CompressorError, ConnectionInterrupted
-from ..util import CacheKey, load_class
+from ..util import CacheKey
 
 _main_exceptions = (TimeoutError, ResponseError, ConnectionError, socket.timeout)
 
@@ -34,8 +35,9 @@ class DefaultClient(object):
         self._server = server
         self._params = params
 
-        self.reverse_key = get_key_func(params.get("REVERSE_KEY_FUNCTION") or
-                                        "django_redis.util.default_reverse_key")
+        self.reverse_key = get_key_func(
+            params.get("REVERSE_KEY_FUNCTION") or "django_redis.util.default_reverse_key"
+        )
 
         if not self._server:
             raise ImproperlyConfigured("Missing connections string")
@@ -48,10 +50,10 @@ class DefaultClient(object):
         self._slave_read_only = self._options.get('SLAVE_READ_ONLY', True)
 
         serializer_path = self._options.get("SERIALIZER", "django_redis.serializers.pickle.PickleSerializer")
-        serializer_cls = load_class(serializer_path)
+        serializer_cls = import_string(serializer_path)
 
         compressor_path = self._options.get("COMPRESSOR", "django_redis.compressors.identity.IdentityCompressor")
-        compressor_cls = load_class(compressor_path)
+        compressor_cls = import_string(compressor_path)
 
         self._serializer = serializer_cls(options=self._options)
         self._compressor = compressor_cls(options=self._options)
@@ -474,7 +476,7 @@ class DefaultClient(object):
 
         key = self.make_key(key, version=version)
         try:
-            return client.exists(key)
+            return client.exists(key) == 1
         except _main_exceptions as e:
             raise ConnectionInterrupted(connection=client, parent=e)
 
@@ -542,3 +544,15 @@ class DefaultClient(object):
                 for c in self._clients[i].connection_pool._available_connections:
                     c.disconnect()
                 self._clients[i] = None
+
+    def touch(self, key, timeout=DEFAULT_TIMEOUT, version=None, client=None):
+        """
+        Sets a new expiration for a key.
+        """
+
+        if client is None:
+            client = self.get_client(write=True)
+
+        key = self.make_key(key, version=version)
+
+        return client.expire(key, timeout)

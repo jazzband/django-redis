@@ -1,7 +1,7 @@
 django-redis documentation
 ==========================
 Andrey Antukh, <niwi@niwi.be>
-4.9.0
+4.10.0
 :toc: left
 :numbered:
 :source-highlighter: pygments
@@ -38,7 +38,7 @@ Because:
 Supported django-redis versions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- Supported stable version: *4.9.0*
+- Supported stable version: *4.10.0*
 
 
 How version number is handled

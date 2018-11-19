@@ -1,11 +1,24 @@
 Changelog
 =========
 
-UNRELEASED
-----------
+Version 4.10.0
+--------------
+
+Date: 2018-10-19
 
 - Add support and testing for Django 2.1 and Python 3.7. No actual code changes
   were required.
+- Add support for redis-py 3.0.
+- Add touch command.
+
+
+Version 4.9.1
+-------------
+
+Date: 2018-10-19
+
+- Pin redis version to 2.10.6
+
 
 Version 4.9.0
 -------------

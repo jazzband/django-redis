@@ -118,7 +118,7 @@ class ShardClient(DefaultClient):
 
         key = self.make_key(key, version=version)
         try:
-            return client.exists(key)
+            return client.exists(key) == 1
         except ConnectionError:
             raise ConnectionInterrupted(connection=client)
 
@@ -262,3 +262,11 @@ class ShardClient(DefaultClient):
             for client in self._serverdict.values():
                 for c in client.connection_pool._available_connections:
                     c.disconnect()
+
+    def touch(self, key, timeout=DEFAULT_TIMEOUT, version=None, client=None):
+        if client is None:
+            key = self.make_key(key, version=version)
+            client = self.get_server(key)
+
+        return super(ShardClient, self).touch(key=key, timeout=timeout,
+                                              version=version, client=client)

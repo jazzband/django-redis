@@ -16,6 +16,7 @@ from django.core.cache import DEFAULT_CACHE_ALIAS, cache, caches
 from django.test import override_settings
 from django.test.utils import patch_logger
 from django.utils import six, timezone
+from redis.exceptions import ConnectionError
 
 import django_redis.cache
 from django_redis import pool
@@ -546,10 +547,8 @@ class DjangoRedisCacheTests(unittest.TestCase):
     def test_ttl(self):
         cache = caches["default"]
         _params = cache._params
-        _is_herd = (_params["OPTIONS"]["CLIENT_CLASS"] ==
-                    "django_redis.client.HerdClient")
-        _is_shard = (_params["OPTIONS"]["CLIENT_CLASS"] ==
-                     "django_redis.client.ShardClient")
+        _is_herd = _params["OPTIONS"]["CLIENT_CLASS"] == "django_redis.client.HerdClient"
+        _is_shard = _params["OPTIONS"]["CLIENT_CLASS"] == "django_redis.client.ShardClient"
 
         # Not supported for shard client.
         if _is_shard:
@@ -602,8 +601,7 @@ class DjangoRedisCacheTests(unittest.TestCase):
     def test_iter_keys(self):
         cache = caches["default"]
         _params = cache._params
-        _is_shard = (_params["OPTIONS"]["CLIENT_CLASS"] ==
-                     "django_redis.client.ShardClient")
+        _is_shard = _params["OPTIONS"]["CLIENT_CLASS"] == "django_redis.client.ShardClient"
 
         if _is_shard:
             return
@@ -636,13 +634,40 @@ class DjangoRedisCacheTests(unittest.TestCase):
         except NotImplementedError:
             pass
 
+    def test_touch_zero_timeout(self):
+        self.cache.set("test_key", 222, timeout=10)
+
+        self.assertEqual(self.cache.touch("test_key", 0), True)
+        res = self.cache.get("test_key", None)
+        self.assertEqual(res, None)
+
+    def test_touch_positive_timeout(self):
+        self.cache.set("test_key", 222, timeout=10)
+
+        self.assertEqual(self.cache.touch("test_key", 2), True)
+        res1 = self.cache.get("test_key", None)
+        time.sleep(2)
+        res2 = self.cache.get("test_key", None)
+        self.assertEqual(res1, 222)
+        self.assertEqual(res2, None)
+
+    def test_touch_negative_timeout(self):
+        self.cache.set("test_key", 222, timeout=10)
+
+        self.assertEqual(self.cache.touch("test_key", -1), True)
+        res = self.cache.get("test_key", None)
+        self.assertEqual(res, None)
+
+    def test_touch_missed_key(self):
+        self.assertEqual(self.cache.touch("test_key", -1), False)
+
 
 class DjangoOmitExceptionsTests(unittest.TestCase):
     def setUp(self):
         self._orig_setting = django_redis.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS
         django_redis.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS = True
         caches_setting = copy.deepcopy(settings.CACHES)
-        caches_setting["doesnotexist"]["IGNORE_EXCEPTIONS"] = True
+        caches_setting["doesnotexist"]["OPTIONS"]["IGNORE_EXCEPTIONS"] = True
         cm = override_settings(CACHES=caches_setting)
         cm.enable()
         self.addCleanup(cm.disable)
@@ -652,9 +677,11 @@ class DjangoOmitExceptionsTests(unittest.TestCase):
         django_redis.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS = self._orig_setting
 
     def test_get_many_returns_default_arg(self):
+        self.assertIs(self.cache._ignore_exceptions, True)
         self.assertEqual(self.cache.get_many(["key1", "key2", "key3"]), {})
 
     def test_get(self):
+        self.assertIs(self.cache._ignore_exceptions, True)
         self.assertIsNone(self.cache.get("key"))
         self.assertEqual(self.cache.get("key", "default"), "default")
         self.assertEqual(self.cache.get("key", default="default"), "default")
@@ -665,7 +692,7 @@ class DjangoOmitExceptionsPriority1Tests(unittest.TestCase):
         self._orig_setting = django_redis.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS
         django_redis.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS = False
         caches_setting = copy.deepcopy(settings.CACHES)
-        caches_setting["doesnotexist"]["IGNORE_EXCEPTIONS"] = True
+        caches_setting["doesnotexist"]["OPTIONS"]["IGNORE_EXCEPTIONS"] = True
         cm = override_settings(CACHES=caches_setting)
         cm.enable()
         self.addCleanup(cm.disable)
@@ -675,6 +702,7 @@ class DjangoOmitExceptionsPriority1Tests(unittest.TestCase):
         django_redis.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS = self._orig_setting
 
     def test_get(self):
+        self.assertIs(self.cache._ignore_exceptions, True)
         self.assertIsNone(self.cache.get("key"))
 
 
@@ -683,7 +711,7 @@ class DjangoOmitExceptionsPriority2Tests(unittest.TestCase):
         self._orig_setting = django_redis.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS
         django_redis.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS = True
         caches_setting = copy.deepcopy(settings.CACHES)
-        caches_setting["doesnotexist"]["IGNORE_EXCEPTIONS"] = False
+        caches_setting["doesnotexist"]["OPTIONS"]["IGNORE_EXCEPTIONS"] = False
         cm = override_settings(CACHES=caches_setting)
         cm.enable()
         self.addCleanup(cm.disable)
@@ -693,7 +721,8 @@ class DjangoOmitExceptionsPriority2Tests(unittest.TestCase):
         django_redis.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS = self._orig_setting
 
     def test_get(self):
-        with self.assertRaises(KeyError):
+        self.assertIs(self.cache._ignore_exceptions, False)
+        with self.assertRaises(ConnectionError):
             self.cache.get("key")
 
 
@@ -973,7 +1002,7 @@ class SessionTestsMixin:
         self.assertEqual(self.session.decode(encoded), data)
 
     def test_decode_failure_logged_to_security(self):
-        bad_encode = base64.b64encode(b'flaskdj:alkdjf')
+        bad_encode = base64.b64encode(b'flaskdj:alkdjf').decode()
         with patch_logger('django.security.SuspiciousSession', 'warning') as calls:
             self.assertEqual({}, self.session.decode(bad_encode))
             # check that the failed decode is logged
