@@ -3,9 +3,9 @@ import logging
 
 from django.conf import settings
 from django.core.cache.backends.base import BaseCache
+from django.utils.module_loading import import_string
 
 from .exceptions import ConnectionInterrupted
-from .util import load_class
 
 DJANGO_REDIS_IGNORE_EXCEPTIONS = getattr(settings, "DJANGO_REDIS_IGNORE_EXCEPTIONS", False)
 DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS = getattr(settings, "DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS", False)
@@ -48,7 +48,7 @@ class RedisCache(BaseCache):
 
         options = params.get("OPTIONS", {})
         self._client_cls = options.get("CLIENT_CLASS", "django_redis.client.DefaultClient")
-        self._client_cls = load_class(self._client_cls)
+        self._client_cls = import_string(self._client_cls)
         self._client = None
 
         self._ignore_exceptions = options.get("IGNORE_EXCEPTIONS", DJANGO_REDIS_IGNORE_EXCEPTIONS)

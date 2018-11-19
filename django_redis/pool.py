@@ -1,7 +1,6 @@
 from django.conf import settings
+from django.utils.module_loading import import_string
 from redis.connection import DefaultParser
-
-from . import util
 
 
 class ConnectionFactory(object):
@@ -17,12 +16,12 @@ class ConnectionFactory(object):
     def __init__(self, options):
         pool_cls_path = options.get("CONNECTION_POOL_CLASS",
                                     "redis.connection.ConnectionPool")
-        self.pool_cls = util.load_class(pool_cls_path)
+        self.pool_cls = import_string(pool_cls_path)
         self.pool_cls_kwargs = options.get("CONNECTION_POOL_KWARGS", {})
 
         redis_client_cls_path = options.get("REDIS_CLIENT_CLASS",
                                             "redis.client.StrictRedis")
-        self.redis_client_cls = util.load_class(redis_client_cls_path)
+        self.redis_client_cls = import_string(redis_client_cls_path)
         self.redis_client_cls_kwargs = options.get("REDIS_CLIENT_KWARGS", {})
 
         self.options = options
@@ -80,7 +79,7 @@ class ConnectionFactory(object):
         cls = self.options.get("PARSER_CLASS", None)
         if cls is None:
             return DefaultParser
-        return util.load_class(cls)
+        return import_string(cls)
 
     def get_or_create_connection_pool(self, params):
         """
@@ -119,5 +118,5 @@ def get_connection_factory(path=None, options=None):
         path = getattr(settings, "DJANGO_REDIS_CONNECTION_FACTORY",
                        "django_redis.pool.ConnectionFactory")
 
-    cls = util.load_class(path)
+    cls = import_string(path)
     return cls(options or {})
