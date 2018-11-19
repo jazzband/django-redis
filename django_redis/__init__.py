@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-VERSION = (4, 9, 0)
+VERSION = (4, 9, 1)
 __version__ = '.'.join(map(str, VERSION))
 
 
