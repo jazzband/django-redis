@@ -3,6 +3,6 @@ flake8
 isort
 mock
 msgpack-python>=0.4.6
-redis>=2.10.0
+redis>=2.10.0,<3.0.0
 wheel
 lz4>=0.15
