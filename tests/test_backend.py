@@ -643,7 +643,6 @@ class DjangoRedisCacheTests(unittest.TestCase):
     def test_touch_positive_timeout(self):
         self.cache.set("test_key", 222, timeout=10)
 
-        self.cache.touch("test_key", 2)
         self.assertEqual(self.cache.touch("test_key", 2), True)
         res1 = self.cache.get("test_key", None)
         time.sleep(2)
