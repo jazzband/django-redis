@@ -638,7 +638,7 @@ class DjangoRedisCacheTests(unittest.TestCase):
     def test_touch_zero_timeout(self):
         self.cache.set("test_key", 222, timeout=10)
 
-        self.cache.touch("test_key", 0)
+        self.assertEqual(self.cache.touch("test_key", 0), True)
         res = self.cache.get("test_key", None)
         self.assertEqual(res, None)
 
@@ -646,6 +646,7 @@ class DjangoRedisCacheTests(unittest.TestCase):
         self.cache.set("test_key", 222, timeout=10)
 
         self.cache.touch("test_key", 2)
+        self.assertEqual(self.cache.touch("test_key", 2), True)
         res1 = self.cache.get("test_key", None)
         time.sleep(2)
         res2 = self.cache.get("test_key", None)
@@ -655,9 +656,12 @@ class DjangoRedisCacheTests(unittest.TestCase):
     def test_touch_negative_timeout(self):
         self.cache.set("test_key", 222, timeout=10)
 
-        self.cache.touch("test_key", -1)
+        self.assertEqual(self.cache.touch("test_key", -1), True)
         res = self.cache.get("test_key", None)
         self.assertEqual(res, None)
+
+    def test_touch_missed_key(self):
+        self.assertEqual(self.cache.touch("test_key", -1), False)
 
 
 class DjangoOmitExceptionsTests(unittest.TestCase):

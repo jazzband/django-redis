@@ -153,11 +153,4 @@ class RedisCache(BaseCache):
 
     @omit_exception
     def touch(self, key, timeout=None, version=None):
-        try:
-            return self.client.touch(key, timeout=timeout, version=version)
-        except ConnectionInterrupted as e:
-            if self._ignore_exceptions:
-                if DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS:
-                    logger.error(str(e))
-                return False
-            raise
+        return self.client.touch(key, timeout=timeout, version=version)

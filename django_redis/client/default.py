@@ -551,8 +551,4 @@ class DefaultClient(object):
 
         key = self.make_key(key, version=version)
 
-        if client.exists(key):
-            client.expire(key, timeout)
-            return True
-        else:
-            return False
+        return client.expire(key, timeout)
