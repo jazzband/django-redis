@@ -34,8 +34,9 @@ class DefaultClient(object):
         self._server = server
         self._params = params
 
-        self.reverse_key = get_key_func(params.get("REVERSE_KEY_FUNCTION") or
-                                        "django_redis.util.default_reverse_key")
+        self.reverse_key = get_key_func(
+            params.get("REVERSE_KEY_FUNCTION") or "django_redis.util.default_reverse_key"
+        )
 
         if not self._server:
             raise ImproperlyConfigured("Missing connections string")
@@ -472,7 +473,7 @@ class DefaultClient(object):
 
         key = self.make_key(key, version=version)
         try:
-            return client.exists(key)
+            return client.exists(key) == 1
         except _main_exceptions as e:
             raise ConnectionInterrupted(connection=client, parent=e)
 

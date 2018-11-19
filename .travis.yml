@@ -5,41 +5,108 @@ cache: pip
 matrix:
   include:
     - python: 2.7
-      env: TOXENV=py27-django111
+      env: TOXENV=py27-django111-redis2
+    - python: 2.7
+      env: TOXENV=py27-django111-redislatest
+    - python: 2.7
+      env: TOXENV=py27-django111-redismaster
     - python: 3.4
-      env: TOXENV=py34-django111
-    - python: 3.5
-      env: TOXENV=py35-django111
-    - python: 3.6
-      env: TOXENV=py36-django111
+      env: TOXENV=py34-django111-redis2
     - python: 3.4
-      env: TOXENV=py34-django20
+      env: TOXENV=py34-django111-redislatest
+    - python: 3.4
+      env: TOXENV=py34-django111-redismaster
     - python: 3.5
-      env: TOXENV=py35-django20
+      env: TOXENV=py35-django111-redis2
+    - python: 3.5
+      env: TOXENV=py35-django111-redislatest
+    - python: 3.5
+      env: TOXENV=py35-django111-redismaster
     - python: 3.6
-      env: TOXENV=py36-django20
+      env: TOXENV=py36-django111-redis2
+    - python: 3.6
+      env: TOXENV=py36-django111-redislatest
+    - python: 3.6
+      env: TOXENV=py36-django111-redismaster
+    - python: 3.4
+      env: TOXENV=py34-django20-redis2
+    - python: 3.4
+      env: TOXENV=py34-django20-redislatest
+    - python: 3.4
+      env: TOXENV=py34-django20-redismaster
+    - python: 3.5
+      env: TOXENV=py35-django20-redis2
+    - python: 3.5
+      env: TOXENV=py35-django20-redislatest
+    - python: 3.5
+      env: TOXENV=py35-django20-redismaster
+    - python: 3.6
+      env: TOXENV=py36-django20-redis2
+    - python: 3.6
+      env: TOXENV=py36-django20-redislatest
+    - python: 3.6
+      env: TOXENV=py36-django20-redismaster
     - python: 3.7
-      env: TOXENV=py37-django20
+      env: TOXENV=py37-django20-redis2
+      dist: xenial
+      sudo: required
+    - python: 3.7
+      env: TOXENV=py37-django20-redislatest
+      dist: xenial
+      sudo: required
+    - python: 3.7
+      env: TOXENV=py37-django20-redismaster
       dist: xenial
       sudo: required
     - python: 3.5
-      env: TOXENV=py35-django21
+      env: TOXENV=py35-django21-redis2
+    - python: 3.5
+      env: TOXENV=py35-django21-redislatest
+    - python: 3.5
+      env: TOXENV=py35-django21-redismaster
     - python: 3.6
-      env: TOXENV=py36-django21
+      env: TOXENV=py36-django21-redis2
+    - python: 3.6
+      env: TOXENV=py36-django21-redislatest
+    - python: 3.6
+      env: TOXENV=py36-django21-redismaster
     - python: 3.7
-      env: TOXENV=py37-django21
+      env: TOXENV=py37-django21-redis2
+      dist: xenial
+      sudo: required
+    - python: 3.7
+      env: TOXENV=py37-django21-redislatest
+      dist: xenial
+      sudo: required
+    - python: 3.7
+      env: TOXENV=py37-django21-redismaster
       dist: xenial
       sudo: required
     - python: 3.5
-      env: TOXENV=py35-djangomaster
+      env: TOXENV=py35-djangomaster-redis2
+    - python: 3.5
+      env: TOXENV=py35-djangomaster-redislatest
+    - python: 3.5
+      env: TOXENV=py35-djangomaster-redismaster
     - python: 3.6
-      env: TOXENV=py36-djangomaster
+      env: TOXENV=py36-djangomaster-redis2
+    - python: 3.6
+      env: TOXENV=py36-djangomaster-redislatest
+    - python: 3.6
+      env: TOXENV=py36-djangomaster-redismaster
     - python: 3.7
-      env: TOXENV=py37-djangomaster
+      env: TOXENV=py37-djangomaster-redis2
+      dist: xenial
+      sudo: required
+    - python: 3.7
+      env: TOXENV=py37-djangomaster-redislatest
+      dist: xenial
+      sudo: required
+    - python: 3.7
+      env: TOXENV=py37-djangomaster-redismaster
       dist: xenial
       sudo: required
     - env: TOXENV=lint
-
 install:
   - pip install tox
 

@@ -118,7 +118,7 @@ class ShardClient(DefaultClient):
 
         key = self.make_key(key, version=version)
         try:
-            return client.exists(key)
+            return client.exists(key) == 1
         except ConnectionError:
             raise ConnectionInterrupted(connection=client)
 

@@ -13,7 +13,7 @@ CACHES = {
     },
     'doesnotexist': {
         'BACKEND': 'redis_cache.cache.RedisCache',
-        'LOCATION': '127.0.0.1:56379:1',
+        'LOCATION': 'redis://127.0.0.1:56379?db=1',
         'OPTIONS': {
             'CLIENT_CLASS': 'redis_cache.client.DefaultClient',
         }
