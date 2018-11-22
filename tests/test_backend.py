@@ -90,7 +90,7 @@ class DjangoRedisCacheTestEscapePrefix(unittest.TestCase):
 
     def test_iter_keys(self):
         if isinstance(self.cache.client, ShardClient):
-            raise unittest.SkipTest("ShardClient doesn't support iter_keys")
+            self.skipTest("ShardClient doesn't support iter_keys")
 
         self.cache.set('a', '1')
         self.other.set('b', '2')
@@ -120,6 +120,9 @@ class DjangoRedisCacheTestCustomKeyFunction(unittest.TestCase):
             pass
 
     def test_custom_key_function(self):
+        if isinstance(self.cache.client, ShardClient):
+            self.skipTest("ShardClient doesn't support get_client")
+
         for key in ["foo-aa", "foo-ab", "foo-bb", "foo-bc"]:
             self.cache.set(key, "foo")
 
@@ -129,13 +132,9 @@ class DjangoRedisCacheTestCustomKeyFunction(unittest.TestCase):
         keys = self.cache.keys("foo*")
         self.assertEqual(set(keys), {"foo-bb", "foo-bc"})
         # ensure our custom function was actually called
-        try:
-            self.assertEqual(
-                {k.decode('utf-8') for k in self.cache.raw_client.keys('*')},
-                {'#1#foo-bc', '#1#foo-bb'})
-        except (NotImplementedError, AttributeError):
-            # not all clients support .keys()
-            pass
+        self.assertEqual(
+            {k.decode('utf-8') for k in self.cache.client.get_client(write=False).keys('*')},
+            {'#1#foo-bc', '#1#foo-bb'})
 
 
 class DjangoRedisCacheTests(unittest.TestCase):
@@ -362,80 +361,79 @@ class DjangoRedisCacheTests(unittest.TestCase):
         self.assertFalse(bool(res))
 
     def test_incr(self):
-        try:
-            self.cache.set("num", 1)
+        if isinstance(self.cache.client, herd.HerdClient):
+            self.skipTest("HerdClient doesn't support incr")
 
-            self.cache.incr("num")
-            res = self.cache.get("num")
-            self.assertEqual(res, 2)
+        self.cache.set("num", 1)
 
-            self.cache.incr("num", 10)
-            res = self.cache.get("num")
-            self.assertEqual(res, 12)
+        self.cache.incr("num")
+        res = self.cache.get("num")
+        self.assertEqual(res, 2)
 
-            # max 64 bit signed int
-            self.cache.set("num", 9223372036854775807)
+        self.cache.incr("num", 10)
+        res = self.cache.get("num")
+        self.assertEqual(res, 12)
 
-            self.cache.incr("num")
-            res = self.cache.get("num")
-            self.assertEqual(res, 9223372036854775808)
+        # max 64 bit signed int
+        self.cache.set("num", 9223372036854775807)
 
-            self.cache.incr("num", 2)
-            res = self.cache.get("num")
-            self.assertEqual(res, 9223372036854775810)
+        self.cache.incr("num")
+        res = self.cache.get("num")
+        self.assertEqual(res, 9223372036854775808)
 
-            self.cache.set("num", long(3))
+        self.cache.incr("num", 2)
+        res = self.cache.get("num")
+        self.assertEqual(res, 9223372036854775810)
 
-            self.cache.incr("num", 2)
-            res = self.cache.get("num")
-            self.assertEqual(res, 5)
+        self.cache.set("num", long(3))
 
-        except NotImplementedError as e:
-            print(e)
+        self.cache.incr("num", 2)
+        res = self.cache.get("num")
+        self.assertEqual(res, 5)
 
     def test_incr_error(self):
-        try:
-            with self.assertRaises(ValueError):
-                # key does not exist
-                self.cache.incr('numnum')
-        except NotImplementedError:
-            raise unittest.SkipTest("`incr` not supported in herd client")
+        if isinstance(self.cache.client, herd.HerdClient):
+            self.skipTest("HerdClient doesn't support incr")
+
+        with self.assertRaises(ValueError):
+            # key does not exist
+            self.cache.incr('numnum')
 
     def test_incr_ignore_check(self):
-        try:
-            # incr with 'ignore_key_check' is supported only on the DefaultClient
-            if isinstance(self.cache, DefaultClient):
-                # key exists check will be skipped and the value will be incremented by '1' which is the default delta
-                self.cache.incr("num", ignore_key_check=True)
-                res = self.cache.get("num")
-                self.assertEqual(res, 1)
-                self.cache.delete("num")
+        if isinstance(self.cache.client, ShardClient):
+            self.skipTest("ShardClient doesn't support argument ignore_key_check to incr")
+        if isinstance(self.cache.client, herd.HerdClient):
+            self.skipTest("HerdClient doesn't support incr")
 
-                # since key doesnt exist it is set to the delta value, 10 in this case
-                self.cache.incr("num", 10, ignore_key_check=True)
-                res = self.cache.get("num")
-                self.assertEqual(res, 10)
-                self.cache.delete("num")
+        # key exists check will be skipped and the value will be incremented by '1' which is the default delta
+        self.cache.incr("num", ignore_key_check=True)
+        res = self.cache.get("num")
+        self.assertEqual(res, 1)
+        self.cache.delete("num")
 
-                # following are just regression checks to make sure it still works as expected with incr
-                # max 64 bit signed int
-                self.cache.set("num", 9223372036854775807)
+        # since key doesnt exist it is set to the delta value, 10 in this case
+        self.cache.incr("num", 10, ignore_key_check=True)
+        res = self.cache.get("num")
+        self.assertEqual(res, 10)
+        self.cache.delete("num")
 
-                self.cache.incr("num", ignore_key_check=True)
-                res = self.cache.get("num")
-                self.assertEqual(res, 9223372036854775808)
+        # following are just regression checks to make sure it still works as expected with incr
+        # max 64 bit signed int
+        self.cache.set("num", 9223372036854775807)
 
-                self.cache.incr("num", 2, ignore_key_check=True)
-                res = self.cache.get("num")
-                self.assertEqual(res, 9223372036854775810)
+        self.cache.incr("num", ignore_key_check=True)
+        res = self.cache.get("num")
+        self.assertEqual(res, 9223372036854775808)
 
-                self.cache.set("num", long(3))
+        self.cache.incr("num", 2, ignore_key_check=True)
+        res = self.cache.get("num")
+        self.assertEqual(res, 9223372036854775810)
 
-                self.cache.incr("num", 2, ignore_key_check=True)
-                res = self.cache.get("num")
-                self.assertEqual(res, 5)
-        except NotImplementedError:
-            raise unittest.SkipTest("`incr` not supported in herd client")
+        self.cache.set("num", long(3))
+
+        self.cache.incr("num", 2, ignore_key_check=True)
+        res = self.cache.get("num")
+        self.assertEqual(res, 5)
 
     def test_get_set_bool(self):
         self.cache.set("bool", True)
@@ -451,39 +449,39 @@ class DjangoRedisCacheTests(unittest.TestCase):
         self.assertEqual(res, False)
 
     def test_decr(self):
-        try:
-            self.cache.set("num", 20)
+        if isinstance(self.cache.client, herd.HerdClient):
+            self.skipTest("HerdClient doesn't support decr")
 
-            self.cache.decr("num")
-            res = self.cache.get("num")
-            self.assertEqual(res, 19)
+        self.cache.set("num", 20)
 
-            self.cache.decr("num", 20)
-            res = self.cache.get("num")
-            self.assertEqual(res, -1)
+        self.cache.decr("num")
+        res = self.cache.get("num")
+        self.assertEqual(res, 19)
 
-            self.cache.decr("num", long(2))
-            res = self.cache.get("num")
-            self.assertEqual(res, -3)
+        self.cache.decr("num", 20)
+        res = self.cache.get("num")
+        self.assertEqual(res, -1)
 
-            self.cache.set("num", long(20))
+        self.cache.decr("num", long(2))
+        res = self.cache.get("num")
+        self.assertEqual(res, -3)
 
-            self.cache.decr("num")
-            res = self.cache.get("num")
-            self.assertEqual(res, 19)
+        self.cache.set("num", long(20))
 
-            # max 64 bit signed int + 1
-            self.cache.set("num", 9223372036854775808)
+        self.cache.decr("num")
+        res = self.cache.get("num")
+        self.assertEqual(res, 19)
 
-            self.cache.decr("num")
-            res = self.cache.get("num")
-            self.assertEqual(res, 9223372036854775807)
+        # max 64 bit signed int + 1
+        self.cache.set("num", 9223372036854775808)
 
-            self.cache.decr("num", 2)
-            res = self.cache.get("num")
-            self.assertEqual(res, 9223372036854775805)
-        except NotImplementedError as e:
-            print(e)
+        self.cache.decr("num")
+        res = self.cache.get("num")
+        self.assertEqual(res, 9223372036854775807)
+
+        self.cache.decr("num", 2)
+        res = self.cache.get("num")
+        self.assertEqual(res, 9223372036854775805)
 
     def test_version(self):
         self.cache.set("keytest", 2, version=2)
@@ -494,17 +492,14 @@ class DjangoRedisCacheTests(unittest.TestCase):
         self.assertEqual(res, 2)
 
     def test_incr_version(self):
-        try:
-            self.cache.set("keytest", 2)
-            self.cache.incr_version("keytest")
+        self.cache.set("keytest", 2)
+        self.cache.incr_version("keytest")
 
-            res = self.cache.get("keytest")
-            self.assertEqual(res, None)
+        res = self.cache.get("keytest")
+        self.assertEqual(res, None)
 
-            res = self.cache.get("keytest", version=2)
-            self.assertEqual(res, 2)
-        except NotImplementedError as e:
-            print(e)
+        res = self.cache.get("keytest", version=2)
+        self.assertEqual(res, 2)
 
     def test_delete_pattern(self):
         for key in ["foo-aa", "foo-ab", "foo-bb", "foo-bc"]:
@@ -545,19 +540,12 @@ class DjangoRedisCacheTests(unittest.TestCase):
 
     def test_ttl(self):
         cache = caches["default"]
-        _params = cache._params
-        _is_herd = _params["OPTIONS"]["CLIENT_CLASS"] == "django_redis.client.HerdClient"
-        _is_shard = _params["OPTIONS"]["CLIENT_CLASS"] == "django_redis.client.ShardClient"
-
-        # Not supported for shard client.
-        if _is_shard:
-            return
 
         # Test ttl
         cache.set("foo", "bar", 10)
         ttl = cache.ttl("foo")
 
-        if _is_herd:
+        if isinstance(cache.client, herd.HerdClient):
             self.assertAlmostEqual(ttl, 12)
         else:
             self.assertAlmostEqual(ttl, 10)
@@ -599,11 +587,8 @@ class DjangoRedisCacheTests(unittest.TestCase):
 
     def test_iter_keys(self):
         cache = caches["default"]
-        _params = cache._params
-        _is_shard = _params["OPTIONS"]["CLIENT_CLASS"] == "django_redis.client.ShardClient"
-
-        if _is_shard:
-            return
+        if isinstance(cache.client, ShardClient):
+            self.skipTest("ShardClient doesn't support iter_keys")
 
         cache.set("foo1", 1)
         cache.set("foo2", 1)
@@ -622,16 +607,16 @@ class DjangoRedisCacheTests(unittest.TestCase):
         self.assertNotEqual(next(result), None)
 
     def test_master_slave_switching(self):
-        try:
-            cache = caches["sample"]
-            client = cache.client
-            client._server = ["foo", "bar"]
-            client._clients = ["Foo", "Bar"]
+        if isinstance(self.cache.client, ShardClient):
+            self.skipTest("ShardClient doesn't support get_client")
 
-            self.assertEqual(client.get_client(write=True), "Foo")
-            self.assertEqual(client.get_client(write=False), "Bar")
-        except NotImplementedError:
-            pass
+        cache = caches["sample"]
+        client = cache.client
+        client._server = ["foo", "bar"]
+        client._clients = ["Foo", "Bar"]
+
+        self.assertEqual(client.get_client(write=True), "Foo")
+        self.assertEqual(client.get_client(write=False), "Bar")
 
     def test_touch_zero_timeout(self):
         self.cache.set("test_key", 222, timeout=10)
@@ -1077,7 +1062,7 @@ class SessionTests(SessionTestsMixin, unittest.TestCase):
 
     def test_actual_expiry(self):
         if isinstance(caches[DEFAULT_CACHE_ALIAS].client._serializer, MSGPackSerializer):
-            raise unittest.SkipTest("msgpack serializer doesn't support datetime serialization")
+            self.skipTest("msgpack serializer doesn't support datetime serialization")
         super(SessionTests, self).test_actual_expiry()
 
 
