@@ -756,7 +756,7 @@ also available.
 
 
 There's also support for serialization using 'MsgPack' 'http://msgpack.org/'
-(that requires the msgpack-python library):
+(that requires the msgpack library):
 
 .Example setup
 [source, python]
