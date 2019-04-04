@@ -5,6 +5,7 @@ cache: pip
 
 matrix:
   include:
+    - env: TOXENV=lint
     - python: 2.7
       env: TOXENV=py27-django111-redis2
     - python: 2.7
@@ -89,8 +90,6 @@ matrix:
       env: TOXENV=py37-django22-redislatest
     - python: 3.7
       env: TOXENV=py37-django22-redismaster
-    - python: 3.5
-      env: TOXENV=py35-djangomaster-redis2
     - python: 3.6
       env: TOXENV=py36-djangomaster-redis2
     - python: 3.6
@@ -103,7 +102,14 @@ matrix:
       env: TOXENV=py37-djangomaster-redislatest
     - python: 3.7
       env: TOXENV=py37-djangomaster-redismaster
-    - env: TOXENV=lint
+  allow_failures:
+    - env: TOXENV=py36-djangomaster-redis2
+    - env: TOXENV=py36-djangomaster-redislatest
+    - env: TOXENV=py36-djangomaster-redismaster
+    - env: TOXENV=py37-djangomaster-redis2
+    - env: TOXENV=py37-djangomaster-redislatest
+    - env: TOXENV=py37-djangomaster-redismaster
+
 install:
   - pip install tox
 
