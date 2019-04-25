@@ -5,6 +5,7 @@ from __future__ import absolute_import, unicode_literals
 import random
 import re
 import socket
+import warnings
 from collections import OrderedDict
 
 from django.conf import settings
@@ -208,7 +209,7 @@ class DefaultClient(object):
         if value is None:
             return default
 
-        return self.decode(value)
+        return self.decode(value, key)
 
     def persist(self, key, version=None, client=None):
         if client is None:
@@ -304,9 +305,11 @@ class DefaultClient(object):
         except _main_exceptions as e:
             raise ConnectionInterrupted(connection=client, parent=e)
 
-    def decode(self, value):
+    def decode(self, value, key):
         """
         Decode the given value.
+
+        Key is used to provide better context to warnings.
         """
         try:
             value = int(value)
@@ -316,7 +319,18 @@ class DefaultClient(object):
             except CompressorError:
                 # Handle little values, chosen to be not compressed
                 pass
-            value = self._serializer.loads(value)
+
+            with warnings.catch_warnings(record=True) as caught_warnings:
+                value = self._serializer.loads(value)
+
+            for warning in caught_warnings:
+                warnings.warn_explicit(
+                    warning.category("{} (cache key: {})".format(str(warning.message), key)),
+                    warning.category,
+                    warning.filename,
+                    warning.lineno,
+                )
+
         return value
 
     def encode(self, value):
@@ -356,7 +370,7 @@ class DefaultClient(object):
         for key, value in zip(map_keys, results):
             if value is None:
                 continue
-            recovered_data[map_keys[key]] = self.decode(value)
+            recovered_data[map_keys[key]] = self.decode(value, key)
         return recovered_data
 
     def set_many(self, data, timeout=DEFAULT_TIMEOUT, version=None, client=None):
