@@ -17,7 +17,7 @@ from redis.exceptions import ConnectionError, ResponseError, TimeoutError
 
 from .. import pool
 from ..exceptions import CompressorError, ConnectionInterrupted
-from ..util import CacheKey
+from ..util import CacheKey, delete_pattern
 
 _main_exceptions = (TimeoutError, ResponseError, ConnectionError, socket.timeout)
 
@@ -265,11 +265,7 @@ class DefaultClient(object):
             kwargs['count'] = itersize
 
         try:
-            count = 0
-            for key in client.scan_iter(**kwargs):
-                client.delete(key)
-                count += 1
-            return count
+            return delete_pattern(kwargs, client)
         except _main_exceptions as e:
             raise ConnectionInterrupted(connection=client, parent=e)
 
