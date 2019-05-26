@@ -470,7 +470,7 @@ False
 "value1"
 ----
 
-Also, `incr` and `decr` methods uses redis atomic operations when value that contains a key is suitable
+Also, the `incr` and `decr` methods use Redis atomic operations when the value that a key contains is suitable
 for it.
 
 
