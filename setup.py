@@ -12,6 +12,7 @@ setup(
     author="Andrei Antoukh",
     author_email="niwi@niwi.nz",
     version=__version__,
+    license="BSD",
     packages=[
         "django_redis",
         "django_redis.client",
