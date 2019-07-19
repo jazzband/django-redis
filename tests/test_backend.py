@@ -190,7 +190,6 @@ class DjangoRedisCacheTests(unittest.TestCase):
         self.cache.set("test_key", "hello" * 1000)
         res = self.cache.get("test_key")
 
-        type(res)
         self.assertIsInstance(res, str)
         self.assertEqual(res, "hello" * 1000)
 
