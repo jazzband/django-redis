@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import random
 import socket
 import time
@@ -14,7 +12,7 @@ from .default import DEFAULT_TIMEOUT, DefaultClient
 _main_exceptions = (ConnectionError, ResponseError, TimeoutError, socket.timeout)
 
 
-class Marker(object):
+class Marker:
     """
     Dummy class for use as
     marker for herded keys.
@@ -38,7 +36,7 @@ def _is_expired(x):
 class HerdClient(DefaultClient):
     def __init__(self, *args, **kwargs):
         self._marker = Marker()
-        super(HerdClient, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def _pack(self, value, timeout):
         herd_timeout = (timeout or self._backend.default_timeout) + int(time.time())
@@ -67,20 +65,20 @@ class HerdClient(DefaultClient):
             timeout = self._backend.default_timeout
 
         if timeout is None or timeout <= 0:
-            return super(HerdClient, self).set(key, value, timeout=timeout,
-                                               version=version, client=client,
-                                               nx=nx, xx=xx)
+            return super().set(key, value, timeout=timeout,
+                               version=version, client=client,
+                               nx=nx, xx=xx)
 
         packed = self._pack(value, timeout)
         real_timeout = (timeout + CACHE_HERD_TIMEOUT)
 
-        return super(HerdClient, self).set(key, packed, timeout=real_timeout,
-                                           version=version, client=client,
-                                           nx=nx)
+        return super().set(key, packed, timeout=real_timeout,
+                           version=version, client=client,
+                           nx=nx)
 
     def get(self, key, default=None, version=None, client=None):
-        packed = super(HerdClient, self).get(key, default=default,
-                                             version=version, client=client)
+        packed = super().get(key, default=default,
+                             version=version, client=client)
         val, refresh = self._unpack(packed)
 
         if refresh:
@@ -126,7 +124,7 @@ class HerdClient(DefaultClient):
         if client is None:
             client = self.get_client(write=True)
 
-        set_function = self.set if herd else super(HerdClient, self).set
+        set_function = self.set if herd else super().set
 
         try:
             pipeline = client.pipeline()

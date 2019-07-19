@@ -1,6 +1,11 @@
 Changelog
 =========
 
+UNRELEASED
+----------
+
+- Removed support for Python 2.7 and 3.4.
+
 Version 4.10.0
 --------------
 

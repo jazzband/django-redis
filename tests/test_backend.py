@@ -1,21 +1,17 @@
-# -*- coding: utf-8 -*-
-
-from __future__ import absolute_import, print_function, unicode_literals
-
 import base64
 import copy
 import datetime
 import time
 import unittest
 from datetime import timedelta
+from unittest.mock import Mock, patch
 
 from django import VERSION
 from django.conf import settings
 from django.contrib.sessions.backends.cache import SessionStore as CacheSession
 from django.core.cache import DEFAULT_CACHE_ALIAS, cache, caches
 from django.test import override_settings
-from django.test.utils import patch_logger
-from django.utils import six, timezone
+from django.utils import timezone
 from redis.exceptions import ConnectionError
 
 import django_redis.cache
@@ -24,16 +20,7 @@ from django_redis.client import DefaultClient, ShardClient, herd
 from django_redis.serializers.json import JSONSerializer
 from django_redis.serializers.msgpack import MSGPackSerializer
 
-try:
-    from unittest.mock import patch, Mock
-except ImportError:
-    from mock import patch, Mock
-
-
 herd.CACHE_HERD_TIMEOUT = 2
-
-if six.PY3:
-    long = int
 
 
 def make_key(key, prefix, version):
@@ -136,7 +123,7 @@ class DjangoRedisCacheTestCustomKeyFunction(unittest.TestCase):
         self.assertEqual(set(keys), {"foo-bb", "foo-bc"})
         # ensure our custom function was actually called
         self.assertEqual(
-            {k.decode('utf-8') for k in self.cache.client.get_client(write=False).keys('*')},
+            {k.decode() for k in self.cache.client.get_client(write=False).keys('*')},
             {'#1#foo-bc', '#1#foo-bb'})
 
 
@@ -204,20 +191,20 @@ class DjangoRedisCacheTests(unittest.TestCase):
         res = self.cache.get("test_key")
 
         type(res)
-        self.assertIsInstance(res, six.text_type)
+        self.assertIsInstance(res, str)
         self.assertEqual(res, "hello" * 1000)
 
         self.cache.set("test_key", "2")
         res = self.cache.get("test_key")
 
-        self.assertIsInstance(res, six.text_type)
+        self.assertIsInstance(res, str)
         self.assertEqual(res, "2")
 
     def test_save_unicode(self):
         self.cache.set("test_key", "heló")
         res = self.cache.get("test_key")
 
-        self.assertIsInstance(res, six.text_type)
+        self.assertIsInstance(res, str)
         self.assertEqual(res, "heló")
 
     def test_save_dict(self):
@@ -388,7 +375,7 @@ class DjangoRedisCacheTests(unittest.TestCase):
         res = self.cache.get("num")
         self.assertEqual(res, 9223372036854775810)
 
-        self.cache.set("num", long(3))
+        self.cache.set("num", 3)
 
         self.cache.incr("num", 2)
         res = self.cache.get("num")
@@ -432,7 +419,7 @@ class DjangoRedisCacheTests(unittest.TestCase):
         res = self.cache.get("num")
         self.assertEqual(res, 9223372036854775810)
 
-        self.cache.set("num", long(3))
+        self.cache.set("num", 3)
 
         self.cache.incr("num", 2, ignore_key_check=True)
         res = self.cache.get("num")
@@ -465,11 +452,11 @@ class DjangoRedisCacheTests(unittest.TestCase):
         res = self.cache.get("num")
         self.assertEqual(res, -1)
 
-        self.cache.decr("num", long(2))
+        self.cache.decr("num", 2)
         res = self.cache.get("num")
         self.assertEqual(res, -3)
 
-        self.cache.set("num", long(20))
+        self.cache.set("num", 20)
 
         self.cache.decr("num")
         res = self.cache.get("num")
@@ -987,12 +974,11 @@ class SessionTestsMixin:
         self.assertEqual(self.session.decode(encoded), data)
 
     def test_decode_failure_logged_to_security(self):
-        bad_encode = base64.b64encode(b'flaskdj:alkdjf').decode()
-        with patch_logger('django.security.SuspiciousSession', 'warning') as calls:
+        bad_encode = base64.b64encode(b'flaskdj:alkdjf').decode('ascii')
+        with self.assertLogs('django.security.SuspiciousSession', 'WARNING') as cm:
             self.assertEqual({}, self.session.decode(bad_encode))
-            # check that the failed decode is logged
-            self.assertEqual(len(calls), 1)
-            self.assertIn('corrupted', calls[0])
+        # The failed decode is logged.
+        self.assertIn('corrupted', cm.output[0])
 
     def test_actual_expiry(self):
         # this doesn't work with JSONSerializer (serializing timedelta)
@@ -1054,9 +1040,6 @@ class SessionTestsMixin:
 
         self.assertEqual(s1.load(), {})
 
-    if six.PY2:
-        assertCountEqual = unittest.TestCase.assertItemsEqual
-
 
 class SessionTests(SessionTestsMixin, unittest.TestCase):
     backend = CacheSession
@@ -1064,7 +1047,7 @@ class SessionTests(SessionTestsMixin, unittest.TestCase):
     def test_actual_expiry(self):
         if isinstance(caches[DEFAULT_CACHE_ALIAS].client._serializer, MSGPackSerializer):
             self.skipTest("msgpack serializer doesn't support datetime serialization")
-        super(SessionTests, self).test_actual_expiry()
+        super().test_actual_expiry()
 
 
 class TestDefaultClient(unittest.TestCase):
