@@ -14,7 +14,7 @@ DJANGO_REDIS_SCAN_ITERSIZE = getattr(settings, "DJANGO_REDIS_SCAN_ITERSIZE", 10)
 
 
 if DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS:
-    logger = logging.getLogger((DJANGO_REDIS_LOGGER or __name__))
+    logger = logging.getLogger(DJANGO_REDIS_LOGGER or __name__)
 
 
 def omit_exception(method=None, return_value=None):

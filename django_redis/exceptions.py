@@ -14,7 +14,7 @@ class ConnectionInterrupted(Exception):
             error_type = self.parent.__class__.__name__
             error_msg = str(self.parent)
 
-        return "Redis %s: %s" % (error_type, error_msg)
+        return "Redis {}: {}".format(error_type, error_msg)
 
 
 class CompressorError(Exception):
