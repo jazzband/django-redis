@@ -42,7 +42,7 @@ def omit_exception(method=None, return_value=None):
 
 class RedisCache(BaseCache):
     def __init__(self, server, params):
-        super(RedisCache, self).__init__(params)
+        super().__init__(params)
         self._server = server
         self._params = params
 

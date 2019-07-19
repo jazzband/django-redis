@@ -1,11 +1,9 @@
-# -*- coding: utf-8 -*-
-
 import unittest
 
 from django_redis.hash_ring import HashRing
 
 
-class Node(object):
+class Node:
     def __init__(self, id):
         self.id = id
 

@@ -1,7 +1,3 @@
-# -*- coding: utf-8 -*-
-
-from __future__ import absolute_import, unicode_literals
-
 import random
 import re
 import socket
@@ -10,7 +6,6 @@ from collections import OrderedDict
 from django.conf import settings
 from django.core.cache.backends.base import DEFAULT_TIMEOUT, get_key_func
 from django.core.exceptions import ImproperlyConfigured
-from django.utils import six
 from django.utils.encoding import smart_text
 from django.utils.module_loading import import_string
 from redis.exceptions import ConnectionError, ResponseError, TimeoutError
@@ -29,7 +24,7 @@ def glob_escape(s):
     return special_re.sub(r'[\1]', s)
 
 
-class DefaultClient(object):
+class DefaultClient:
     def __init__(self, server, params, backend):
         self._backend = backend
         self._server = server
@@ -324,7 +319,7 @@ class DefaultClient(object):
         Encode the given value.
         """
 
-        if isinstance(value, bool) or not isinstance(value, six.integer_types):
+        if isinstance(value, bool) or not isinstance(value, int):
             value = self._serializer.dumps(value)
             value = self._compressor.compress(value)
             return value

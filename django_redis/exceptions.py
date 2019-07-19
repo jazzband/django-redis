@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-
-
 class ConnectionInterrupted(Exception):
     def __init__(self, connection, parent=None):
         self.connection = connection

@@ -3,7 +3,7 @@ from django.utils.module_loading import import_string
 from redis.connection import DefaultParser
 
 
-class ConnectionFactory(object):
+class ConnectionFactory:
 
     # Store connection pool by cache backend options.
     #
