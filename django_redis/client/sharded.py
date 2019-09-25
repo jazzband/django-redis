@@ -159,6 +159,7 @@ class ShardClient(DefaultClient):
         sleep=0.1,
         blocking_timeout=None,
         client=None,
+        thread_local=True,
     ):
 
         if client is None:
@@ -172,6 +173,7 @@ class ShardClient(DefaultClient):
             sleep=sleep,
             client=client,
             blocking_timeout=blocking_timeout,
+            thread_local=thread_local,
         )
 
     def delete_many(self, keys, version=None):

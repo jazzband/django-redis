@@ -252,13 +252,18 @@ class DefaultClient:
         sleep=0.1,
         blocking_timeout=None,
         client=None,
+        thread_local=True,
     ):
         if client is None:
             client = self.get_client(write=True)
 
         key = self.make_key(key, version=version)
         return client.lock(
-            key, timeout=timeout, sleep=sleep, blocking_timeout=blocking_timeout
+            key,
+            timeout=timeout,
+            sleep=sleep,
+            blocking_timeout=blocking_timeout,
+            thread_local=thread_local,
         )
 
     def delete(self, key, version=None, prefix=None, client=None):
