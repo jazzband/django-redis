@@ -3,6 +3,7 @@ import copy
 import datetime
 import time
 import unittest
+import threading
 from datetime import timedelta
 from unittest.mock import Mock, patch
 
@@ -614,6 +615,19 @@ class DjangoRedisCacheTests(unittest.TestCase):
 
         self.assertTrue(self.cache.has_key("foobar"))
         lock.release()
+        self.assertFalse(self.cache.has_key("foobar"))
+
+    def test_lock_released_by_thread(self):
+        lock = self.cache.lock("foobar", thread_local=False)
+        lock.acquire(blocking=True)
+
+        def release_lock(lock_):
+            lock_.release()
+
+        t = threading.Thread(target=release_lock, args=[lock])
+        t.start()
+        t.join()
+
         self.assertFalse(self.cache.has_key("foobar"))
 
     def test_iter_keys(self):
