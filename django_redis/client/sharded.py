@@ -5,9 +5,9 @@ from __future__ import absolute_import, unicode_literals
 import re
 from collections import OrderedDict
 
+from six import text_type
 from django.conf import settings
 from django.utils.encoding import smart_text
-from django.utils.six import text_type
 from redis.exceptions import ConnectionError
 
 from ..exceptions import ConnectionInterrupted

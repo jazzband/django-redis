@@ -9,13 +9,13 @@ import time
 import unittest
 from datetime import timedelta
 
+import six
 from django import VERSION
 from django.conf import settings
 from django.contrib.sessions.backends.cache import SessionStore as CacheSession
 from django.core.cache import DEFAULT_CACHE_ALIAS, cache, caches
 from django.test import override_settings
-from django.test.utils import patch_logger
-from django.utils import six, timezone
+from django.utils import timezone
 from redis.exceptions import ConnectionError
 
 import django_redis.cache
@@ -985,7 +985,7 @@ class SessionTestsMixin:
 
     def test_decode_failure_logged_to_security(self):
         bad_encode = base64.b64encode(b'flaskdj:alkdjf').decode()
-        with patch_logger('django.security.SuspiciousSession', 'warning') as calls:
+        with self.assertLogs('django.security.SuspiciousSession', 'warning') as calls:
             self.assertEqual({}, self.session.decode(bad_encode))
             # check that the failed decode is logged
             self.assertEqual(len(calls), 1)

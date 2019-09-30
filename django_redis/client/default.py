@@ -7,10 +7,10 @@ import re
 import socket
 from collections import OrderedDict
 
+import six
 from django.conf import settings
 from django.core.cache.backends.base import DEFAULT_TIMEOUT, get_key_func
 from django.core.exceptions import ImproperlyConfigured
-from django.utils import six
 from django.utils.encoding import smart_text
 from django.utils.module_loading import import_string
 from redis.exceptions import ConnectionError, ResponseError, TimeoutError
