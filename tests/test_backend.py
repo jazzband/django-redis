@@ -985,11 +985,26 @@ class SessionTestsMixin:
 
     def test_decode_failure_logged_to_security(self):
         bad_encode = base64.b64encode(b'flaskdj:alkdjf').decode()
-        with self.assertLogs('django.security.SuspiciousSession', 'warning') as calls:
-            self.assertEqual({}, self.session.decode(bad_encode))
-            # check that the failed decode is logged
-            self.assertEqual(len(calls), 1)
-            self.assertIn('corrupted', calls[0])
+
+        try:
+            from django.test.utils import patch_logger
+
+            with patch_logger('django.security.SuspiciousSession', 'warning') as calls:
+                self.assertEqual({}, self.session.decode(bad_encode))
+                # check that the failed decode is logged
+                self.assertEqual(len(calls), 1)
+                self.assertIn('corrupted', calls[0])
+        except ImportError:
+            # Python 3 detected
+            with self.assertLogs('django.security.SuspiciousSession', 'WARNING') as cm:
+                self.assertEqual(len(cm.output), 1)
+                self.assertEqual(
+                    cm.output,
+                    [
+                        'WARNING:django.security.SuspiciousSession:Session data corrupted',
+                    ]
+                )
+
 
     def test_actual_expiry(self):
         # this doesn't work with JSONSerializer (serializing timedelta)
