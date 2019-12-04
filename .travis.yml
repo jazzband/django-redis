@@ -89,8 +89,18 @@ matrix:
       env: TOXENV=py37-django22-redislatest
     - python: 3.7
       env: TOXENV=py37-django22-redismaster
-    - python: 3.5
-      env: TOXENV=py35-djangomaster-redis2
+    - python: 3.6
+      env: TOXENV=py36-django30-redis2
+    - python: 3.6
+      env: TOXENV=py36-django30-redislatest
+    - python: 3.6
+      env: TOXENV=py36-django30-redismaster
+    - python: 3.7
+      env: TOXENV=py37-django30-redis2
+    - python: 3.7
+      env: TOXENV=py37-django30-redislatest
+    - python: 3.7
+      env: TOXENV=py37-django30-redismaster
     - python: 3.6
       env: TOXENV=py36-djangomaster-redis2
     - python: 3.6

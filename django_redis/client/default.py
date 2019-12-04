@@ -10,7 +10,6 @@ from collections import OrderedDict
 from django.conf import settings
 from django.core.cache.backends.base import DEFAULT_TIMEOUT, get_key_func
 from django.core.exceptions import ImproperlyConfigured
-from django.utils import six
 from django.utils.encoding import smart_text
 from django.utils.module_loading import import_string
 from redis.exceptions import ConnectionError, ResponseError, TimeoutError
@@ -18,6 +17,11 @@ from redis.exceptions import ConnectionError, ResponseError, TimeoutError
 from .. import pool
 from ..exceptions import CompressorError, ConnectionInterrupted
 from ..util import CacheKey
+
+try:
+    from django.utils.six import integer_types
+except ImportError:
+    integer_types = int
 
 _main_exceptions = (TimeoutError, ResponseError, ConnectionError, socket.timeout)
 
@@ -324,7 +328,7 @@ class DefaultClient(object):
         Encode the given value.
         """
 
-        if isinstance(value, bool) or not isinstance(value, six.integer_types):
+        if isinstance(value, bool) or not isinstance(value, integer_types):
             value = self._serializer.dumps(value)
             value = self._compressor.compress(value)
             return value

@@ -7,13 +7,17 @@ from collections import OrderedDict
 
 from django.conf import settings
 from django.utils.encoding import smart_text
-from django.utils.six import text_type
 from redis.exceptions import ConnectionError
 
 from ..exceptions import ConnectionInterrupted
 from ..hash_ring import HashRing
 from ..util import CacheKey
 from .default import DEFAULT_TIMEOUT, DefaultClient
+
+try:
+    from django.utils.six import text_type
+except ImportError:
+    text_type = str
 
 
 class ShardClient(DefaultClient):

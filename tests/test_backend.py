@@ -5,6 +5,7 @@ from __future__ import absolute_import, print_function, unicode_literals
 import base64
 import copy
 import datetime
+import logging
 import time
 import unittest
 from datetime import timedelta
@@ -14,8 +15,7 @@ from django.conf import settings
 from django.contrib.sessions.backends.cache import SessionStore as CacheSession
 from django.core.cache import DEFAULT_CACHE_ALIAS, cache, caches
 from django.test import override_settings
-from django.test.utils import patch_logger
-from django.utils import six, timezone
+from django.utils import timezone
 from redis.exceptions import ConnectionError
 
 import django_redis.cache
@@ -29,11 +29,18 @@ try:
 except ImportError:
     from mock import patch, Mock
 
+try:
+    from django.utils.six import PY2, PY3, text_type
+
+    if PY3:
+        long = int
+except ImportError:
+    long = int
+    text_type = str
+    PY2 = False
+
 
 herd.CACHE_HERD_TIMEOUT = 2
-
-if six.PY3:
-    long = int
 
 
 def make_key(key, prefix, version):
@@ -201,20 +208,20 @@ class DjangoRedisCacheTests(unittest.TestCase):
         res = self.cache.get("test_key")
 
         type(res)
-        self.assertIsInstance(res, six.text_type)
+        self.assertIsInstance(res, text_type)
         self.assertEqual(res, "hello" * 1000)
 
         self.cache.set("test_key", "2")
         res = self.cache.get("test_key")
 
-        self.assertIsInstance(res, six.text_type)
+        self.assertIsInstance(res, text_type)
         self.assertEqual(res, "2")
 
     def test_save_unicode(self):
         self.cache.set("test_key", "heló")
         res = self.cache.get("test_key")
 
-        self.assertIsInstance(res, six.text_type)
+        self.assertIsInstance(res, text_type)
         self.assertEqual(res, "heló")
 
     def test_save_dict(self):
@@ -985,11 +992,21 @@ class SessionTestsMixin:
 
     def test_decode_failure_logged_to_security(self):
         bad_encode = base64.b64encode(b'flaskdj:alkdjf').decode()
-        with patch_logger('django.security.SuspiciousSession', 'warning') as calls:
+
+        if PY2:
+            from django.test.utils import patch_logger as assert_logs
+            level = 'warning'
+        else:
+            assert_logs = self.assertLogs
+            level = logging.WARNING
+
+        with assert_logs('django.security.SuspiciousSession', level) as cm:
+            output = cm if PY2 else cm.output
+
             self.assertEqual({}, self.session.decode(bad_encode))
             # check that the failed decode is logged
-            self.assertEqual(len(calls), 1)
-            self.assertIn('corrupted', calls[0])
+            self.assertEqual(len(output), 1)
+            self.assertIn('corrupted', output[0])
 
     def test_actual_expiry(self):
         # this doesn't work with JSONSerializer (serializing timedelta)
@@ -1051,7 +1068,7 @@ class SessionTestsMixin:
 
         self.assertEqual(s1.load(), {})
 
-    if six.PY2:
+    if PY2:
         assertCountEqual = unittest.TestCase.assertItemsEqual
 
 

@@ -2,10 +2,13 @@
 
 from __future__ import absolute_import, unicode_literals
 
-from django.utils import six
+try:
+    from django.utils.six import text_type
+except ImportError:
+    text_type = str
 
 
-class CacheKey(six.text_type):
+class CacheKey(text_type):
     """
     A stub string class that we can use to check if a key was created already.
     """
