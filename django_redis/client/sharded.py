@@ -220,7 +220,7 @@ class ShardClient(DefaultClient):
         raise NotImplementedError("iter_keys not supported on sharded client")
 
     def keys(self, search, version=None):
-        pattern = self.make_key(search, version=version)
+        pattern = self.make_pattern(search, version=version)
         keys = []
         try:
             for server, connection in self._serverdict.items():

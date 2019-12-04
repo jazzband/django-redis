@@ -84,9 +84,6 @@ class DjangoRedisCacheTestEscapePrefix(unittest.TestCase):
         self.assertEqual(list(self.cache.iter_keys('*')), ['a'])
 
     def test_keys(self):
-        if isinstance(self.cache.client, ShardClient):
-            self.skipTest("ShardClient doesn't support iter_keys")
-
         self.cache.set('a', '1')
         self.other.set('b', '2')
         keys = self.cache.keys('*')
