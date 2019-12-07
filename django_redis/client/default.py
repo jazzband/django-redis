@@ -136,7 +136,7 @@ class DefaultClient:
                             # than to set it and than expire in a pipeline
                             return self.delete(key, client=client, version=version)
 
-                return client.set(nkey, nvalue, nx=nx, px=timeout, xx=xx)
+                return bool(client.set(nkey, nvalue, nx=nx, px=timeout, xx=xx))
             except _main_exceptions as e:
                 if not original_client and not self._slave_read_only and len(tried) < len(self._server):
                     tried.append(index)
