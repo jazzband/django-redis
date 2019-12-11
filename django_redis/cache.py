@@ -160,5 +160,5 @@ class RedisCache(BaseCache):
         self.client.close(**kwargs)
 
     @omit_exception
-    def touch(self, key, timeout=None, version=None):
-        return self.client.touch(key, timeout=timeout, version=version)
+    def touch(self, *args, **kwargs):
+        return self.client.touch(*args, **kwargs)

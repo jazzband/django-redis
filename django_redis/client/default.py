@@ -576,9 +576,16 @@ class DefaultClient:
         Sets a new expiration for a key.
         """
 
+        if timeout is DEFAULT_TIMEOUT:
+            timeout = self._backend.default_timeout
+
         if client is None:
             client = self.get_client(write=True)
 
         key = self.make_key(key, version=version)
-
-        return client.expire(key, timeout)
+        if timeout is None:
+            return bool(client.persist(key))
+        else:
+            # Convert to milliseconds
+            timeout = int(timeout * 1000)
+            return bool(client.pexpire(key, timeout))
