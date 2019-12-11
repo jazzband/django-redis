@@ -137,7 +137,7 @@ class DjangoRedisCacheTests(unittest.TestCase):
         # we should ensure there is no test_key_nx in redis
         self.cache.delete("test_key_nx")
         res = self.cache.get("test_key_nx")
-        self.assertEqual(res, None)
+        self.assertIsNone(res)
 
         res = self.cache.set("test_key_nx", 1, nx=True)
         self.assertTrue(res)
@@ -149,7 +149,7 @@ class DjangoRedisCacheTests(unittest.TestCase):
 
         self.cache.delete("test_key_nx")
         res = self.cache.get("test_key_nx")
-        self.assertEqual(res, None)
+        self.assertIsNone(res)
 
     def test_setnx_timeout(self):
         # test that timeout still works for nx=True
@@ -157,7 +157,7 @@ class DjangoRedisCacheTests(unittest.TestCase):
         self.assertTrue(res)
         time.sleep(3)
         res = self.cache.get("test_key_nx")
-        self.assertEqual(res, None)
+        self.assertIsNone(res)
 
         # test that timeout will not affect key, if it was there
         self.cache.set("test_key_nx", 1)
@@ -169,7 +169,7 @@ class DjangoRedisCacheTests(unittest.TestCase):
 
         self.cache.delete("test_key_nx")
         res = self.cache.get("test_key_nx")
-        self.assertEqual(res, None)
+        self.assertIsNone(res)
 
     def test_unicode_keys(self):
         self.cache.set('ключ', 'value')
@@ -235,12 +235,12 @@ class DjangoRedisCacheTests(unittest.TestCase):
         time.sleep(4)
 
         res = self.cache.get("test_key")
-        self.assertEqual(res, None)
+        self.assertIsNone(res)
 
     def test_timeout_0(self):
         self.cache.set("test_key", 222, timeout=0)
         res = self.cache.get("test_key")
-        self.assertEqual(res, None)
+        self.assertIsNone(res)
 
     def test_timeout_parameter_as_positional_argument(self):
         self.cache.set("test_key", 222, -1)
@@ -252,7 +252,7 @@ class DjangoRedisCacheTests(unittest.TestCase):
         time.sleep(2)
         res2 = self.cache.get("test_key")
         self.assertEqual(res1, 222)
-        self.assertEqual(res2, None)
+        self.assertIsNone(res2)
 
         # nx=True should not overwrite expire of key already in db
         self.cache.set("test_key", 222, None)
@@ -430,13 +430,13 @@ class DjangoRedisCacheTests(unittest.TestCase):
         res = self.cache.get("bool")
 
         self.assertIsInstance(res, bool)
-        self.assertEqual(res, True)
+        self.assertIs(res, True)
 
         self.cache.set("bool", False)
         res = self.cache.get("bool")
 
         self.assertIsInstance(res, bool)
-        self.assertEqual(res, False)
+        self.assertIs(res, False)
 
     def test_decr(self):
         if isinstance(self.cache.client, herd.HerdClient):
@@ -476,7 +476,7 @@ class DjangoRedisCacheTests(unittest.TestCase):
     def test_version(self):
         self.cache.set("keytest", 2, version=2)
         res = self.cache.get("keytest")
-        self.assertEqual(res, None)
+        self.assertIsNone(res)
 
         res = self.cache.get("keytest", version=2)
         self.assertEqual(res, 2)
@@ -486,7 +486,7 @@ class DjangoRedisCacheTests(unittest.TestCase):
         self.cache.incr_version("keytest")
 
         res = self.cache.get("keytest")
-        self.assertEqual(res, None)
+        self.assertIsNone(res)
 
         res = self.cache.get("keytest", version=2)
         self.assertEqual(res, 2)
@@ -543,7 +543,7 @@ class DjangoRedisCacheTests(unittest.TestCase):
         # Test ttl None
         cache.set("foo", "foo", timeout=None)
         ttl = cache.ttl("foo")
-        self.assertEqual(ttl, None)
+        self.assertIsNone(ttl)
 
         # Test ttl with expired key
         cache.set("foo", "foo", timeout=-1)
@@ -611,27 +611,27 @@ class DjangoRedisCacheTests(unittest.TestCase):
     def test_touch_zero_timeout(self):
         self.cache.set("test_key", 222, timeout=10)
 
-        self.assertEqual(self.cache.touch("test_key", 0), True)
+        self.assertIs(self.cache.touch("test_key", 0), True)
         res = self.cache.get("test_key")
-        self.assertEqual(res, None)
+        self.assertIsNone(res)
 
     def test_touch_positive_timeout(self):
         self.cache.set("test_key", 222, timeout=10)
 
-        self.assertEqual(self.cache.touch("test_key", 2), True)
+        self.assertIs(self.cache.touch("test_key", 2), True)
         self.assertEqual(self.cache.get("test_key"), 222)
         time.sleep(3)
-        self.assertEqual(self.cache.get("test_key"), None)
+        self.assertIsNone(self.cache.get("test_key"))
 
     def test_touch_negative_timeout(self):
         self.cache.set("test_key", 222, timeout=10)
 
-        self.assertEqual(self.cache.touch("test_key", -1), True)
+        self.assertIs(self.cache.touch("test_key", -1), True)
         res = self.cache.get("test_key")
-        self.assertEqual(res, None)
+        self.assertIsNone(res)
 
     def test_touch_missed_key(self):
-        self.assertEqual(self.cache.touch("test_key", -1), False)
+        self.assertIs(self.cache.touch("test_key", -1), False)
 
 
 class DjangoOmitExceptionsTests(unittest.TestCase):
