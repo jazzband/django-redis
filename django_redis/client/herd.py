@@ -154,3 +154,14 @@ class HerdClient(DefaultClient):
 
     def decr(self, *args, **kwargs):
         raise NotImplementedError()
+
+    def touch(self, key, timeout=DEFAULT_TIMEOUT, version=None, client=None):
+        if client is None:
+            client = self.get_client(write=True)
+
+        value = self.get(key, version=version, client=client)
+        if value is None:
+            return False
+
+        self.set(key, value, timeout=timeout, version=version, client=client)
+        return True

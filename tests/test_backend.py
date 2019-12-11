@@ -639,7 +639,26 @@ class DjangoRedisCacheTests(unittest.TestCase):
         self.assertIsNone(res)
 
     def test_touch_missed_key(self):
-        self.assertIs(self.cache.touch("test_key", -1), False)
+        self.assertIs(self.cache.touch("test_key_does_not_exist", 1), False)
+
+    def test_touch_forever(self):
+        self.cache.set("test_key", "foo", timeout=1)
+        result = self.cache.touch("test_key", None)
+        self.assertIs(result, True)
+        self.assertIsNone(self.cache.ttl("test_key"))
+        time.sleep(2)
+        self.assertEqual(self.cache.get("test_key"), "foo")
+
+    def test_touch_forever_nonexistent(self):
+        result = self.cache.touch("test_key_does_not_exist", None)
+        self.assertIs(result, False)
+
+    def test_touch_default_timeout(self):
+        self.cache.set("test_key", "foo", timeout=1)
+        result = self.cache.touch("test_key")
+        self.assertIs(result, True)
+        time.sleep(2)
+        self.assertEqual(self.cache.get("test_key"), "foo")
 
 
 class DjangoOmitExceptionsTests(unittest.TestCase):
