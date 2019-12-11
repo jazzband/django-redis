@@ -110,7 +110,7 @@ class DefaultClient:
         nkey = self.make_key(key, version=version)
         nvalue = self.encode(value)
 
-        if timeout == DEFAULT_TIMEOUT:
+        if timeout is DEFAULT_TIMEOUT:
             timeout = self._backend.default_timeout
 
         original_client = client

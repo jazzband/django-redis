@@ -61,7 +61,7 @@ class HerdClient(DefaultClient):
     def set(self, key, value, timeout=DEFAULT_TIMEOUT, version=None,
             client=None, nx=False, xx=False):
 
-        if timeout == DEFAULT_TIMEOUT:
+        if timeout is DEFAULT_TIMEOUT:
             timeout = self._backend.default_timeout
 
         if timeout is None or timeout <= 0:
