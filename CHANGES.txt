@@ -1,10 +1,19 @@
 Changelog
 =========
 
-UNRELEASED
-----------
+Version 4.11.0
+--------------
+
+Date: 2019-12-13
 
 - Removed support for Python 2.7 and 3.4.
+- Removed support for Django 2.0 and 2.1.
+- Added support for Python 3.8.
+- Added support for Django 2.2 and 3.0.
+- Changed msgpack-python soft dependency to msgpack.
+- Fixed ``.touch()`` method for sharded client.
+- Fixed prefix escaping for the sharded client.
+- Fixed ``.add()`` method to return a bool.
 
 Version 4.10.0
 --------------
