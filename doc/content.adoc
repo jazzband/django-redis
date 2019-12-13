@@ -1,7 +1,7 @@
 django-redis documentation
 ==========================
 Andrey Antukh, <niwi@niwi.be>
-4.10.0
+4.11.0
 :toc: left
 :numbered:
 :source-highlighter: pygments
