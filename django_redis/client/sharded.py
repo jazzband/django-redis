@@ -2,7 +2,7 @@ import re
 from collections import OrderedDict
 
 from django.conf import settings
-from django.utils.encoding import smart_text
+from django.utils.encoding import smart_str
 from redis.exceptions import ConnectionError
 
 from ..exceptions import ConnectionInterrupted
@@ -241,7 +241,7 @@ class ShardClient(DefaultClient):
             client = self.get_server(pattern)
             raise ConnectionInterrupted(connection=client)
 
-        decoded_keys = (smart_text(k) for k in keys)
+        decoded_keys = (smart_str(k) for k in keys)
         return [self.reverse_key(k) for k in decoded_keys]
 
     def delete_pattern(

@@ -6,7 +6,7 @@ from collections import OrderedDict
 from django.conf import settings
 from django.core.cache.backends.base import DEFAULT_TIMEOUT, get_key_func
 from django.core.exceptions import ImproperlyConfigured
-from django.utils.encoding import smart_text
+from django.utils.encoding import smart_str
 from django.utils.module_loading import import_string
 from redis.exceptions import ConnectionError, ResponseError, TimeoutError
 
@@ -517,7 +517,7 @@ class DefaultClient:
 
         pattern = self.make_pattern(search, version=version)
         for item in client.scan_iter(match=pattern, count=itersize):
-            item = smart_text(item)
+            item = smart_str(item)
             yield self.reverse_key(item)
 
     def keys(self, search, version=None, client=None):
@@ -533,7 +533,7 @@ class DefaultClient:
 
         pattern = self.make_pattern(search, version=version)
         try:
-            encoding_map = [smart_text(k) for k in client.keys(pattern)]
+            encoding_map = [smart_str(k) for k in client.keys(pattern)]
             return [self.reverse_key(k) for k in encoding_map]
         except _main_exceptions as e:
             raise ConnectionInterrupted(connection=client, parent=e)
