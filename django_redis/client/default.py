@@ -17,11 +17,11 @@ from ..util import CacheKey
 _main_exceptions = (TimeoutError, ResponseError, ConnectionError, socket.timeout)
 
 
-special_re = re.compile('([*?[])')
+special_re = re.compile("([*?[])")
 
 
 def glob_escape(s):
-    return special_re.sub(r'[\1]', s)
+    return special_re.sub(r"[\1]", s)
 
 
 class DefaultClient:
@@ -31,7 +31,8 @@ class DefaultClient:
         self._params = params
 
         self.reverse_key = get_key_func(
-            params.get("REVERSE_KEY_FUNCTION") or "django_redis.util.default_reverse_key"
+            params.get("REVERSE_KEY_FUNCTION")
+            or "django_redis.util.default_reverse_key"
         )
 
         if not self._server:
@@ -42,12 +43,16 @@ class DefaultClient:
 
         self._clients = [None] * len(self._server)
         self._options = params.get("OPTIONS", {})
-        self._slave_read_only = self._options.get('SLAVE_READ_ONLY', True)
+        self._slave_read_only = self._options.get("SLAVE_READ_ONLY", True)
 
-        serializer_path = self._options.get("SERIALIZER", "django_redis.serializers.pickle.PickleSerializer")
+        serializer_path = self._options.get(
+            "SERIALIZER", "django_redis.serializers.pickle.PickleSerializer"
+        )
         serializer_cls = import_string(serializer_path)
 
-        compressor_path = self._options.get("COMPRESSOR", "django_redis.compressors.identity.IdentityCompressor")
+        compressor_path = self._options.get(
+            "COMPRESSOR", "django_redis.compressors.identity.IdentityCompressor"
+        )
         compressor_cls = import_string(compressor_path)
 
         self._serializer = serializer_cls(options=self._options)
@@ -102,10 +107,21 @@ class DefaultClient:
         """
         return self.connection_factory.connect(self._server[index])
 
-    def set(self, key, value, timeout=DEFAULT_TIMEOUT, version=None, client=None, nx=False, xx=False):
+    def set(
+        self,
+        key,
+        value,
+        timeout=DEFAULT_TIMEOUT,
+        version=None,
+        client=None,
+        nx=False,
+        xx=False,
+    ):
         """
         Persist a value to the cache, and set an optional expiration time.
-        Also supports optional nx parameter. If set to True - will use redis setnx instead of set.
+
+        Also supports optional nx parameter. If set to True - will use redis
+        setnx instead of set.
         """
         nkey = self.make_key(key, version=version)
         nvalue = self.encode(value)
@@ -118,7 +134,9 @@ class DefaultClient:
         while True:
             try:
                 if not client:
-                    client, index = self.get_client(write=True, tried=tried, show_index=True)
+                    client, index = self.get_client(
+                        write=True, tried=tried, show_index=True
+                    )
 
                 if timeout is not None:
                     # Convert to milliseconds
@@ -138,7 +156,11 @@ class DefaultClient:
 
                 return bool(client.set(nkey, nvalue, nx=nx, px=timeout, xx=xx))
             except _main_exceptions as e:
-                if not original_client and not self._slave_read_only and len(tried) < len(self._server):
+                if (
+                    not original_client
+                    and not self._slave_read_only
+                    and len(tried) < len(self._server)
+                ):
                     tried.append(index)
                     client = None
                     continue
@@ -223,14 +245,22 @@ class DefaultClient:
         if client.exists(key):
             client.expire(key, timeout)
 
-    def lock(self, key, version=None, timeout=None, sleep=0.1,
-             blocking_timeout=None, client=None):
+    def lock(
+        self,
+        key,
+        version=None,
+        timeout=None,
+        sleep=0.1,
+        blocking_timeout=None,
+        client=None,
+    ):
         if client is None:
             client = self.get_client(write=True)
 
         key = self.make_key(key, version=version)
-        return client.lock(key, timeout=timeout, sleep=sleep,
-                           blocking_timeout=blocking_timeout)
+        return client.lock(
+            key, timeout=timeout, sleep=sleep, blocking_timeout=blocking_timeout
+        )
 
     def delete(self, key, version=None, prefix=None, client=None):
         """
@@ -240,12 +270,13 @@ class DefaultClient:
             client = self.get_client(write=True)
 
         try:
-            return client.delete(self.make_key(key, version=version,
-                                               prefix=prefix))
+            return client.delete(self.make_key(key, version=version, prefix=prefix))
         except _main_exceptions as e:
             raise ConnectionInterrupted(connection=client, parent=e)
 
-    def delete_pattern(self, pattern, version=None, prefix=None, client=None, itersize=None):
+    def delete_pattern(
+        self, pattern, version=None, prefix=None, client=None, itersize=None
+    ):
         """
         Remove all keys matching pattern.
         """
@@ -255,9 +286,9 @@ class DefaultClient:
 
         pattern = self.make_pattern(pattern, version=version, prefix=prefix)
 
-        kwargs = {'match': pattern, }
+        kwargs = {"match": pattern}
         if itersize:
-            kwargs['count'] = itersize
+            kwargs["count"] = itersize
 
         try:
             count = 0
@@ -339,9 +370,7 @@ class DefaultClient:
 
         recovered_data = OrderedDict()
 
-        map_keys = OrderedDict(
-            (self.make_key(k, version=version), k) for k in keys
-        )
+        map_keys = OrderedDict((self.make_key(k, version=version), k) for k in keys)
 
         try:
             results = client.mget(*map_keys)
@@ -412,8 +441,7 @@ class DefaultClient:
                 if timeout == -2:
                     raise ValueError("Key '%s' not found" % key)
                 value = self.get(key, version=version, client=client) + delta
-                self.set(key, value, version=version, timeout=timeout,
-                         client=client)
+                self.set(key, value, version=version, timeout=timeout, client=client)
         except _main_exceptions as e:
             raise ConnectionInterrupted(connection=client, parent=e)
 
@@ -425,15 +453,20 @@ class DefaultClient:
         ValueError exception. if ignore_key_check=True then the key will be
         created and set to the delta value by default.
         """
-        return self._incr(key=key, delta=delta, version=version, client=client, ignore_key_check=ignore_key_check)
+        return self._incr(
+            key=key,
+            delta=delta,
+            version=version,
+            client=client,
+            ignore_key_check=ignore_key_check,
+        )
 
     def decr(self, key, delta=1, version=None, client=None):
         """
         Decreace delta to value in the cache. If the key does not exist, raise a
         ValueError exception.
         """
-        return self._incr(key=key, delta=-delta, version=version,
-                          client=client)
+        return self._incr(key=key, delta=-delta, version=version, client=client)
 
     def ttl(self, key, version=None, client=None):
         """

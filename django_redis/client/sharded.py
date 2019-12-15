@@ -12,7 +12,7 @@ from .default import DEFAULT_TIMEOUT, DefaultClient
 
 
 class ShardClient(DefaultClient):
-    _findhash = re.compile(r'.*\{(.*)\}.*', re.I)
+    _findhash = re.compile(r".*\{(.*)\}.*", re.I)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -49,16 +49,16 @@ class ShardClient(DefaultClient):
             key = self.make_key(key, version=version)
             client = self.get_server(key)
 
-        return super()\
-            .add(key=key, value=value, version=version, client=client, timeout=timeout)
+        return super().add(
+            key=key, value=value, version=version, client=client, timeout=timeout
+        )
 
     def get(self, key, default=None, version=None, client=None):
         if client is None:
             key = self.make_key(key, version=version)
             client = self.get_server(key)
 
-        return super()\
-            .get(key=key, default=default, version=version, client=client)
+        return super().get(key=key, default=default, version=version, client=client)
 
     def get_many(self, keys, version=None):
         if not keys:
@@ -79,7 +79,9 @@ class ShardClient(DefaultClient):
             recovered_data[map_keys[key]] = value
         return recovered_data
 
-    def set(self, key, value, timeout=DEFAULT_TIMEOUT, version=None, client=None, nx=False):
+    def set(
+        self, key, value, timeout=DEFAULT_TIMEOUT, version=None, client=None, nx=False
+    ):
         """
         Persist a value to the cache, and set an optional expiration time.
         """
@@ -87,9 +89,9 @@ class ShardClient(DefaultClient):
             key = self.make_key(key, version=version)
             client = self.get_server(key)
 
-        return super().set(key=key, value=value,
-                           timeout=timeout, version=version,
-                           client=client, nx=nx)
+        return super().set(
+            key=key, value=value, timeout=timeout, version=version, client=client, nx=nx
+        )
 
     def set_many(self, data, timeout=DEFAULT_TIMEOUT, version=None):
         """
@@ -148,19 +150,30 @@ class ShardClient(DefaultClient):
             key = self.make_key(key, version=version)
             client = self.get_server(key)
 
-        return super().expire(key=key, timeout=timeout,
-                              version=version, client=client)
+        return super().expire(key=key, timeout=timeout, version=version, client=client)
 
-    def lock(self, key, version=None, timeout=None, sleep=0.1,
-             blocking_timeout=None, client=None):
+    def lock(
+        self,
+        key,
+        version=None,
+        timeout=None,
+        sleep=0.1,
+        blocking_timeout=None,
+        client=None,
+    ):
 
         if client is None:
             key = self.make_key(key, version=version)
             client = self.get_server(key)
 
         key = self.make_key(key, version=version)
-        return super().lock(key, timeout=timeout, sleep=sleep, client=client,
-                            blocking_timeout=blocking_timeout)
+        return super().lock(
+            key,
+            timeout=timeout,
+            sleep=sleep,
+            client=client,
+            blocking_timeout=blocking_timeout,
+        )
 
     def delete_many(self, keys, version=None):
         """
@@ -205,16 +218,14 @@ class ShardClient(DefaultClient):
             key = self.make_key(key, version=version)
             client = self.get_server(key)
 
-        return super()\
-            .incr(key=key, delta=delta, version=version, client=client)
+        return super().incr(key=key, delta=delta, version=version, client=client)
 
     def decr(self, key, delta=1, version=None, client=None):
         if client is None:
             key = self.make_key(key, version=version)
             client = self.get_server(key)
 
-        return super()\
-            .decr(key=key, delta=delta, version=version, client=client)
+        return super().decr(key=key, delta=delta, version=version, client=client)
 
     def iter_keys(self, key, version=None):
         raise NotImplementedError("iter_keys not supported on sharded client")
@@ -233,14 +244,16 @@ class ShardClient(DefaultClient):
         decoded_keys = (smart_text(k) for k in keys)
         return [self.reverse_key(k) for k in decoded_keys]
 
-    def delete_pattern(self, pattern, version=None, client=None, itersize=None, prefix=None):
+    def delete_pattern(
+        self, pattern, version=None, client=None, itersize=None, prefix=None
+    ):
         """
         Remove all keys matching pattern.
         """
         pattern = self.make_pattern(pattern, version=version, prefix=prefix)
-        kwargs = {'match': pattern}
+        kwargs = {"match": pattern}
         if itersize:
-            kwargs['count'] = itersize
+            kwargs["count"] = itersize
 
         keys = []
         for server, connection in self._serverdict.items():
@@ -263,5 +276,4 @@ class ShardClient(DefaultClient):
             key = self.make_key(key, version=version)
             client = self.get_server(key)
 
-        return super().touch(key=key, timeout=timeout,
-                             version=version, client=client)
+        return super().touch(key=key, timeout=timeout, version=version, client=client)

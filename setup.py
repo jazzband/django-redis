@@ -17,19 +17,14 @@ setup(
         "django_redis",
         "django_redis.client",
         "django_redis.serializers",
-        "django_redis.compressors"
+        "django_redis.compressors",
     ],
     description=description.strip(),
     python_requires=">=3.5",
-    install_requires=[
-        "Django>=1.11",
-        "redis>=2.10.0",
-    ],
+    install_requires=["Django>=1.11", "redis>=2.10.0"],
     zip_safe=False,
     include_package_data=True,
-    package_data={
-        "": ["*.html"],
-    },
+    package_data={"": ["*.html"]},
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Environment :: Web Environment",
