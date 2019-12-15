@@ -17,10 +17,11 @@ class Marker:
     Dummy class for use as
     marker for herded keys.
     """
+
     pass
 
 
-CACHE_HERD_TIMEOUT = getattr(settings, 'CACHE_HERD_TIMEOUT', 60)
+CACHE_HERD_TIMEOUT = getattr(settings, "CACHE_HERD_TIMEOUT", 60)
 
 
 def _is_expired(x):
@@ -58,27 +59,40 @@ class HerdClient(DefaultClient):
 
         return unpacked, False
 
-    def set(self, key, value, timeout=DEFAULT_TIMEOUT, version=None,
-            client=None, nx=False, xx=False):
+    def set(
+        self,
+        key,
+        value,
+        timeout=DEFAULT_TIMEOUT,
+        version=None,
+        client=None,
+        nx=False,
+        xx=False,
+    ):
 
         if timeout is DEFAULT_TIMEOUT:
             timeout = self._backend.default_timeout
 
         if timeout is None or timeout <= 0:
-            return super().set(key, value, timeout=timeout,
-                               version=version, client=client,
-                               nx=nx, xx=xx)
+            return super().set(
+                key,
+                value,
+                timeout=timeout,
+                version=version,
+                client=client,
+                nx=nx,
+                xx=xx,
+            )
 
         packed = self._pack(value, timeout)
-        real_timeout = (timeout + CACHE_HERD_TIMEOUT)
+        real_timeout = timeout + CACHE_HERD_TIMEOUT
 
-        return super().set(key, packed, timeout=real_timeout,
-                           version=version, client=client,
-                           nx=nx)
+        return super().set(
+            key, packed, timeout=real_timeout, version=version, client=client, nx=nx
+        )
 
     def get(self, key, default=None, version=None, client=None):
-        packed = super().get(key, default=default,
-                             version=version, client=client)
+        packed = super().get(key, default=default, version=version, client=client)
         val, refresh = self._unpack(packed)
 
         if refresh:
@@ -112,8 +126,9 @@ class HerdClient(DefaultClient):
 
         return recovered_data
 
-    def set_many(self, data, timeout=DEFAULT_TIMEOUT, version=None, client=None,
-                 herd=True):
+    def set_many(
+        self, data, timeout=DEFAULT_TIMEOUT, version=None, client=None, herd=True
+    ):
         """
         Set a bunch of values in the cache at once from a dict of key/value
         pairs. This is much more efficient than calling set() multiple times.

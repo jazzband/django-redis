@@ -7,8 +7,12 @@ from django.utils.module_loading import import_string
 
 from .exceptions import ConnectionInterrupted
 
-DJANGO_REDIS_IGNORE_EXCEPTIONS = getattr(settings, "DJANGO_REDIS_IGNORE_EXCEPTIONS", False)
-DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS = getattr(settings, "DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS", False)
+DJANGO_REDIS_IGNORE_EXCEPTIONS = getattr(
+    settings, "DJANGO_REDIS_IGNORE_EXCEPTIONS", False
+)
+DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS = getattr(
+    settings, "DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS", False
+)
 DJANGO_REDIS_LOGGER = getattr(settings, "DJANGO_REDIS_LOGGER", False)
 DJANGO_REDIS_SCAN_ITERSIZE = getattr(settings, "DJANGO_REDIS_SCAN_ITERSIZE", 10)
 
@@ -37,6 +41,7 @@ def omit_exception(method=None, return_value=None):
 
                 return return_value
             raise e.parent
+
     return _decorator
 
 
@@ -47,11 +52,15 @@ class RedisCache(BaseCache):
         self._params = params
 
         options = params.get("OPTIONS", {})
-        self._client_cls = options.get("CLIENT_CLASS", "django_redis.client.DefaultClient")
+        self._client_cls = options.get(
+            "CLIENT_CLASS", "django_redis.client.DefaultClient"
+        )
         self._client_cls = import_string(self._client_cls)
         self._client = None
 
-        self._ignore_exceptions = options.get("IGNORE_EXCEPTIONS", DJANGO_REDIS_IGNORE_EXCEPTIONS)
+        self._ignore_exceptions = options.get(
+            "IGNORE_EXCEPTIONS", DJANGO_REDIS_IGNORE_EXCEPTIONS
+        )
 
     @property
     def client(self):
@@ -77,8 +86,7 @@ class RedisCache(BaseCache):
     @omit_exception
     def get(self, key, default=None, version=None, client=None):
         try:
-            return self.client.get(key, default=default, version=version,
-                                   client=client)
+            return self.client.get(key, default=default, version=version, client=client)
         except ConnectionInterrupted as e:
             if self._ignore_exceptions:
                 if DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS:
@@ -92,7 +100,7 @@ class RedisCache(BaseCache):
 
     @omit_exception
     def delete_pattern(self, *args, **kwargs):
-        kwargs['itersize'] = kwargs.get('itersize', DJANGO_REDIS_SCAN_ITERSIZE)
+        kwargs["itersize"] = kwargs.get("itersize", DJANGO_REDIS_SCAN_ITERSIZE)
         return self.client.delete_pattern(*args, **kwargs)
 
     @omit_exception
