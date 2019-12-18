@@ -316,6 +316,22 @@ class DjangoRedisCacheTests(unittest.TestCase):
         res = self.cache.get_many(["a", "b", "c"])
         self.assertEqual(res, {"a": 1, "b": 2, "c": 3})
 
+    def test_set_call_empty_pipeline(self):
+        pipeline = self.cache.client.get_client(write=True).pipeline()
+        key = "key"
+        value = "value"
+
+        with patch.object(pipeline, "set") as mocked_set:
+            self.cache.set(key, value, client=pipeline, )
+
+        mocked_set.assert_called_once_with(
+            self.cache.client.make_key(key, version=None),
+            self.cache.client.encode(value),
+            nx=False,
+            px=self.cache.client._backend.default_timeout * 1000,
+            xx=False,
+        )
+
     def test_delete(self):
         self.cache.set_many({"a": 1, "b": 2, "c": 3})
         res = self.cache.delete("a")
