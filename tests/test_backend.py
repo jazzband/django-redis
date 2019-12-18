@@ -317,6 +317,9 @@ class DjangoRedisCacheTests(unittest.TestCase):
         self.assertEqual(res, {"a": 1, "b": 2, "c": 3})
 
     def test_set_call_empty_pipeline(self):
+        if isinstance(self.cache.client, ShardClient):
+            self.skipTest("ShardClient doesn't support get_client")
+
         pipeline = self.cache.client.get_client(write=True).pipeline()
         key = "key"
         value = "value"
