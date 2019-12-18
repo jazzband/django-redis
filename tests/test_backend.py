@@ -322,7 +322,9 @@ class DjangoRedisCacheTests(unittest.TestCase):
         value = "value"
 
         with patch.object(pipeline, "set") as mocked_set:
-            self.cache.set(key, value, client=pipeline, )
+            self.cache.set(
+                key, value, client=pipeline,
+            )
 
         mocked_set.assert_called_once_with(
             self.cache.client.make_key(key, version=None),
