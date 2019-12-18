@@ -132,7 +132,7 @@ class DefaultClient:
         tried = []
         while True:
             try:
-                if not client:
+                if client is None:
                     client, index = self.get_client(
                         write=True, tried=tried, show_index=True
                     )
