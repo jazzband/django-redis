@@ -332,10 +332,7 @@ class DjangoRedisCacheTests(unittest.TestCase):
         if isinstance(self.cache.client, herd.HerdClient):
             default_timeout = self.cache.client._backend.default_timeout
             herd_timeout = (default_timeout + herd.CACHE_HERD_TIMEOUT) * 1000
-            herd_pack_value = self.cache.client._pack(
-                value,
-                default_timeout,
-            )
+            herd_pack_value = self.cache.client._pack(value, default_timeout,)
             mocked_set.assert_called_once_with(
                 self.cache.client.make_key(key, version=None),
                 herd_pack_value,
