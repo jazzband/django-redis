@@ -335,7 +335,7 @@ class DjangoRedisCacheTests(unittest.TestCase):
             herd_pack_value = self.cache.client._pack(value, default_timeout,)
             mocked_set.assert_called_once_with(
                 self.cache.client.make_key(key, version=None),
-                herd_pack_value,
+                self.cache.client.encode(herd_pack_value),
                 nx=False,
                 px=herd_timeout,
                 xx=False,
