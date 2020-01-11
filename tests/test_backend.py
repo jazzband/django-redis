@@ -1,9 +1,9 @@
 import base64
 import copy
 import datetime
+import threading
 import time
 import unittest
-import threading
 from datetime import timedelta
 from unittest.mock import Mock, patch
 
