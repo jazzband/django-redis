@@ -4,6 +4,10 @@ Redis cache backend for Django
 
 Full featured redis cache backend for Django.
 
+.. image:: https://jazzband.co/static/img/badge.svg
+    :target: https://jazzband.co/
+    :alt: Jazzband
+
 .. image:: https://img.shields.io/travis/niwinz/django-redis.svg?style=flat
     :target: https://travis-ci.org/niwinz/django-redis
 
