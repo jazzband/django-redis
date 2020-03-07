@@ -8,8 +8,8 @@ Full featured redis cache backend for Django.
     :target: https://jazzband.co/
     :alt: Jazzband
 
-.. image:: https://img.shields.io/travis/niwinz/django-redis.svg?style=flat
-    :target: https://travis-ci.org/niwinz/django-redis
+.. image:: https://travis-ci.org/jazzband/django-redis.svg?branch=master
+    :target: https://travis-ci.org/jazzband/django-redis
 
 .. image:: https://img.shields.io/pypi/v/django-redis.svg?style=flat
     :target: https://pypi.org/project/django-redis/
@@ -18,7 +18,7 @@ Full featured redis cache backend for Django.
 Documentation
 -------------
 
-http://niwinz.github.io/django-redis/latest/
+http://jazzband.github.io/django-redis/latest/
 
 简体中文版: 
 http://django-redis-chs.readthedocs.io/zh_CN/latest/
