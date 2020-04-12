@@ -20,9 +20,6 @@ Documentation
 
 http://jazzband.github.io/django-redis/latest/
 
-简体中文版: 
-http://django-redis-chs.readthedocs.io/zh_CN/latest/
-
 How to install
 --------------
 
