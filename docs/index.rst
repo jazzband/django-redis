@@ -418,7 +418,7 @@ connection string: ``get_redis_connection(alias)``.
     >>> from django_redis import get_redis_connection
     >>> con = get_redis_connection("default")
     >>> con
-    <redis.client.StrictRedis object at 0x2dc4510>
+    <redis.client.Redis object at 0x2dc4510>
 
 WARNING: Not all pluggable clients support this feature.
 
