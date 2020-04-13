@@ -20,6 +20,8 @@ DJANGO_REDIS_SCAN_ITERSIZE = getattr(settings, "DJANGO_REDIS_SCAN_ITERSIZE", 10)
 if DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS:
     logger = logging.getLogger(DJANGO_REDIS_LOGGER or __name__)
 
+CONNECTION_INTERRUPTED = object()
+
 
 def omit_exception(method=None, return_value=None):
     """
@@ -83,16 +85,15 @@ class RedisCache(BaseCache):
     def add(self, *args, **kwargs):
         return self.client.add(*args, **kwargs)
 
-    @omit_exception
     def get(self, key, default=None, version=None, client=None):
-        try:
-            return self.client.get(key, default=default, version=version, client=client)
-        except ConnectionInterrupted as e:
-            if self._ignore_exceptions:
-                if DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS:
-                    logger.error(str(e))
-                return default
-            raise
+        value = self._get(key, default, version, client)
+        if value is CONNECTION_INTERRUPTED:
+            value = default
+        return value
+
+    @omit_exception(return_value=CONNECTION_INTERRUPTED)
+    def _get(self, key, default, version, client):
+        return self.client.get(key, default=default, version=version, client=client)
 
     @omit_exception
     def delete(self, *args, **kwargs):
