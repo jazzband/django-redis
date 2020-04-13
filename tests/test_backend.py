@@ -706,17 +706,14 @@ class DjangoRedisCacheTests(unittest.TestCase):
 
 class DjangoOmitExceptionsTests(unittest.TestCase):
     def setUp(self):
-        self._orig_setting = django_redis.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS
-        django_redis.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS = True
         caches_setting = copy.deepcopy(settings.CACHES)
         caches_setting["doesnotexist"]["OPTIONS"]["IGNORE_EXCEPTIONS"] = True
-        cm = override_settings(CACHES=caches_setting)
+        cm = override_settings(
+            CACHES=caches_setting, DJANGO_REDIS_IGNORE_EXCEPTIONS=True
+        )
         cm.enable()
         self.addCleanup(cm.disable)
         self.cache = caches["doesnotexist"]
-
-    def tearDown(self):
-        django_redis.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS = self._orig_setting
 
     def test_get_many_returns_default_arg(self):
         self.assertIs(self.cache._ignore_exceptions, True)
@@ -731,17 +728,14 @@ class DjangoOmitExceptionsTests(unittest.TestCase):
 
 class DjangoOmitExceptionsPriority1Tests(unittest.TestCase):
     def setUp(self):
-        self._orig_setting = django_redis.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS
-        django_redis.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS = False
         caches_setting = copy.deepcopy(settings.CACHES)
         caches_setting["doesnotexist"]["OPTIONS"]["IGNORE_EXCEPTIONS"] = True
-        cm = override_settings(CACHES=caches_setting)
+        cm = override_settings(
+            CACHES=caches_setting, DJANGO_REDIS_IGNORE_EXCEPTIONS=False
+        )
         cm.enable()
         self.addCleanup(cm.disable)
         self.cache = caches["doesnotexist"]
-
-    def tearDown(self):
-        django_redis.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS = self._orig_setting
 
     def test_get(self):
         self.assertIs(self.cache._ignore_exceptions, True)
@@ -750,17 +744,14 @@ class DjangoOmitExceptionsPriority1Tests(unittest.TestCase):
 
 class DjangoOmitExceptionsPriority2Tests(unittest.TestCase):
     def setUp(self):
-        self._orig_setting = django_redis.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS
-        django_redis.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS = True
         caches_setting = copy.deepcopy(settings.CACHES)
         caches_setting["doesnotexist"]["OPTIONS"]["IGNORE_EXCEPTIONS"] = False
-        cm = override_settings(CACHES=caches_setting)
+        cm = override_settings(
+            CACHES=caches_setting, DJANGO_REDIS_IGNORE_EXCEPTIONS=True
+        )
         cm.enable()
         self.addCleanup(cm.disable)
         self.cache = caches["doesnotexist"]
-
-    def tearDown(self):
-        django_redis.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS = self._orig_setting
 
     def test_get(self):
         self.assertIs(self.cache._ignore_exceptions, False)
