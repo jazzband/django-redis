@@ -1,4 +1,4 @@
-Django>=1.11
+Django>=2.2
 flake8
 isort
 msgpack>=0.6.0
