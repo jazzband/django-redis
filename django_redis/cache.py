@@ -42,7 +42,7 @@ def omit_exception(method=None, return_value=None):
                     logger.error(str(e))
 
                 return return_value
-            raise e.parent
+            raise e.__cause__
 
     return _decorator
 

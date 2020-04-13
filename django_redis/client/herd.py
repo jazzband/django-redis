@@ -115,7 +115,7 @@ class HerdClient(DefaultClient):
         try:
             results = client.mget(*new_keys)
         except _main_exceptions as e:
-            raise ConnectionInterrupted(connection=client, parent=e)
+            raise ConnectionInterrupted(connection=client) from e
 
         for key, value in zip(new_keys, results):
             if value is None:
@@ -147,7 +147,7 @@ class HerdClient(DefaultClient):
                 set_function(key, value, timeout, version=version, client=pipeline)
             pipeline.execute()
         except _main_exceptions as e:
-            raise ConnectionInterrupted(connection=client, parent=e)
+            raise ConnectionInterrupted(connection=client) from e
 
     def incr(self, *args, **kwargs):
         raise NotImplementedError()
