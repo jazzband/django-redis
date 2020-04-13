@@ -5,18 +5,6 @@ matrix:
   include:
     - env: TOXENV=lint
     - python: 3.5
-      env: TOXENV=py35-django111-redis2
-    - python: 3.5
-      env: TOXENV=py35-django111-redislatest
-    - python: 3.5
-      env: TOXENV=py35-django111-redismaster
-    - python: 3.6
-      env: TOXENV=py36-django111-redis2
-    - python: 3.6
-      env: TOXENV=py36-django111-redislatest
-    - python: 3.6
-      env: TOXENV=py36-django111-redismaster
-    - python: 3.5
       env: TOXENV=py35-django22-redis2
     - python: 3.5
       env: TOXENV=py35-django22-redislatest

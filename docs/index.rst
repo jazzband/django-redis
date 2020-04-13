@@ -55,7 +55,7 @@ Requirements
 Django version support
 ^^^^^^^^^^^^^^^^^^^^^^
 
-- django-redis supports Django 1.11+.
+- django-redis supports Django 2.+.
 
 
 Redis Server Support

@@ -1,6 +1,11 @@
 Changelog
 =========
 
+UNRELEASED
+----------
+
+- Removed support for end-of-life Django < 2.2.
+
 Version 4.11.0
 --------------
 

@@ -7,7 +7,6 @@ import unittest
 from datetime import timedelta
 from unittest.mock import Mock, patch
 
-from django import VERSION
 from django.conf import settings
 from django.contrib.sessions.backends.cache import SessionStore as CacheSession
 from django.core.cache import DEFAULT_CACHE_ALIAS, cache, caches
@@ -1081,7 +1080,6 @@ class SessionTestsMixin:
                 self.session.delete(old_session_key)
                 self.session.delete(new_session_key)
 
-    @unittest.skipIf(VERSION < (2, 0), "Requires Django 2.0+")
     def test_session_load_does_not_create_record(self):
         """
         Loading an unknown session key does not create a session record.
