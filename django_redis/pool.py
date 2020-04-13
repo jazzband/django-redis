@@ -20,9 +20,7 @@ class ConnectionFactory:
         self.pool_cls = import_string(pool_cls_path)
         self.pool_cls_kwargs = options.get("CONNECTION_POOL_KWARGS", {})
 
-        redis_client_cls_path = options.get(
-            "REDIS_CLIENT_CLASS", "redis.client.StrictRedis"
-        )
+        redis_client_cls_path = options.get("REDIS_CLIENT_CLASS", "redis.client.Redis")
         self.redis_client_cls = import_string(redis_client_cls_path)
         self.redis_client_cls_kwargs = options.get("REDIS_CLIENT_KWARGS", {})
 

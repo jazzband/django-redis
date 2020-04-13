@@ -5,6 +5,7 @@ UNRELEASED
 ----------
 
 - Removed support for end-of-life Django < 2.2.
+- Removed support for unmaintained redis-py 2.X.
 
 Version 4.11.0
 --------------
