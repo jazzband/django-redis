@@ -115,8 +115,8 @@ class ShardClient(DefaultClient):
         key = self.make_key(key, version=version)
         try:
             return client.exists(key) == 1
-        except ConnectionError:
-            raise ConnectionInterrupted(connection=client)
+        except ConnectionError as e:
+            raise ConnectionInterrupted(connection=client) from e
 
     def delete(self, key, version=None, client=None):
         if client is None:
@@ -199,8 +199,8 @@ class ShardClient(DefaultClient):
 
         try:
             ttl = client.ttl(old_key)
-        except ConnectionError:
-            raise ConnectionInterrupted(connection=client)
+        except ConnectionError as e:
+            raise ConnectionInterrupted(connection=client) from e
 
         if value is None:
             raise ValueError("Key '%s' not found" % key)
@@ -237,10 +237,10 @@ class ShardClient(DefaultClient):
         try:
             for server, connection in self._serverdict.items():
                 keys.extend(connection.keys(pattern))
-        except ConnectionError:
+        except ConnectionError as e:
             # FIXME: technically all clients should be passed as `connection`.
             client = self.get_server(pattern)
-            raise ConnectionInterrupted(connection=client)
+            raise ConnectionInterrupted(connection=client) from e
 
         return [self.reverse_key(k.decode()) for k in keys]
 

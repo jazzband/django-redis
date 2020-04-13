@@ -163,7 +163,7 @@ class DefaultClient:
                     tried.append(index)
                     client = None
                     continue
-                raise ConnectionInterrupted(connection=client, parent=e)
+                raise ConnectionInterrupted(connection=client) from e
 
     def incr_version(self, key, delta=1, version=None, client=None):
         """
@@ -183,7 +183,7 @@ class DefaultClient:
         try:
             ttl = client.ttl(old_key)
         except _main_exceptions as e:
-            raise ConnectionInterrupted(connection=client, parent=e)
+            raise ConnectionInterrupted(connection=client) from e
 
         if value is None:
             raise ValueError("Key '%s' not found" % key)
@@ -219,7 +219,7 @@ class DefaultClient:
         try:
             value = client.get(key)
         except _main_exceptions as e:
-            raise ConnectionInterrupted(connection=client, parent=e)
+            raise ConnectionInterrupted(connection=client) from e
 
         if value is None:
             return default
@@ -276,7 +276,7 @@ class DefaultClient:
         try:
             return client.delete(self.make_key(key, version=version, prefix=prefix))
         except _main_exceptions as e:
-            raise ConnectionInterrupted(connection=client, parent=e)
+            raise ConnectionInterrupted(connection=client) from e
 
     def delete_pattern(
         self, pattern, version=None, prefix=None, client=None, itersize=None
@@ -301,7 +301,7 @@ class DefaultClient:
                 count += 1
             return count
         except _main_exceptions as e:
-            raise ConnectionInterrupted(connection=client, parent=e)
+            raise ConnectionInterrupted(connection=client) from e
 
     def delete_many(self, keys, version=None, client=None):
         """
@@ -319,7 +319,7 @@ class DefaultClient:
         try:
             return client.delete(*keys)
         except _main_exceptions as e:
-            raise ConnectionInterrupted(connection=client, parent=e)
+            raise ConnectionInterrupted(connection=client) from e
 
     def clear(self, client=None):
         """
@@ -332,7 +332,7 @@ class DefaultClient:
         try:
             client.flushdb()
         except _main_exceptions as e:
-            raise ConnectionInterrupted(connection=client, parent=e)
+            raise ConnectionInterrupted(connection=client) from e
 
     def decode(self, value):
         """
@@ -379,7 +379,7 @@ class DefaultClient:
         try:
             results = client.mget(*map_keys)
         except _main_exceptions as e:
-            raise ConnectionInterrupted(connection=client, parent=e)
+            raise ConnectionInterrupted(connection=client) from e
 
         for key, value in zip(map_keys, results):
             if value is None:
@@ -404,7 +404,7 @@ class DefaultClient:
                 self.set(key, value, timeout, version=version, client=pipeline)
             pipeline.execute()
         except _main_exceptions as e:
-            raise ConnectionInterrupted(connection=client, parent=e)
+            raise ConnectionInterrupted(connection=client) from e
 
     def _incr(self, key, delta=1, version=None, client=None, ignore_key_check=False):
         if client is None:
@@ -447,7 +447,7 @@ class DefaultClient:
                 value = self.get(key, version=version, client=client) + delta
                 self.set(key, value, version=version, timeout=timeout, client=client)
         except _main_exceptions as e:
-            raise ConnectionInterrupted(connection=client, parent=e)
+            raise ConnectionInterrupted(connection=client) from e
 
         return value
 
@@ -508,7 +508,7 @@ class DefaultClient:
         try:
             return client.exists(key) == 1
         except _main_exceptions as e:
-            raise ConnectionInterrupted(connection=client, parent=e)
+            raise ConnectionInterrupted(connection=client) from e
 
     def iter_keys(self, search, itersize=None, client=None, version=None):
         """
@@ -538,7 +538,7 @@ class DefaultClient:
         try:
             return [self.reverse_key(k.decode()) for k in client.keys(pattern)]
         except _main_exceptions as e:
-            raise ConnectionInterrupted(connection=client, parent=e)
+            raise ConnectionInterrupted(connection=client) from e
 
     def make_key(self, key, version=None, prefix=None):
         if isinstance(key, CacheKey):
