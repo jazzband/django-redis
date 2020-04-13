@@ -83,10 +83,3 @@ script:
 
 services:
   - redis-server
-
-notifications:
-  email:
-    recipients:
-      - niwi@niwi.be
-    on_success: change
-    on_failure: change
