@@ -32,20 +32,17 @@ def reverse_key(key):
 
 
 class DjangoRedisConnectionStrings(unittest.TestCase):
-    def setUp(self):
-        self.cf = pool.get_connection_factory(options={})
-        self.constring4 = "unix://tmp/foo.bar?db=1"
-        self.constring5 = "redis://localhost/2"
-        self.constring6 = "rediss://localhost:3333?db=2"
-
-    def test_new_connection_strings(self):
-        res1 = self.cf.make_connection_params(self.constring4)
-        res2 = self.cf.make_connection_params(self.constring5)
-        res3 = self.cf.make_connection_params(self.constring6)
-
-        self.assertEqual(res1["url"], self.constring4)
-        self.assertEqual(res2["url"], self.constring5)
-        self.assertEqual(res3["url"], self.constring6)
+    def test_connection_strings(self):
+        connection_strings = [
+            "unix://tmp/foo.bar?db=1",
+            "redis://localhost/2",
+            "rediss://localhost:3333?db=2",
+        ]
+        cf = pool.get_connection_factory(options={})
+        for connection_string in connection_strings:
+            with self.subTest(connection_string):
+                res = cf.make_connection_params(connection_string)
+                self.assertEqual(res["url"], connection_string)
 
 
 class DjangoRedisCacheTestEscapePrefix(unittest.TestCase):
