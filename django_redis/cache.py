@@ -7,18 +7,7 @@ from django.utils.module_loading import import_string
 
 from .exceptions import ConnectionInterrupted
 
-DJANGO_REDIS_IGNORE_EXCEPTIONS = getattr(
-    settings, "DJANGO_REDIS_IGNORE_EXCEPTIONS", False
-)
-DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS = getattr(
-    settings, "DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS", False
-)
-DJANGO_REDIS_LOGGER = getattr(settings, "DJANGO_REDIS_LOGGER", False)
 DJANGO_REDIS_SCAN_ITERSIZE = getattr(settings, "DJANGO_REDIS_SCAN_ITERSIZE", 10)
-
-
-if DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS:
-    logger = logging.getLogger(DJANGO_REDIS_LOGGER or __name__)
 
 CONNECTION_INTERRUPTED = object()
 
@@ -38,8 +27,8 @@ def omit_exception(method=None, return_value=None):
             return method(self, *args, **kwargs)
         except ConnectionInterrupted as e:
             if self._ignore_exceptions:
-                if DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS:
-                    logger.error(str(e))
+                if self._log_ignored_exceptions:
+                    self.logger.error(str(e))
 
                 return return_value
             raise e.__cause__
@@ -61,7 +50,16 @@ class RedisCache(BaseCache):
         self._client = None
 
         self._ignore_exceptions = options.get(
-            "IGNORE_EXCEPTIONS", DJANGO_REDIS_IGNORE_EXCEPTIONS
+            "IGNORE_EXCEPTIONS",
+            getattr(settings, "DJANGO_REDIS_IGNORE_EXCEPTIONS", False),
+        )
+        self._log_ignored_exceptions = getattr(
+            settings, "DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS", False
+        )
+        self.logger = (
+            logging.getLogger(getattr(settings, "DJANGO_REDIS_LOGGER", __name__))
+            if self._log_ignored_exceptions
+            else None
         )
 
     @property
