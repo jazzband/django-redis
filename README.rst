@@ -29,7 +29,7 @@ http://jazzband.github.io/django-redis/latest/
 How to install
 --------------
 
-Use ``pip`` to install::
+Use ``pip`` to install:
 
 .. code-block:: console
 
