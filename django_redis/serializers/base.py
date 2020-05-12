@@ -2,8 +2,8 @@ from typing import Any
 
 
 class BaseSerializer:
-    def dumps(self, value) -> bytes:
+    def dumps(self, value: Any) -> bytes:
         raise NotImplementedError
 
-    def loads(self, value) -> Any:
+    def loads(self, value: bytes) -> Any:
         raise NotImplementedError
