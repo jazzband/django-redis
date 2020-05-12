@@ -18,8 +18,8 @@ class PickleSerializer(BaseSerializer):
             except (ValueError, TypeError):
                 raise ImproperlyConfigured("PICKLE_VERSION value must be an integer")
 
-    def dumps(self, value) -> bytes:
+    def dumps(self, value: Any) -> bytes:
         return pickle.dumps(value, self._pickle_version)
 
-    def loads(self, value) -> Any:
+    def loads(self, value: bytes) -> Any:
         return pickle.loads(value)
