@@ -1,9 +1,9 @@
-class BaseSerializer:
-    def __init__(self, options):
-        pass
+from typing import Any
 
-    def dumps(self, value):
+
+class BaseSerializer:
+    def dumps(self, value) -> bytes:
         raise NotImplementedError
 
-    def loads(self, value):
+    def loads(self, value) -> Any:
         raise NotImplementedError
