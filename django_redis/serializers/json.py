@@ -1,5 +1,5 @@
 import json
-from typing import Any, Union
+from typing import Any
 
 from django.core.serializers.json import DjangoJSONEncoder
 
