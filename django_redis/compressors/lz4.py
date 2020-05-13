@@ -1,8 +1,8 @@
 from lz4.frame import compress as _compress
 from lz4.frame import decompress as _decompress
 
-from .base import BaseCompressor
 from ..exceptions import CompressorError
+from .base import BaseCompressor
 
 
 class Lz4Compressor(BaseCompressor):

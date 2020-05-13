@@ -1,7 +1,7 @@
 import zlib
 
-from .base import BaseCompressor
 from ..exceptions import CompressorError
+from .base import BaseCompressor
 
 
 class ZlibCompressor(BaseCompressor):
