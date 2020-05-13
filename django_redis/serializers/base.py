@@ -2,6 +2,9 @@ from typing import Any
 
 
 class BaseSerializer:
+    def __init__(self, options):
+        pass
+
     def dumps(self, value: Any) -> bytes:
         raise NotImplementedError
 
