@@ -2,7 +2,7 @@ import random
 import re
 import socket
 from collections import OrderedDict
-from typing import Any, Dict, Iterator, List, Optional, Tuple, Union
+from typing import Any, Dict, Iterator, List, Optional, Union
 
 from django.conf import settings
 from django.core.cache.backends.base import BaseCache, DEFAULT_TIMEOUT, get_key_func
