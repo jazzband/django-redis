@@ -11,7 +11,7 @@ class PickleSerializer(BaseSerializer):
         self._pickle_version = -1
         self.setup_pickle_version(options)
 
-        super(PickleSerializer, self).__init__(options=options)
+        super().__init__(options=options)
 
     def setup_pickle_version(self, options) -> None:
         if "PICKLE_VERSION" in options:
