@@ -5,7 +5,7 @@ from collections import OrderedDict
 from typing import Any, Dict, Iterator, List, Optional, Tuple, Union
 
 from django.conf import settings
-from django.core.cache.backends.base import (BaseCache, DEFAULT_TIMEOUT, get_key_func)
+from django.core.cache.backends.base import BaseCache, DEFAULT_TIMEOUT, get_key_func
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.module_loading import import_string
 from redis import Redis
@@ -63,7 +63,9 @@ class DefaultClient:
     def __contains__(self, key: Any) -> bool:
         return self.has_key(key)
 
-    def get_next_client_index(self, write: bool = True, tried: Optional[List[int]] = None) -> int:
+    def get_next_client_index(
+        self, write: bool = True, tried: Optional[List[int]] = None
+    ) -> int:
         """
         Return a next index for read client. This function implements a default
         behavior for get a next read client for a replication setup.
@@ -84,10 +86,10 @@ class DefaultClient:
         return random.randint(1, len(self._server) - 1)
 
     def get_client(
-            self,
-            write: bool = True,
-            tried: Optional[List[int]] = None,
-            show_index: bool = False
+        self,
+        write: bool = True,
+        tried: Optional[List[int]] = None,
+        show_index: bool = False,
     ):
         """
         Method used for obtain a raw redis client.
@@ -121,14 +123,14 @@ class DefaultClient:
         return self.connection_factory.disconnect(client) if client else None
 
     def set(
-            self,
-            key: Any,
-            value: Any,
-            timeout: Optional[float] = DEFAULT_TIMEOUT,
-            version: Optional[int] = None,
-            client: Redis = None,
-            nx: bool = False,
-            xx: bool = False,
+        self,
+        key: Any,
+        value: Any,
+        timeout: Optional[float] = DEFAULT_TIMEOUT,
+        version: Optional[int] = None,
+        client: Redis = None,
+        nx: bool = False,
+        xx: bool = False,
     ) -> bool:
         """
         Persist a value to the cache, and set an optional expiration time.
@@ -165,7 +167,9 @@ class DefaultClient:
                             # redis doesn't support negative timeouts in ex flags
                             # so it seems that it's better to just delete the key
                             # than to set it and than expire in a pipeline
-                            return bool(self.delete(key, client=client, version=version))
+                            return bool(
+                                self.delete(key, client=client, version=version)
+                            )
 
                 return bool(client.set(nkey, nvalue, nx=nx, px=timeout, xx=xx))
             except _main_exceptions as e:
@@ -180,11 +184,11 @@ class DefaultClient:
                 raise ConnectionInterrupted(connection=client) from e
 
     def incr_version(
-            self,
-            key: Any,
-            delta: int = 1,
-            version: Optional[int] = None,
-            client: Redis = None,
+        self,
+        key: Any,
+        delta: int = 1,
+        version: Optional[int] = None,
+        client: Redis = None,
     ) -> int:
         """
         Adds delta to the cache version for the supplied key. Returns the
@@ -218,12 +222,12 @@ class DefaultClient:
         return version + delta
 
     def add(
-            self,
-            key: Any,
-            value: Any,
-            timeout: Any = DEFAULT_TIMEOUT,
-            version: Optional[Any] = None,
-            client: Redis = None,
+        self,
+        key: Any,
+        value: Any,
+        timeout: Any = DEFAULT_TIMEOUT,
+        version: Optional[Any] = None,
+        client: Redis = None,
     ) -> bool:
         """
         Add a value to the cache, failing if the key already exists.
@@ -233,11 +237,11 @@ class DefaultClient:
         return self.set(key, value, timeout, version=version, client=client, nx=True)
 
     def get(
-            self,
-            key: Any,
-            default=None,
-            version: Optional[int] = None,
-            client: Redis = None,
+        self,
+        key: Any,
+        default=None,
+        version: Optional[int] = None,
+        client: Redis = None,
     ) -> Any:
         """
         Retrieve a value from the cache.
@@ -260,7 +264,7 @@ class DefaultClient:
         return self.decode(value)
 
     def persist(
-            self, key: Any, version: Optional[int] = None, client: Redis = None
+        self, key: Any, version: Optional[int] = None, client: Redis = None
     ) -> None:
         if client is None:
             client = self.get_client(write=True)
@@ -271,7 +275,7 @@ class DefaultClient:
             client.persist(key)
 
     def expire(
-            self, key: Any, timeout, version: Optional[int] = None, client: Redis = None
+        self, key: Any, timeout, version: Optional[int] = None, client: Redis = None
     ) -> None:
         if client is None:
             client = self.get_client(write=True)
@@ -282,14 +286,14 @@ class DefaultClient:
             client.expire(key, timeout)
 
     def lock(
-            self,
-            key,
-            version: Optional[int] = None,
-            timeout=None,
-            sleep=0.1,
-            blocking_timeout=None,
-            client: Redis = None,
-            thread_local=True,
+        self,
+        key,
+        version: Optional[int] = None,
+        timeout=None,
+        sleep=0.1,
+        blocking_timeout=None,
+        client: Redis = None,
+        thread_local=True,
     ):
         if client is None:
             client = self.get_client(write=True)
@@ -304,11 +308,11 @@ class DefaultClient:
         )
 
     def delete(
-            self,
-            key: Any,
-            version: Optional[int] = None,
-            prefix: Optional[str] = None,
-            client: Redis = None,
+        self,
+        key: Any,
+        version: Optional[int] = None,
+        prefix: Optional[str] = None,
+        client: Redis = None,
     ) -> int:
         """
         Remove a key from the cache.
@@ -322,12 +326,12 @@ class DefaultClient:
             raise ConnectionInterrupted(connection=client) from e
 
     def delete_pattern(
-            self,
-            pattern: str,
-            version: Optional[int] = None,
-            prefix: Optional[str] = None,
-            client: Redis = None,
-            itersize=None,
+        self,
+        pattern: str,
+        version: Optional[int] = None,
+        prefix: Optional[str] = None,
+        client: Redis = None,
+        itersize=None,
     ) -> int:
         """
         Remove all keys matching pattern.
@@ -410,7 +414,7 @@ class DefaultClient:
         return value
 
     def get_many(
-            self, keys, version: Optional[int] = None, client: Redis = None
+        self, keys, version: Optional[int] = None, client: Redis = None
     ) -> OrderedDict:
         """
         Retrieve many keys.
@@ -438,11 +442,11 @@ class DefaultClient:
         return recovered_data
 
     def set_many(
-            self,
-            data: Dict[Any, Any],
-            timeout: Optional[float] = DEFAULT_TIMEOUT,
-            version: Optional[int] = None,
-            client: Redis = None,
+        self,
+        data: Dict[Any, Any],
+        timeout: Optional[float] = DEFAULT_TIMEOUT,
+        version: Optional[int] = None,
+        client: Redis = None,
     ) -> None:
         """
         Set a bunch of values in the cache at once from a dict of key/value
@@ -463,12 +467,12 @@ class DefaultClient:
             raise ConnectionInterrupted(connection=client) from e
 
     def _incr(
-            self,
-            key: Any,
-            delta: int = 1,
-            version: Optional[int] = None,
-            client: Redis = None,
-            ignore_key_check: bool = False,
+        self,
+        key: Any,
+        delta: int = 1,
+        version: Optional[int] = None,
+        client: Redis = None,
+        ignore_key_check: bool = False,
     ) -> int:
         if client is None:
             client = self.get_client(write=True)
@@ -515,12 +519,12 @@ class DefaultClient:
         return value
 
     def incr(
-            self,
-            key: Any,
-            delta: int = 1,
-            version: Optional[int] = None,
-            client: Redis = None,
-            ignore_key_check: bool = False,
+        self,
+        key: Any,
+        delta: int = 1,
+        version: Optional[int] = None,
+        client: Redis = None,
+        ignore_key_check: bool = False,
     ) -> int:
         """
         Add delta to value in the cache. If the key does not exist, raise a
@@ -536,11 +540,11 @@ class DefaultClient:
         )
 
     def decr(
-            self,
-            key: Any,
-            delta: int = 1,
-            version: Optional[int] = None,
-            client: Redis = None,
+        self,
+        key: Any,
+        delta: int = 1,
+        version: Optional[int] = None,
+        client: Redis = None,
     ) -> int:
         """
         Decreace delta to value in the cache. If the key does not exist, raise a
@@ -549,7 +553,7 @@ class DefaultClient:
         return self._incr(key=key, delta=-delta, version=version, client=client)
 
     def ttl(
-            self, key: Any, version: Optional[int] = None, client: Redis = None
+        self, key: Any, version: Optional[int] = None, client: Redis = None
     ) -> Optional[int]:
         """
         Executes TTL redis command and return the "time-to-live" of specified key.
@@ -575,7 +579,7 @@ class DefaultClient:
             return None
 
     def has_key(
-            self, key: Any, version: Optional[int] = None, client: Redis = None
+        self, key: Any, version: Optional[int] = None, client: Redis = None
     ) -> bool:
         """
         Test if key exists.
@@ -591,11 +595,11 @@ class DefaultClient:
             raise ConnectionInterrupted(connection=client) from e
 
     def iter_keys(
-            self,
-            search: str,
-            itersize=None,
-            client: Redis = None,
-            version: Optional[int] = None,
+        self,
+        search: str,
+        itersize=None,
+        client: Redis = None,
+        version: Optional[int] = None,
     ) -> Iterator[str]:
         """
         Same as keys, but uses redis >= 2.8 cursors
@@ -610,7 +614,7 @@ class DefaultClient:
             yield self.reverse_key(item.decode())
 
     def keys(
-            self, search: str, version: Optional[int] = None, client: Redis = None
+        self, search: str, version: Optional[int] = None, client: Redis = None
     ) -> List[Any]:
         """
         Execute KEYS command and return matched results.
@@ -629,7 +633,7 @@ class DefaultClient:
             raise ConnectionInterrupted(connection=client) from e
 
     def make_key(
-            self, key: Any, version: Optional[Any] = None, prefix: Optional[str] = None
+        self, key: Any, version: Optional[Any] = None, prefix: Optional[str] = None
     ) -> str:
         if isinstance(key, CacheKey):
             return key
@@ -643,7 +647,7 @@ class DefaultClient:
         return CacheKey(self._backend.key_func(key, prefix, version))
 
     def make_pattern(
-            self, pattern: str, version: Optional[int] = None, prefix: Optional[str] = None
+        self, pattern: str, version: Optional[int] = None, prefix: Optional[str] = None
     ) -> CacheKey:
         if isinstance(pattern, CacheKey):
             return pattern
@@ -674,11 +678,11 @@ class DefaultClient:
         self._clients = [None] * num_clients
 
     def touch(
-            self,
-            key: Any,
-            timeout: Optional[float] = DEFAULT_TIMEOUT,
-            version: Optional[int] = None,
-            client: Redis = None,
+        self,
+        key: Any,
+        timeout: Optional[float] = DEFAULT_TIMEOUT,
+        version: Optional[int] = None,
+        client: Redis = None,
     ) -> bool:
         """
         Sets a new expiration for a key.
