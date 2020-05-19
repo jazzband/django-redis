@@ -41,7 +41,7 @@ class DefaultClient:
         if not isinstance(self._server, (list, tuple, set)):
             self._server = self._server.split(",")
 
-        self._clients = [None] * len(self._server)
+        self._clients = [None] * len(self._server)  # type: List[Optional[Redis]]
         self._options = params.get("OPTIONS", {})
         self._replica_read_only = self._options.get("REPLICA_READ_ONLY", True)
 
@@ -63,7 +63,7 @@ class DefaultClient:
     def __contains__(self, key: Any) -> bool:
         return self.has_key(key)
 
-    def get_next_client_index(self, write: bool = True, tried: Tuple[int] = ()) -> int:
+    def get_next_client_index(self, write: bool = True, tried: Optional[List[int]] = None) -> int:
         """
         Return a next index for read client. This function implements a default
         behavior for get a next read client for a replication setup.
@@ -71,6 +71,9 @@ class DefaultClient:
         Overwrite this function if you want a specific
         behavior.
         """
+        if tried is None:
+            tried = list()
+
         if tried and len(tried) < len(self._server):
             not_tried = [i for i in range(0, len(self._server)) if i not in tried]
             return random.choice(not_tried)
@@ -83,7 +86,7 @@ class DefaultClient:
     def get_client(
             self,
             write: bool = True,
-            tried: Tuple[int] = (),
+            tried: Optional[List[int]] = None,
             show_index: bool = False
     ):
         """
@@ -93,7 +96,7 @@ class DefaultClient:
         operations for obtain a native redis client/connection
         instance.
         """
-        index = self.get_next_client_index(write=write, tried=tried or ())
+        index = self.get_next_client_index(write=write, tried=tried)
 
         if self._clients[index] is None:
             self._clients[index] = self.connect(index)
@@ -126,7 +129,7 @@ class DefaultClient:
             client: Redis = None,
             nx: bool = False,
             xx: bool = False,
-    ) -> Union[Optional[int], bool]:
+    ) -> bool:
         """
         Persist a value to the cache, and set an optional expiration time.
 
@@ -140,7 +143,7 @@ class DefaultClient:
             timeout = self._backend.default_timeout
 
         original_client = client
-        tried = ()  # type: Tuple
+        tried = []  # type: List[int]
         while True:
             try:
                 if client is None:
@@ -162,7 +165,7 @@ class DefaultClient:
                             # redis doesn't support negative timeouts in ex flags
                             # so it seems that it's better to just delete the key
                             # than to set it and than expire in a pipeline
-                            return self.delete(key, client=client, version=version)
+                            return bool(self.delete(key, client=client, version=version))
 
                 return bool(client.set(nkey, nvalue, nx=nx, px=timeout, xx=xx))
             except _main_exceptions as e:
@@ -171,7 +174,7 @@ class DefaultClient:
                     and not self._replica_read_only
                     and len(tried) < len(self._server)
                 ):
-                    tried += (index,)
+                    tried.append(index)
                     client = None
                     continue
                 raise ConnectionInterrupted(connection=client) from e
@@ -651,9 +654,9 @@ class DefaultClient:
 
         if version is None:
             version = self._backend.version
-        version = glob_escape(str(version))
+        version_str = glob_escape(str(version))
 
-        return CacheKey(self._backend.key_func(pattern, prefix, version))
+        return CacheKey(self._backend.key_func(pattern, prefix, version_str))
 
     def close(self, **kwargs):
         close_flag = self._options.get(
