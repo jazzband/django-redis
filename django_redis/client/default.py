@@ -342,9 +342,7 @@ class DefaultClient:
 
         pattern = self.make_pattern(pattern, version=version, prefix=prefix)
 
-        kwargs = {"match": pattern}
-        if itersize:
-            kwargs["count"] = itersize
+        kwargs = {"match": pattern, "count": itersize}
 
         try:
             count = 0

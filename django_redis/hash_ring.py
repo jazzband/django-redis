@@ -1,9 +1,10 @@
 import bisect
 import hashlib
+from typing import Any, List
 
 
 class HashRing:
-    nodes = []
+    nodes = []  # type: List[Any]
 
     def __init__(self, nodes=(), replicas=128):
         self.replicas = replicas
@@ -28,8 +29,8 @@ class HashRing:
     def remove_node(self, node):
         self.nodes.remove(node)
         for x in range(self.replicas):
-            _hash = hashlib.sha256("%s:%d" % (node, x)).hexdigest()
-            self.ring.remove(_hash)
+            _hash = hashlib.sha256(("%s:%d" % (node, x)).encode()).hexdigest()
+            del self.ring[_hash]
             self.sorted_keys.remove(_hash)
 
     def get_node(self, key):
@@ -38,12 +39,12 @@ class HashRing:
 
     def get_node_pos(self, key):
         if len(self.ring) == 0:
-            return (None, None)
+            return None, None
 
         _hash = hashlib.sha256(key.encode()).hexdigest()
         idx = bisect.bisect(self.sorted_keys, _hash)
         idx = min(idx - 1, (self.replicas * len(self.nodes)) - 1)
-        return (self.ring[self.sorted_keys[idx]], idx)
+        return self.ring[self.sorted_keys[idx]], idx
 
     def iter_nodes(self, key):
         if len(self.ring) == 0:
