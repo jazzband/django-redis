@@ -1,6 +1,6 @@
 from typing import Any
 
-import msgpack
+import msgpack  # type: ignore
 
 from .base import BaseSerializer
 

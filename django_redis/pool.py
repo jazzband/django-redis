@@ -5,6 +5,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.utils.module_loading import import_string
 from redis.connection import DefaultParser, to_bool
 from redis.sentinel import Sentinel
+from redis import Redis
 
 
 class ConnectionFactory:
@@ -61,7 +62,7 @@ class ConnectionFactory:
 
         return kwargs
 
-    def connect(self, url):
+    def connect(self, url: str) -> Redis:
         """
         Given a basic connection parameters,
         return a new connection.
