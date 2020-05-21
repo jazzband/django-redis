@@ -6,7 +6,7 @@ UNRELEASED
 
 - The project has moved to `Jazzband <https://jazzband.co/>`_. This is the
   first release under the new organization. The new repository URL is
-  `<https://github.com/jazzband/django-taggit>`_.
+  `<https://github.com/jazzband/django-redis>`_.
 - Removed support for end-of-life Django < 2.2.
 - Removed support for unmaintained redis-py 2.X.
 

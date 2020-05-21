@@ -567,6 +567,7 @@ class DefaultClient:
         return CacheKey(self._backend.key_func(pattern, prefix, version))
 
     def close(self, **kwargs):
+        print('closing')
         if getattr(settings, "DJANGO_REDIS_CLOSE_CONNECTION", False):
             for i in range(len(self._clients)):
                 for c in self._clients[i].connection_pool._available_connections:
