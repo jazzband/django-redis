@@ -1,14 +1,24 @@
 Changelog
 =========
 
-UNRELEASED
-----------
+Version 4.12.0
+--------------
+
+Date: 2020-05-27
 
 - The project has moved to `Jazzband <https://jazzband.co/>`_. This is the
   first release under the new organization. The new repository URL is
   `<https://github.com/jazzband/django-redis>`_.
 - Removed support for end-of-life Django < 2.2.
 - Removed support for unmaintained redis-py 2.X.
+- Changed uses of deprecated ``smart_text()`` to ``smart_str()``.
+- Fixed deprecation warning with the msgpack serializer.
+- The ``.touch()`` method now uses the default timeout, to cache forever pass
+  ``None``.
+- Subclasses of ``JSONSerializer`` can now override the ``encoder_class``
+  attribute to change the JSON encoder. It defaults to ``DjangoJSONEncoder``.
+- Fixed ``DefaultClient.set()`` to work with empty ``Pipeline``.
+- The ``thread_local`` parameter is now forwarded to the Redis client.
 
 Version 4.11.0
 --------------
