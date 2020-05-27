@@ -1,7 +1,7 @@
 Changelog
 =========
 
-Version 4.12.0
+Version 4.12.1
 --------------
 
 Date: 2020-05-27
