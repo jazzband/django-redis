@@ -6,6 +6,14 @@ Version 4.12.0
 
 Date: 2020-05-27
 
+- No code changes.
+- Fixed a typo in setup.cfg metadata preventing a successful release.
+
+Version 4.12.0
+--------------
+
+Date: 2020-05-27
+
 - The project has moved to `Jazzband <https://jazzband.co/>`_. This is the
   first release under the new organization. The new repository URL is
   `<https://github.com/jazzband/django-redis>`_.
