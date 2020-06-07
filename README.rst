@@ -579,11 +579,11 @@ it comes with few ones out the box.
 Default client
 ^^^^^^^^^^^^^^
 
-Almost all about the default client is explained, with one exception: the default client comes
-with master-slave support.
+Almost all about the default client is explained, with one exception: the
+default client comes with replication support.
 
-To connect to master-slave Redis setup, you should change the ``LOCATION`` to
-something like this:
+To connect to a Redis replication setup, you should change the ``LOCATION`` to
+something like:
 
 .. code-block:: python
 
@@ -592,9 +592,10 @@ something like this:
         "redis://127.0.0.1:6378/1",
     ]
 
-The first connection string represents a master server and the rest to slave servers.
+The first connection string represents the primary server and the rest to
+replica servers.
 
-WARNING: Master-Slave setup is not heavily tested in production environments.
+WARNING: Replication setup is not heavily tested in production environments.
 
 Shard client
 ^^^^^^^^^^^^

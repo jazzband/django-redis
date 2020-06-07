@@ -42,7 +42,7 @@ class DefaultClient:
 
         self._clients = [None] * len(self._server)
         self._options = params.get("OPTIONS", {})
-        self._slave_read_only = self._options.get("SLAVE_READ_ONLY", True)
+        self._replica_read_only = self._options.get("REPLICA_READ_ONLY", True)
 
         serializer_path = self._options.get(
             "SERIALIZER", "django_redis.serializers.pickle.PickleSerializer"
@@ -64,9 +64,8 @@ class DefaultClient:
 
     def get_next_client_index(self, write=True, tried=()):
         """
-        Return a next index for read client.
-        This function implements a default behavior for
-        get a next read client for master-slave setup.
+        Return a next index for read client. This function implements a default
+        behavior for get a next read client for a replication setup.
 
         Overwrite this function if you want a specific
         behavior.
@@ -101,7 +100,7 @@ class DefaultClient:
     def connect(self, index=0):
         """
         Given a connection index, returns a new raw redis client/connection
-        instance. Index is used for master/slave setups and indicates that
+        instance. Index is used for replication setups and indicates that
         connection string should be used. In normal setups, index is 0.
         """
         return self.connection_factory.connect(self._server[index])
@@ -157,7 +156,7 @@ class DefaultClient:
             except _main_exceptions as e:
                 if (
                     not original_client
-                    and not self._slave_read_only
+                    and not self._replica_read_only
                     and len(tried) < len(self._server)
                 ):
                     tried.append(index)
