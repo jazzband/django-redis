@@ -99,7 +99,8 @@ Version 4.7.0
 
 Date: 2017-01-02
 
-- Add the ability to enable write to slave when master is not available.
+- Add the ability to enable write to replica servers when the primary server is
+  not available.
 - Add ``itersize`` parameter to ``delete_pattern``.
 
 
@@ -327,9 +328,8 @@ Version 3.4.0
   when DJANGO_REDIS_IGNORE_EXCEPTIONS is True
   (also thanks to Łukasz Langa (@ambv)).
 
-- Now added support for master-slave connection to default
-  client (it still experimental because is not tested in
-  production environments).
+- Now added support for replication setups to default client (it still
+  experimental because is not tested in production environments).
 
 - Merged SimpleFailoverClient experimental client (only for
   experiment with it, not ready for use in production)

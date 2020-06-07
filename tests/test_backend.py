@@ -647,7 +647,7 @@ class DjangoRedisCacheTests(unittest.TestCase):
         result = cache.iter_keys("foo*")
         self.assertNotEqual(next(result), None)
 
-    def test_master_slave_switching(self):
+    def test_primary_replica_switching(self):
         if isinstance(self.cache.client, ShardClient):
             self.skipTest("ShardClient doesn't support get_client")
 
