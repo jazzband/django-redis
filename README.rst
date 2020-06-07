@@ -20,8 +20,8 @@ to abide by the `Contributor Code of Conduct
 Introduction
 ------------
 
-django-redis is a :ref:`BSD licensed <license>`, full featured Redis cache and
-session backend for Django.
+django-redis is a BSD licensed, full featured Redis cache and session backend
+for Django.
 
 Why use django-redis?
 ~~~~~~~~~~~~~~~~~~~~~
@@ -707,8 +707,6 @@ setting ``REDIS_CLIENT_KWARGS``.
             }
         }
     }
-
-.. _license:
 
 License
 -------
