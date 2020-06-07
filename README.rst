@@ -37,7 +37,6 @@ Why use django-redis?
 - Facilities for raw access to Redis client/connection pool
 - Highly configurable (can emulate memcached exception behavior, for example)
 - Unix sockets supported by default
-- Supports
 
 Requirements
 ~~~~~~~~~~~~
