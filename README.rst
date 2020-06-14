@@ -144,8 +144,9 @@ following lines to your test class:
 
 .. code-block:: python
 
+    from django_redis import get_redis_connection
+
     def tearDown(self):
-        from django_redis import get_redis_connection
         get_redis_connection("default").flushall()
 
 Advanced usage
