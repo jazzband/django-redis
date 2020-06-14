@@ -5,7 +5,7 @@ from collections import OrderedDict
 from typing import Any, Dict, Iterator, List, Optional, Union
 
 from django.conf import settings
-from django.core.cache.backends.base import BaseCache, DEFAULT_TIMEOUT, get_key_func
+from django.core.cache.backends.base import DEFAULT_TIMEOUT, BaseCache, get_key_func
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.module_loading import import_string
 from redis import Redis
