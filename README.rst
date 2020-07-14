@@ -149,6 +149,62 @@ following lines to your test class:
     def tearDown(self):
         get_redis_connection("default").flushall()
 
+In case you want to run the django tests in parallel mode, setup a custom
+TestRunner similar to the following:
+
+.. code-block:: python
+
+    import copy
+    import django.core.cache
+    from django.conf import UserSettingsHolder, settings
+    from django.test.runner import _init_worker
+    from django.test.runner import DiscoverRunner
+    from django.test.runner import ParallelTestSuite
+
+    def parallel_init_worker(counter):
+        """
+        Switch redis database dedicated to this worker.
+
+        This helper lives at module-level because of the multiprocessing module's
+        requirements.
+        """
+        _init_worker(counter)  # call django default parallel init first
+
+        with counter.get_lock():
+            redis_db = settings.CACHE_DB + counter.value
+            redis_location = "redis://127.0.0.1:6379/{}".format(redis_db)
+
+        caches = copy.deepcopy(settings.CACHES)
+        caches["default"]["LOCATION"] = redis_location
+
+        # override the settings for the worker to use
+        override = UserSettingsHolder(settings._wrapped)
+        setattr(override, "CACHES", caches)
+        settings._wrapped = override
+
+        # re-initialise django cache to use new settings
+        django.core.cache.caches = django.core.cache.CacheHandler()
+
+
+    class CustomParallelTestSuite(ParallelTestSuite):
+        init_worker = parallel_init_worker
+
+
+    class CustomDiscoverRunner(DiscoverRunner):
+        parallel_test_suite = CustomParallelTestSuite
+
+When running django tests in parallel mode, flushing the data following a test
+should be limited to the cache db used in that test process, by using
+``flushdb()`` instead of ``flushall()`` in the test class tearDown:
+
+.. code-block:: python
+
+    from django_redis import get_redis_connection
+
+    def tearDown(self):
+        get_redis_connection("default").flushdb()
+
+
 Advanced usage
 --------------
 
