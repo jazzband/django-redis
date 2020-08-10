@@ -3,7 +3,7 @@ from django.utils.module_loading import import_string
 from redis.connection import DefaultParser
 
 
-class ConnectionFactory(object):
+class ConnectionFactory:
 
     # Store connection pool by cache backend options.
     #
@@ -14,13 +14,13 @@ class ConnectionFactory(object):
     _pools = {}
 
     def __init__(self, options):
-        pool_cls_path = options.get("CONNECTION_POOL_CLASS",
-                                    "redis.connection.ConnectionPool")
+        pool_cls_path = options.get(
+            "CONNECTION_POOL_CLASS", "redis.connection.ConnectionPool"
+        )
         self.pool_cls = import_string(pool_cls_path)
         self.pool_cls_kwargs = options.get("CONNECTION_POOL_KWARGS", {})
 
-        redis_client_cls_path = options.get("REDIS_CLIENT_CLASS",
-                                            "redis.client.StrictRedis")
+        redis_client_cls_path = options.get("REDIS_CLIENT_CLASS", "redis.client.Redis")
         self.redis_client_cls = import_string(redis_client_cls_path)
         self.redis_client_cls_kwargs = options.get("REDIS_CLIENT_KWARGS", {})
 
@@ -43,14 +43,16 @@ class ConnectionFactory(object):
 
         socket_timeout = self.options.get("SOCKET_TIMEOUT", None)
         if socket_timeout:
-            assert isinstance(socket_timeout, (int, float)), \
-                "Socket timeout should be float or integer"
+            assert isinstance(
+                socket_timeout, (int, float)
+            ), "Socket timeout should be float or integer"
             kwargs["socket_timeout"] = socket_timeout
 
         socket_connect_timeout = self.options.get("SOCKET_CONNECT_TIMEOUT", None)
         if socket_connect_timeout:
-            assert isinstance(socket_connect_timeout, (int, float)), \
-                "Socket connect timeout should be float or integer"
+            assert isinstance(
+                socket_connect_timeout, (int, float)
+            ), "Socket connect timeout should be float or integer"
             kwargs["socket_connect_timeout"] = socket_connect_timeout
 
         return kwargs
@@ -73,7 +75,9 @@ class ConnectionFactory(object):
         for create new connection.
         """
         pool = self.get_or_create_connection_pool(params)
-        return self.redis_client_cls(connection_pool=pool, **self.redis_client_cls_kwargs)
+        return self.redis_client_cls(
+            connection_pool=pool, **self.redis_client_cls_kwargs
+        )
 
     def get_parser_cls(self):
         cls = self.options.get("PARSER_CLASS", None)
@@ -115,8 +119,11 @@ class ConnectionFactory(object):
 
 def get_connection_factory(path=None, options=None):
     if path is None:
-        path = getattr(settings, "DJANGO_REDIS_CONNECTION_FACTORY",
-                       "django_redis.pool.ConnectionFactory")
+        path = getattr(
+            settings,
+            "DJANGO_REDIS_CONNECTION_FACTORY",
+            "django_redis.pool.ConnectionFactory",
+        )
 
     cls = import_string(path)
     return cls(options or {})

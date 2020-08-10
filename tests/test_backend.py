@@ -1,21 +1,17 @@
-# -*- coding: utf-8 -*-
-
-from __future__ import absolute_import, print_function, unicode_literals
-
 import base64
 import copy
 import datetime
+import threading
 import time
 import unittest
 from datetime import timedelta
+from unittest.mock import Mock, patch
 
-from django import VERSION
 from django.conf import settings
 from django.contrib.sessions.backends.cache import SessionStore as CacheSession
 from django.core.cache import DEFAULT_CACHE_ALIAS, cache, caches
 from django.test import override_settings
-from django.test.utils import patch_logger
-from django.utils import six, timezone
+from django.utils import timezone
 from redis.exceptions import ConnectionError
 
 import django_redis.cache
@@ -24,16 +20,7 @@ from django_redis.client import DefaultClient, ShardClient, herd
 from django_redis.serializers.json import JSONSerializer
 from django_redis.serializers.msgpack import MSGPackSerializer
 
-try:
-    from unittest.mock import patch, Mock
-except ImportError:
-    from mock import patch, Mock
-
-
 herd.CACHE_HERD_TIMEOUT = 2
-
-if six.PY3:
-    long = int
 
 
 def make_key(key, prefix, version):
@@ -45,75 +32,72 @@ def reverse_key(key):
 
 
 class DjangoRedisConnectionStrings(unittest.TestCase):
-    def setUp(self):
-        self.cf = pool.get_connection_factory(options={})
-        self.constring4 = "unix://tmp/foo.bar?db=1"
-        self.constring5 = "redis://localhost/2"
-        self.constring6 = "rediss://localhost:3333?db=2"
-
-    def test_new_connection_strings(self):
-        res1 = self.cf.make_connection_params(self.constring4)
-        res2 = self.cf.make_connection_params(self.constring5)
-        res3 = self.cf.make_connection_params(self.constring6)
-
-        self.assertEqual(res1["url"], self.constring4)
-        self.assertEqual(res2["url"], self.constring5)
-        self.assertEqual(res3["url"], self.constring6)
+    def test_connection_strings(self):
+        connection_strings = [
+            "unix://tmp/foo.bar?db=1",
+            "redis://localhost/2",
+            "rediss://localhost:3333?db=2",
+        ]
+        cf = pool.get_connection_factory(options={})
+        for connection_string in connection_strings:
+            with self.subTest(connection_string):
+                res = cf.make_connection_params(connection_string)
+                self.assertEqual(res["url"], connection_string)
 
 
 class DjangoRedisCacheTestEscapePrefix(unittest.TestCase):
     def setUp(self):
 
         caches_setting = copy.deepcopy(settings.CACHES)
-        caches_setting['default']['KEY_PREFIX'] = '*'
+        caches_setting["default"]["KEY_PREFIX"] = "*"
         cm = override_settings(CACHES=caches_setting)
         cm.enable()
         self.addCleanup(cm.disable)
 
-        self.cache = caches['default']
+        self.cache = caches["default"]
         try:
             self.cache.clear()
         except Exception:
             pass
-        self.other = caches['with_prefix']
+        self.other = caches["with_prefix"]
         try:
             self.other.clear()
         except Exception:
             pass
 
     def test_delete_pattern(self):
-        self.cache.set('a', '1')
-        self.other.set('b', '2')
-        self.cache.delete_pattern('*')
-        self.assertIs(self.cache.has_key('a'), False)
-        self.assertEqual(self.other.get('b'), '2')
+        self.cache.set("a", "1")
+        self.other.set("b", "2")
+        self.cache.delete_pattern("*")
+        self.assertIs(self.cache.has_key("a"), False)
+        self.assertEqual(self.other.get("b"), "2")
 
     def test_iter_keys(self):
         if isinstance(self.cache.client, ShardClient):
             self.skipTest("ShardClient doesn't support iter_keys")
 
-        self.cache.set('a', '1')
-        self.other.set('b', '2')
-        self.assertEqual(list(self.cache.iter_keys('*')), ['a'])
+        self.cache.set("a", "1")
+        self.other.set("b", "2")
+        self.assertEqual(list(self.cache.iter_keys("*")), ["a"])
 
     def test_keys(self):
-        self.cache.set('a', '1')
-        self.other.set('b', '2')
-        keys = self.cache.keys('*')
-        self.assertIn('a', keys)
-        self.assertNotIn('b', keys)
+        self.cache.set("a", "1")
+        self.other.set("b", "2")
+        keys = self.cache.keys("*")
+        self.assertIn("a", keys)
+        self.assertNotIn("b", keys)
 
 
 class DjangoRedisCacheTestCustomKeyFunction(unittest.TestCase):
     def setUp(self):
         caches_setting = copy.deepcopy(settings.CACHES)
-        caches_setting['default']['KEY_FUNCTION'] = 'test_backend.make_key'
-        caches_setting['default']['REVERSE_KEY_FUNCTION'] = 'test_backend.reverse_key'
+        caches_setting["default"]["KEY_FUNCTION"] = "test_backend.make_key"
+        caches_setting["default"]["REVERSE_KEY_FUNCTION"] = "test_backend.reverse_key"
         cm = override_settings(CACHES=caches_setting)
         cm.enable()
         self.addCleanup(cm.disable)
 
-        self.cache = caches['default']
+        self.cache = caches["default"]
         try:
             self.cache.clear()
         except Exception:
@@ -133,8 +117,9 @@ class DjangoRedisCacheTestCustomKeyFunction(unittest.TestCase):
         self.assertEqual(set(keys), {"foo-bb", "foo-bc"})
         # ensure our custom function was actually called
         self.assertEqual(
-            {k.decode('utf-8') for k in self.cache.client.get_client(write=False).keys('*')},
-            {'#1#foo-bc', '#1#foo-bb'})
+            {k.decode() for k in self.cache.client.get_client(write=False).keys("*")},
+            {"#1#foo-bc", "#1#foo-bb"},
+        )
 
 
 class DjangoRedisCacheTests(unittest.TestCase):
@@ -150,7 +135,7 @@ class DjangoRedisCacheTests(unittest.TestCase):
         # we should ensure there is no test_key_nx in redis
         self.cache.delete("test_key_nx")
         res = self.cache.get("test_key_nx")
-        self.assertEqual(res, None)
+        self.assertIsNone(res)
 
         res = self.cache.set("test_key_nx", 1, nx=True)
         self.assertTrue(res)
@@ -162,7 +147,7 @@ class DjangoRedisCacheTests(unittest.TestCase):
 
         self.cache.delete("test_key_nx")
         res = self.cache.get("test_key_nx")
-        self.assertEqual(res, None)
+        self.assertIsNone(res)
 
     def test_setnx_timeout(self):
         # test that timeout still works for nx=True
@@ -170,7 +155,7 @@ class DjangoRedisCacheTests(unittest.TestCase):
         self.assertTrue(res)
         time.sleep(3)
         res = self.cache.get("test_key_nx")
-        self.assertEqual(res, None)
+        self.assertIsNone(res)
 
         # test that timeout will not affect key, if it was there
         self.cache.set("test_key_nx", 1)
@@ -182,12 +167,12 @@ class DjangoRedisCacheTests(unittest.TestCase):
 
         self.cache.delete("test_key_nx")
         res = self.cache.get("test_key_nx")
-        self.assertEqual(res, None)
+        self.assertIsNone(res)
 
     def test_unicode_keys(self):
-        self.cache.set('ключ', 'value')
-        res = self.cache.get('ключ')
-        self.assertEqual(res, 'value')
+        self.cache.set("ключ", "value")
+        res = self.cache.get("ключ")
+        self.assertEqual(res, "value")
 
     def test_save_and_integer(self):
         self.cache.set("test_key", 2)
@@ -200,25 +185,26 @@ class DjangoRedisCacheTests(unittest.TestCase):
         self.cache.set("test_key", "hello" * 1000)
         res = self.cache.get("test_key")
 
-        type(res)
-        self.assertIsInstance(res, six.text_type)
+        self.assertIsInstance(res, str)
         self.assertEqual(res, "hello" * 1000)
 
         self.cache.set("test_key", "2")
         res = self.cache.get("test_key")
 
-        self.assertIsInstance(res, six.text_type)
+        self.assertIsInstance(res, str)
         self.assertEqual(res, "2")
 
     def test_save_unicode(self):
         self.cache.set("test_key", "heló")
         res = self.cache.get("test_key")
 
-        self.assertIsInstance(res, six.text_type)
+        self.assertIsInstance(res, str)
         self.assertEqual(res, "heló")
 
     def test_save_dict(self):
-        if isinstance(self.cache.client._serializer, (JSONSerializer, MSGPackSerializer)):
+        if isinstance(
+            self.cache.client._serializer, (JSONSerializer, MSGPackSerializer)
+        ):
             # JSONSerializer and MSGPackSerializer use the isoformat for
             # datetimes.
             now_dt = datetime.datetime.now().isoformat()
@@ -249,12 +235,12 @@ class DjangoRedisCacheTests(unittest.TestCase):
         time.sleep(4)
 
         res = self.cache.get("test_key")
-        self.assertEqual(res, None)
+        self.assertIsNone(res)
 
     def test_timeout_0(self):
         self.cache.set("test_key", 222, timeout=0)
         res = self.cache.get("test_key")
-        self.assertEqual(res, None)
+        self.assertIsNone(res)
 
     def test_timeout_parameter_as_positional_argument(self):
         self.cache.set("test_key", 222, -1)
@@ -266,7 +252,7 @@ class DjangoRedisCacheTests(unittest.TestCase):
         time.sleep(2)
         res2 = self.cache.get("test_key")
         self.assertEqual(res1, 222)
-        self.assertEqual(res2, None)
+        self.assertIsNone(res2)
 
         # nx=True should not overwrite expire of key already in db
         self.cache.set("test_key", 222, None)
@@ -297,10 +283,14 @@ class DjangoRedisCacheTests(unittest.TestCase):
 
     def test_set_add(self):
         self.cache.set("add_key", "Initial value")
-        self.cache.add("add_key", "New value")
-        res = cache.get("add_key")
+        res = self.cache.add("add_key", "New value")
+        self.assertIs(res, False)
 
+        res = cache.get("add_key")
         self.assertEqual(res, "Initial value")
+
+        res = self.cache.add("other_key", "New value")
+        self.assertIs(res, True)
 
     def test_get_many(self):
         self.cache.set("a", 1)
@@ -322,6 +312,39 @@ class DjangoRedisCacheTests(unittest.TestCase):
         self.cache.set_many({"a": 1, "b": 2, "c": 3})
         res = self.cache.get_many(["a", "b", "c"])
         self.assertEqual(res, {"a": 1, "b": 2, "c": 3})
+
+    def test_set_call_empty_pipeline(self):
+        if isinstance(self.cache.client, ShardClient):
+            self.skipTest("ShardClient doesn't support get_client")
+
+        pipeline = self.cache.client.get_client(write=True).pipeline()
+        key = "key"
+        value = "value"
+
+        with patch.object(pipeline, "set") as mocked_set:
+            self.cache.set(
+                key, value, client=pipeline,
+            )
+
+        if isinstance(self.cache.client, herd.HerdClient):
+            default_timeout = self.cache.client._backend.default_timeout
+            herd_timeout = (default_timeout + herd.CACHE_HERD_TIMEOUT) * 1000
+            herd_pack_value = self.cache.client._pack(value, default_timeout,)
+            mocked_set.assert_called_once_with(
+                self.cache.client.make_key(key, version=None),
+                self.cache.client.encode(herd_pack_value),
+                nx=False,
+                px=herd_timeout,
+                xx=False,
+            )
+        else:
+            mocked_set.assert_called_once_with(
+                self.cache.client.make_key(key, version=None),
+                self.cache.client.encode(value),
+                nx=False,
+                px=self.cache.client._backend.default_timeout * 1000,
+                xx=False,
+            )
 
     def test_delete(self):
         self.cache.set_many({"a": 1, "b": 2, "c": 3})
@@ -385,7 +408,7 @@ class DjangoRedisCacheTests(unittest.TestCase):
         res = self.cache.get("num")
         self.assertEqual(res, 9223372036854775810)
 
-        self.cache.set("num", long(3))
+        self.cache.set("num", 3)
 
         self.cache.incr("num", 2)
         res = self.cache.get("num")
@@ -397,15 +420,18 @@ class DjangoRedisCacheTests(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             # key does not exist
-            self.cache.incr('numnum')
+            self.cache.incr("numnum")
 
     def test_incr_ignore_check(self):
         if isinstance(self.cache.client, ShardClient):
-            self.skipTest("ShardClient doesn't support argument ignore_key_check to incr")
+            self.skipTest(
+                "ShardClient doesn't support argument ignore_key_check to incr"
+            )
         if isinstance(self.cache.client, herd.HerdClient):
             self.skipTest("HerdClient doesn't support incr")
 
-        # key exists check will be skipped and the value will be incremented by '1' which is the default delta
+        # key exists check will be skipped and the value will be incremented by
+        # '1' which is the default delta
         self.cache.incr("num", ignore_key_check=True)
         res = self.cache.get("num")
         self.assertEqual(res, 1)
@@ -417,8 +443,8 @@ class DjangoRedisCacheTests(unittest.TestCase):
         self.assertEqual(res, 10)
         self.cache.delete("num")
 
-        # following are just regression checks to make sure it still works as expected with incr
-        # max 64 bit signed int
+        # following are just regression checks to make sure it still works as
+        # expected with incr max 64 bit signed int
         self.cache.set("num", 9223372036854775807)
 
         self.cache.incr("num", ignore_key_check=True)
@@ -429,7 +455,7 @@ class DjangoRedisCacheTests(unittest.TestCase):
         res = self.cache.get("num")
         self.assertEqual(res, 9223372036854775810)
 
-        self.cache.set("num", long(3))
+        self.cache.set("num", 3)
 
         self.cache.incr("num", 2, ignore_key_check=True)
         res = self.cache.get("num")
@@ -440,13 +466,13 @@ class DjangoRedisCacheTests(unittest.TestCase):
         res = self.cache.get("bool")
 
         self.assertIsInstance(res, bool)
-        self.assertEqual(res, True)
+        self.assertIs(res, True)
 
         self.cache.set("bool", False)
         res = self.cache.get("bool")
 
         self.assertIsInstance(res, bool)
-        self.assertEqual(res, False)
+        self.assertIs(res, False)
 
     def test_decr(self):
         if isinstance(self.cache.client, herd.HerdClient):
@@ -462,11 +488,11 @@ class DjangoRedisCacheTests(unittest.TestCase):
         res = self.cache.get("num")
         self.assertEqual(res, -1)
 
-        self.cache.decr("num", long(2))
+        self.cache.decr("num", 2)
         res = self.cache.get("num")
         self.assertEqual(res, -3)
 
-        self.cache.set("num", long(20))
+        self.cache.set("num", 20)
 
         self.cache.decr("num")
         res = self.cache.get("num")
@@ -486,7 +512,7 @@ class DjangoRedisCacheTests(unittest.TestCase):
     def test_version(self):
         self.cache.set("keytest", 2, version=2)
         res = self.cache.get("keytest")
-        self.assertEqual(res, None)
+        self.assertIsNone(res)
 
         res = self.cache.get("keytest", version=2)
         self.assertEqual(res, 2)
@@ -496,7 +522,7 @@ class DjangoRedisCacheTests(unittest.TestCase):
         self.cache.incr_version("keytest")
 
         res = self.cache.get("keytest")
-        self.assertEqual(res, None)
+        self.assertIsNone(res)
 
         res = self.cache.get("keytest", version=2)
         self.assertEqual(res, 2)
@@ -514,7 +540,7 @@ class DjangoRedisCacheTests(unittest.TestCase):
         res = self.cache.delete_pattern("*foo-a*")
         self.assertFalse(bool(res))
 
-    @patch('django_redis.cache.RedisCache.client')
+    @patch("django_redis.cache.RedisCache.client")
     def test_delete_pattern_with_custom_count(self, client_mock):
         for key in ["foo-aa", "foo-ab", "foo-bb", "foo-bc"]:
             self.cache.set(key, "foo")
@@ -523,7 +549,7 @@ class DjangoRedisCacheTests(unittest.TestCase):
 
         client_mock.delete_pattern.assert_called_once_with("*foo-a*", itersize=2)
 
-    @patch('django_redis.cache.RedisCache.client')
+    @patch("django_redis.cache.RedisCache.client")
     def test_delete_pattern_with_settings_default_scan_count(self, client_mock):
         for key in ["foo-aa", "foo-ab", "foo-bb", "foo-bc"]:
             self.cache.set(key, "foo")
@@ -531,7 +557,9 @@ class DjangoRedisCacheTests(unittest.TestCase):
 
         self.cache.delete_pattern("*foo-a*")
 
-        client_mock.delete_pattern.assert_called_once_with("*foo-a*", itersize=expected_count)
+        client_mock.delete_pattern.assert_called_once_with(
+            "*foo-a*", itersize=expected_count
+        )
 
     def test_close(self):
         cache = caches["default"]
@@ -553,7 +581,7 @@ class DjangoRedisCacheTests(unittest.TestCase):
         # Test ttl None
         cache.set("foo", "foo", timeout=None)
         ttl = cache.ttl("foo")
-        self.assertEqual(ttl, None)
+        self.assertIsNone(ttl)
 
         # Test ttl with expired key
         cache.set("foo", "foo", timeout=-1)
@@ -585,6 +613,19 @@ class DjangoRedisCacheTests(unittest.TestCase):
         lock.release()
         self.assertFalse(self.cache.has_key("foobar"))
 
+    def test_lock_released_by_thread(self):
+        lock = self.cache.lock("foobar", thread_local=False)
+        lock.acquire(blocking=True)
+
+        def release_lock(lock_):
+            lock_.release()
+
+        t = threading.Thread(target=release_lock, args=[lock])
+        t.start()
+        t.join()
+
+        self.assertFalse(self.cache.has_key("foobar"))
+
     def test_iter_keys(self):
         cache = caches["default"]
         if isinstance(cache.client, ShardClient):
@@ -606,7 +647,7 @@ class DjangoRedisCacheTests(unittest.TestCase):
         result = cache.iter_keys("foo*")
         self.assertNotEqual(next(result), None)
 
-    def test_master_slave_switching(self):
+    def test_primary_replica_switching(self):
         if isinstance(self.cache.client, ShardClient):
             self.skipTest("ShardClient doesn't support get_client")
 
@@ -621,42 +662,58 @@ class DjangoRedisCacheTests(unittest.TestCase):
     def test_touch_zero_timeout(self):
         self.cache.set("test_key", 222, timeout=10)
 
-        self.assertEqual(self.cache.touch("test_key", 0), True)
+        self.assertIs(self.cache.touch("test_key", 0), True)
         res = self.cache.get("test_key")
-        self.assertEqual(res, None)
+        self.assertIsNone(res)
 
     def test_touch_positive_timeout(self):
         self.cache.set("test_key", 222, timeout=10)
 
-        self.assertEqual(self.cache.touch("test_key", 2), True)
+        self.assertIs(self.cache.touch("test_key", 2), True)
         self.assertEqual(self.cache.get("test_key"), 222)
         time.sleep(3)
-        self.assertEqual(self.cache.get("test_key"), None)
+        self.assertIsNone(self.cache.get("test_key"))
 
     def test_touch_negative_timeout(self):
         self.cache.set("test_key", 222, timeout=10)
 
-        self.assertEqual(self.cache.touch("test_key", -1), True)
+        self.assertIs(self.cache.touch("test_key", -1), True)
         res = self.cache.get("test_key")
-        self.assertEqual(res, None)
+        self.assertIsNone(res)
 
     def test_touch_missed_key(self):
-        self.assertEqual(self.cache.touch("test_key", -1), False)
+        self.assertIs(self.cache.touch("test_key_does_not_exist", 1), False)
+
+    def test_touch_forever(self):
+        self.cache.set("test_key", "foo", timeout=1)
+        result = self.cache.touch("test_key", None)
+        self.assertIs(result, True)
+        self.assertIsNone(self.cache.ttl("test_key"))
+        time.sleep(2)
+        self.assertEqual(self.cache.get("test_key"), "foo")
+
+    def test_touch_forever_nonexistent(self):
+        result = self.cache.touch("test_key_does_not_exist", None)
+        self.assertIs(result, False)
+
+    def test_touch_default_timeout(self):
+        self.cache.set("test_key", "foo", timeout=1)
+        result = self.cache.touch("test_key")
+        self.assertIs(result, True)
+        time.sleep(2)
+        self.assertEqual(self.cache.get("test_key"), "foo")
 
 
 class DjangoOmitExceptionsTests(unittest.TestCase):
     def setUp(self):
-        self._orig_setting = django_redis.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS
-        django_redis.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS = True
         caches_setting = copy.deepcopy(settings.CACHES)
         caches_setting["doesnotexist"]["OPTIONS"]["IGNORE_EXCEPTIONS"] = True
-        cm = override_settings(CACHES=caches_setting)
+        cm = override_settings(
+            CACHES=caches_setting, DJANGO_REDIS_IGNORE_EXCEPTIONS=True
+        )
         cm.enable()
         self.addCleanup(cm.disable)
         self.cache = caches["doesnotexist"]
-
-    def tearDown(self):
-        django_redis.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS = self._orig_setting
 
     def test_get_many_returns_default_arg(self):
         self.assertIs(self.cache._ignore_exceptions, True)
@@ -671,17 +728,14 @@ class DjangoOmitExceptionsTests(unittest.TestCase):
 
 class DjangoOmitExceptionsPriority1Tests(unittest.TestCase):
     def setUp(self):
-        self._orig_setting = django_redis.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS
-        django_redis.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS = False
         caches_setting = copy.deepcopy(settings.CACHES)
         caches_setting["doesnotexist"]["OPTIONS"]["IGNORE_EXCEPTIONS"] = True
-        cm = override_settings(CACHES=caches_setting)
+        cm = override_settings(
+            CACHES=caches_setting, DJANGO_REDIS_IGNORE_EXCEPTIONS=False
+        )
         cm.enable()
         self.addCleanup(cm.disable)
         self.cache = caches["doesnotexist"]
-
-    def tearDown(self):
-        django_redis.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS = self._orig_setting
 
     def test_get(self):
         self.assertIs(self.cache._ignore_exceptions, True)
@@ -690,17 +744,14 @@ class DjangoOmitExceptionsPriority1Tests(unittest.TestCase):
 
 class DjangoOmitExceptionsPriority2Tests(unittest.TestCase):
     def setUp(self):
-        self._orig_setting = django_redis.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS
-        django_redis.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS = True
         caches_setting = copy.deepcopy(settings.CACHES)
         caches_setting["doesnotexist"]["OPTIONS"]["IGNORE_EXCEPTIONS"] = False
-        cm = override_settings(CACHES=caches_setting)
+        cm = override_settings(
+            CACHES=caches_setting, DJANGO_REDIS_IGNORE_EXCEPTIONS=True
+        )
         cm.enable()
         self.addCleanup(cm.disable)
         self.cache = caches["doesnotexist"]
-
-    def tearDown(self):
-        django_redis.cache.DJANGO_REDIS_IGNORE_EXCEPTIONS = self._orig_setting
 
     def test_get(self):
         self.assertIs(self.cache._ignore_exceptions, False)
@@ -731,63 +782,66 @@ class SessionTestsMixin:
         self.assertIs(self.session.accessed, False)
 
     def test_get_empty(self):
-        self.assertIsNone(self.session.get('cat'))
+        self.assertIsNone(self.session.get("cat"))
 
     def test_store(self):
-        self.session['cat'] = "dog"
+        self.session["cat"] = "dog"
         self.assertIs(self.session.modified, True)
-        self.assertEqual(self.session.pop('cat'), 'dog')
+        self.assertEqual(self.session.pop("cat"), "dog")
 
     def test_pop(self):
-        self.session['some key'] = 'exists'
+        self.session["some key"] = "exists"
         # Need to reset these to pretend we haven't accessed it:
         self.accessed = False
         self.modified = False
 
-        self.assertEqual(self.session.pop('some key'), 'exists')
+        self.assertEqual(self.session.pop("some key"), "exists")
         self.assertIs(self.session.accessed, True)
         self.assertIs(self.session.modified, True)
-        self.assertIsNone(self.session.get('some key'))
+        self.assertIsNone(self.session.get("some key"))
 
     def test_pop_default(self):
-        self.assertEqual(self.session.pop('some key', 'does not exist'),
-                         'does not exist')
+        self.assertEqual(
+            self.session.pop("some key", "does not exist"), "does not exist"
+        )
         self.assertIs(self.session.accessed, True)
         self.assertIs(self.session.modified, False)
 
     def test_pop_default_named_argument(self):
-        self.assertEqual(self.session.pop('some key', default='does not exist'), 'does not exist')
+        self.assertEqual(
+            self.session.pop("some key", default="does not exist"), "does not exist"
+        )
         self.assertIs(self.session.accessed, True)
         self.assertIs(self.session.modified, False)
 
     def test_pop_no_default_keyerror_raised(self):
         with self.assertRaises(KeyError):
-            self.session.pop('some key')
+            self.session.pop("some key")
 
     def test_setdefault(self):
-        self.assertEqual(self.session.setdefault('foo', 'bar'), 'bar')
-        self.assertEqual(self.session.setdefault('foo', 'baz'), 'bar')
+        self.assertEqual(self.session.setdefault("foo", "bar"), "bar")
+        self.assertEqual(self.session.setdefault("foo", "baz"), "bar")
         self.assertIs(self.session.accessed, True)
         self.assertIs(self.session.modified, True)
 
     def test_update(self):
-        self.session.update({'update key': 1})
+        self.session.update({"update key": 1})
         self.assertIs(self.session.accessed, True)
         self.assertIs(self.session.modified, True)
-        self.assertEqual(self.session.get('update key'), 1)
+        self.assertEqual(self.session.get("update key"), 1)
 
     def test_has_key(self):
-        self.session['some key'] = 1
+        self.session["some key"] = 1
         self.session.modified = False
         self.session.accessed = False
-        self.assertIn('some key', self.session)
+        self.assertIn("some key", self.session)
         self.assertIs(self.session.accessed, True)
         self.assertIs(self.session.modified, False)
 
     def test_values(self):
         self.assertEqual(list(self.session.values()), [])
         self.assertIs(self.session.accessed, True)
-        self.session['some key'] = 1
+        self.session["some key"] = 1
         self.session.modified = False
         self.session.accessed = False
         self.assertEqual(list(self.session.values()), [1])
@@ -795,26 +849,26 @@ class SessionTestsMixin:
         self.assertIs(self.session.modified, False)
 
     def test_keys(self):
-        self.session['x'] = 1
+        self.session["x"] = 1
         self.session.modified = False
         self.session.accessed = False
-        self.assertEqual(list(self.session.keys()), ['x'])
+        self.assertEqual(list(self.session.keys()), ["x"])
         self.assertIs(self.session.accessed, True)
         self.assertIs(self.session.modified, False)
 
     def test_items(self):
-        self.session['x'] = 1
+        self.session["x"] = 1
         self.session.modified = False
         self.session.accessed = False
-        self.assertEqual(list(self.session.items()), [('x', 1)])
+        self.assertEqual(list(self.session.items()), [("x", 1)])
         self.assertIs(self.session.accessed, True)
         self.assertIs(self.session.modified, False)
 
     def test_clear(self):
-        self.session['x'] = 1
+        self.session["x"] = 1
         self.session.modified = False
         self.session.accessed = False
-        self.assertEqual(list(self.session.items()), [('x', 1)])
+        self.assertEqual(list(self.session.items()), [("x", 1)])
         self.session.clear()
         self.assertEqual(list(self.session.items()), [])
         self.assertIs(self.session.accessed, True)
@@ -830,7 +884,7 @@ class SessionTestsMixin:
         self.assertIs(self.session.exists(self.session.session_key), False)
 
     def test_flush(self):
-        self.session['foo'] = 'bar'
+        self.session["foo"] = "bar"
         self.session.save()
         prev_key = self.session.session_key
         self.session.flush()
@@ -841,7 +895,7 @@ class SessionTestsMixin:
         self.assertIs(self.session.accessed, True)
 
     def test_cycle(self):
-        self.session['a'], self.session['b'] = 'c', 'd'
+        self.session["a"], self.session["b"] = "c", "d"
         self.session.save()
         prev_key = self.session.session_key
         prev_data = list(self.session.items())
@@ -851,51 +905,52 @@ class SessionTestsMixin:
         self.assertEqual(list(self.session.items()), prev_data)
 
     def test_cycle_with_no_session_cache(self):
-        self.session['a'], self.session['b'] = 'c', 'd'
+        self.session["a"], self.session["b"] = "c", "d"
         self.session.save()
         prev_data = self.session.items()
         self.session = self.backend(self.session.session_key)
-        self.assertIs(hasattr(self.session, '_session_cache'), False)
+        self.assertIs(hasattr(self.session, "_session_cache"), False)
         self.session.cycle_key()
         self.assertCountEqual(self.session.items(), prev_data)
 
     def test_save_doesnt_clear_data(self):
-        self.session['a'] = 'b'
+        self.session["a"] = "b"
         self.session.save()
-        self.assertEqual(self.session['a'], 'b')
+        self.assertEqual(self.session["a"], "b")
 
     def test_invalid_key(self):
         # Submitting an invalid session key (either by guessing, or if the db has
         # removed the key) results in a new key being generated.
         try:
-            session = self.backend('1')
+            session = self.backend("1")
             session.save()
-            self.assertNotEqual(session.session_key, '1')
-            self.assertIsNone(session.get('cat'))
+            self.assertNotEqual(session.session_key, "1")
+            self.assertIsNone(session.get("cat"))
             session.delete()
         finally:
             # Some backends leave a stale cache entry for the invalid
             # session key; make sure that entry is manually deleted
-            session.delete('1')
+            session.delete("1")
 
     def test_session_key_empty_string_invalid(self):
         """Falsey values (Such as an empty string) are rejected."""
-        self.session._session_key = ''
+        self.session._session_key = ""
         self.assertIsNone(self.session.session_key)
 
     def test_session_key_too_short_invalid(self):
         """Strings shorter than 8 characters are rejected."""
-        self.session._session_key = '1234567'
+        self.session._session_key = "1234567"
         self.assertIsNone(self.session.session_key)
 
     def test_session_key_valid_string_saved(self):
         """Strings of length 8 and up are accepted and stored."""
-        self.session._session_key = '12345678'
-        self.assertEqual(self.session.session_key, '12345678')
+        self.session._session_key = "12345678"
+        self.assertEqual(self.session.session_key, "12345678")
 
     def test_session_key_is_read_only(self):
         def set_session_key(session):
             session.session_key = session._get_new_session_key()
+
         with self.assertRaises(AttributeError):
             set_session_key(self.session)
 
@@ -979,53 +1034,53 @@ class SessionTestsMixin:
 
     def test_decode(self):
         # Ensure we can decode what we encode
-        data = {'a test key': 'a test value'}
+        data = {"a test key": "a test value"}
         encoded = self.session.encode(data)
         self.assertEqual(self.session.decode(encoded), data)
 
     def test_decode_failure_logged_to_security(self):
-        bad_encode = base64.b64encode(b'flaskdj:alkdjf').decode()
-        with patch_logger('django.security.SuspiciousSession', 'warning') as calls:
+        bad_encode = base64.b64encode(b"flaskdj:alkdjf").decode("ascii")
+        with self.assertLogs("django.security.SuspiciousSession", "WARNING") as cm:
             self.assertEqual({}, self.session.decode(bad_encode))
-            # check that the failed decode is logged
-            self.assertEqual(len(calls), 1)
-            self.assertIn('corrupted', calls[0])
+        # The failed decode is logged.
+        self.assertIn("corrupted", cm.output[0])
 
     def test_actual_expiry(self):
         # this doesn't work with JSONSerializer (serializing timedelta)
-        with override_settings(SESSION_SERIALIZER='django.contrib.sessions.serializers.PickleSerializer'):
+        with override_settings(
+            SESSION_SERIALIZER="django.contrib.sessions.serializers.PickleSerializer"
+        ):
             self.session = self.backend()  # reinitialize after overriding settings
 
             # Regression test for #19200
             old_session_key = None
             new_session_key = None
             try:
-                self.session['foo'] = 'bar'
+                self.session["foo"] = "bar"
                 self.session.set_expiry(-timedelta(seconds=10))
                 self.session.save()
                 old_session_key = self.session.session_key
                 # With an expiry date in the past, the session expires instantly.
                 new_session = self.backend(self.session.session_key)
                 new_session_key = new_session.session_key
-                self.assertNotIn('foo', new_session)
+                self.assertNotIn("foo", new_session)
             finally:
                 self.session.delete(old_session_key)
                 self.session.delete(new_session_key)
 
-    @unittest.skipIf(VERSION < (2, 0), 'Requires Django 2.0+')
     def test_session_load_does_not_create_record(self):
         """
         Loading an unknown session key does not create a session record.
 
         Creating session records on load is a DOS vulnerability.
         """
-        session = self.backend('someunknownkey')
+        session = self.backend("someunknownkey")
         session.load()
 
         self.assertIsNone(session.session_key)
         self.assertIs(session.exists(session.session_key), False)
         # provided unknown key was cycled, not reused
-        self.assertNotEqual(session.session_key, 'someunknownkey')
+        self.assertNotEqual(session.session_key, "someunknownkey")
 
     def test_session_save_does_not_resurrect_session_logged_out_in_other_context(self):
         """
@@ -1035,7 +1090,7 @@ class SessionTestsMixin:
 
         # Create new session.
         s1 = self.backend()
-        s1['test_data'] = 'value1'
+        s1["test_data"] = "value1"
         s1.save(must_create=True)
 
         # Logout in another context.
@@ -1043,7 +1098,7 @@ class SessionTestsMixin:
         s2.delete()
 
         # Modify session in first context.
-        s1['test_data'] = 'value2'
+        s1["test_data"] = "value2"
         with self.assertRaises(UpdateError):
             # This should throw an exception as the session is deleted, not
             # resurrect the session.
@@ -1051,17 +1106,16 @@ class SessionTestsMixin:
 
         self.assertEqual(s1.load(), {})
 
-    if six.PY2:
-        assertCountEqual = unittest.TestCase.assertItemsEqual
-
 
 class SessionTests(SessionTestsMixin, unittest.TestCase):
     backend = CacheSession
 
     def test_actual_expiry(self):
-        if isinstance(caches[DEFAULT_CACHE_ALIAS].client._serializer, MSGPackSerializer):
+        if isinstance(
+            caches[DEFAULT_CACHE_ALIAS].client._serializer, MSGPackSerializer
+        ):
             self.skipTest("msgpack serializer doesn't support datetime serialization")
-        super(SessionTests, self).test_actual_expiry()
+        super().test_actual_expiry()
 
 
 class TestDefaultClient(unittest.TestCase):
@@ -1071,88 +1125,97 @@ class TestDefaultClient(unittest.TestCase):
         get_client_mock.return_value.scan_iter.return_value = iter([])
         client = DefaultClient()
         client._backend = Mock()
-        client._backend.key_prefix = ''
+        client._backend.key_prefix = ""
 
-        client.delete_pattern(pattern='foo*')
+        client.delete_pattern(pattern="foo*")
         get_client_mock.assert_called_once_with(write=True)
 
-    @patch('test_backend.DefaultClient.make_pattern')
-    @patch('test_backend.DefaultClient.get_client', return_value=Mock())
-    @patch('test_backend.DefaultClient.__init__', return_value=None)
+    @patch("test_backend.DefaultClient.make_pattern")
+    @patch("test_backend.DefaultClient.get_client", return_value=Mock())
+    @patch("test_backend.DefaultClient.__init__", return_value=None)
     def test_delete_pattern_calls_make_pattern(
-            self, init_mock, get_client_mock, make_pattern_mock):
+        self, init_mock, get_client_mock, make_pattern_mock
+    ):
         client = DefaultClient()
         client._backend = Mock()
         client._backend.key_prefix = ''
         get_client_mock.return_value.scan_iter.return_value = iter([])
 
-        client.delete_pattern(pattern='foo*')
+        client.delete_pattern(pattern="foo*")
 
-        kwargs = {'version': None, 'prefix': None}
+        kwargs = {"version": None, "prefix": None}
         # if not isinstance(caches['default'].client, ShardClient):
         # kwargs['prefix'] = None
 
-        make_pattern_mock.assert_called_once_with('foo*', **kwargs)
+        make_pattern_mock.assert_called_once_with("foo*", **kwargs)
 
-    @patch('test_backend.DefaultClient.make_pattern')
-    @patch('test_backend.DefaultClient.get_client', return_value=Mock())
-    @patch('test_backend.DefaultClient.__init__', return_value=None)
+    @patch("test_backend.DefaultClient.make_pattern")
+    @patch("test_backend.DefaultClient.get_client", return_value=Mock())
+    @patch("test_backend.DefaultClient.__init__", return_value=None)
     def test_delete_pattern_calls_scan_iter_with_count_if_itersize_given(
-            self, init_mock, get_client_mock, make_pattern_mock):
+        self, init_mock, get_client_mock, make_pattern_mock
+    ):
         client = DefaultClient()
         client._backend = Mock()
         client._backend.key_prefix = ''
         get_client_mock.return_value.scan_iter.return_value = iter([])
 
-        client.delete_pattern(pattern='foo*', itersize=90210)
+        client.delete_pattern(pattern="foo*", itersize=90210)
 
         get_client_mock.return_value.scan_iter.assert_called_once_with(
-            count=90210, match=make_pattern_mock.return_value)
+            count=90210, match=make_pattern_mock.return_value
+        )
 
 
 class TestShardClient(unittest.TestCase):
-
-    @patch('test_backend.DefaultClient.make_pattern')
-    @patch('test_backend.ShardClient.__init__', return_value=None)
+    @patch("test_backend.DefaultClient.make_pattern")
+    @patch("test_backend.ShardClient.__init__", return_value=None)
     def test_delete_pattern_calls_scan_iter_with_count_if_itersize_given(
-            self, init_mock, make_pattern_mock):
+        self, init_mock, make_pattern_mock
+    ):
         client = ShardClient()
         client._backend = Mock()
-        client._backend.key_prefix = ''
+        client._backend.key_prefix = ""
 
         connection = Mock()
         connection.scan_iter.return_value = []
-        client._serverdict = {'test': connection}
+        client._serverdict = {"test": connection}
 
-        client.delete_pattern(pattern='foo*', itersize=10)
+        client.delete_pattern(pattern="foo*", itersize=10)
 
-        connection.scan_iter.assert_called_once_with(count=10, match=make_pattern_mock.return_value)
+        connection.scan_iter.assert_called_once_with(
+            count=10, match=make_pattern_mock.return_value
+        )
 
-    @patch('test_backend.DefaultClient.make_pattern')
-    @patch('test_backend.ShardClient.__init__', return_value=None)
+    @patch("test_backend.DefaultClient.make_pattern")
+    @patch("test_backend.ShardClient.__init__", return_value=None)
     def test_delete_pattern_calls_scan_iter(self, init_mock, make_pattern_mock):
         client = ShardClient()
         client._backend = Mock()
-        client._backend.key_prefix = ''
+        client._backend.key_prefix = ""
         connection = Mock()
         connection.scan_iter.return_value = []
-        client._serverdict = {'test': connection}
+        client._serverdict = {"test": connection}
 
-        client.delete_pattern(pattern='foo*')
+        client.delete_pattern(pattern="foo*")
 
-        connection.scan_iter.assert_called_once_with(match=make_pattern_mock.return_value)
+        connection.scan_iter.assert_called_once_with(
+            match=make_pattern_mock.return_value
+        )
 
-    @patch('test_backend.DefaultClient.make_pattern')
-    @patch('test_backend.ShardClient.__init__', return_value=None)
-    def test_delete_pattern_calls_delete_for_given_keys(self, init_mock, make_pattern_mock):
+    @patch("test_backend.DefaultClient.make_pattern")
+    @patch("test_backend.ShardClient.__init__", return_value=None)
+    def test_delete_pattern_calls_delete_for_given_keys(
+        self, init_mock, make_pattern_mock
+    ):
         client = ShardClient()
         client._backend = Mock()
-        client._backend.key_prefix = ''
+        client._backend.key_prefix = ""
         connection = Mock()
         connection.scan_iter.return_value = [Mock(), Mock()]
         connection.delete.return_value = 0
-        client._serverdict = {'test': connection}
+        client._serverdict = {"test": connection}
 
-        client.delete_pattern(pattern='foo*')
+        client.delete_pattern(pattern="foo*")
 
         connection.delete.assert_called_once_with(*connection.scan_iter.return_value)

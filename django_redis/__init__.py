@@ -1,10 +1,8 @@
-# -*- coding: utf-8 -*-
-
-VERSION = (4, 10, 0)
-__version__ = '.'.join(map(str, VERSION))
+VERSION = (4, 12, 1)
+__version__ = ".".join(map(str, VERSION))
 
 
-def get_redis_connection(alias='default', write=True):
+def get_redis_connection(alias="default", write=True):
     """
     Helper used for obtaining a raw redis client.
     """

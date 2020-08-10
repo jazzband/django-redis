@@ -1,7 +1,3 @@
-# -*- coding: utf-8 -*-
-
-from __future__ import absolute_import
-
 from lz4.frame import compress as _compress, decompress as _decompress
 
 from ..exceptions import CompressorError

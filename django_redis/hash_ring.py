@@ -1,12 +1,8 @@
-# -*- coding: utf-8 -*-
-
-from __future__ import absolute_import, unicode_literals
-
 import bisect
 import hashlib
 
 
-class HashRing(object):
+class HashRing:
     nodes = []
 
     def __init__(self, nodes=(), replicas=128):
@@ -21,8 +17,8 @@ class HashRing(object):
         self.nodes.append(node)
 
         for x in range(self.replicas):
-            _key = "{0}:{1}".format(node, x)
-            _hash = hashlib.sha256(_key.encode('utf-8')).hexdigest()
+            _key = "{}:{}".format(node, x)
+            _hash = hashlib.sha256(_key.encode()).hexdigest()
 
             self.ring[_hash] = node
             self.sorted_keys.append(_hash)
@@ -44,7 +40,7 @@ class HashRing(object):
         if len(self.ring) == 0:
             return (None, None)
 
-        _hash = hashlib.sha256(key.encode('utf-8')).hexdigest()
+        _hash = hashlib.sha256(key.encode()).hexdigest()
         idx = bisect.bisect(self.sorted_keys, _hash)
         idx = min(idx - 1, (self.replicas * len(self.nodes)) - 1)
         return (self.ring[self.sorted_keys[idx]], idx)

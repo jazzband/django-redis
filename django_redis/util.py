@@ -1,14 +1,8 @@
-# -*- coding: utf-8 -*-
-
-from __future__ import absolute_import, unicode_literals
-
-from django.utils import six
-
-
-class CacheKey(six.text_type):
+class CacheKey(str):
     """
     A stub string class that we can use to check if a key was created already.
     """
+
     def original_key(self):
         return self.rsplit(":", 1)[1]
 
