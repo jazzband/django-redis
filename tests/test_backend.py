@@ -1119,9 +1119,11 @@ class SessionTests(SessionTestsMixin, unittest.TestCase):
 
 
 class TestDefaultClient(unittest.TestCase):
-    @patch('test_backend.DefaultClient.get_client', return_value=Mock())
+    @patch("test_backend.DefaultClient.get_client", return_value=Mock())
     @patch('test_backend.DefaultClient.__init__', return_value=None)
-    def test_delete_pattern_calls_get_client_given_no_client(self, init_mock, get_client_mock):
+    def test_delete_pattern_calls_get_client_given_no_client(
+            self, init_mock, get_client_mock
+    ):
         get_client_mock.return_value.scan_iter.return_value = iter([])
         client = DefaultClient()
         client._backend = Mock()
@@ -1138,7 +1140,7 @@ class TestDefaultClient(unittest.TestCase):
     ):
         client = DefaultClient()
         client._backend = Mock()
-        client._backend.key_prefix = ''
+        client._backend.key_prefix = ""
         get_client_mock.return_value.scan_iter.return_value = iter([])
 
         client.delete_pattern(pattern="foo*")

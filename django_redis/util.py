@@ -8,7 +8,7 @@ class CacheKey(str):
 
 
 def default_reverse_key(key):
-    return key.split(':', 2)[2]
+    return key.split(":", 2)[2]
 
 
 # generator to chunk loop an iterator
