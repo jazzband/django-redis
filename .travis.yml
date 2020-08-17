@@ -33,6 +33,18 @@ matrix:
     - python: 3.8
       env: TOXENV=py38-django30-redismaster
     - python: 3.6
+      env: TOXENV=py36-django31-redislatest
+    - python: 3.6
+      env: TOXENV=py36-django31-redismaster
+    - python: 3.7
+      env: TOXENV=py37-django31-redislatest
+    - python: 3.7
+      env: TOXENV=py37-django31-redismaster
+    - python: 3.8
+      env: TOXENV=py38-django31-redislatest
+    - python: 3.8
+      env: TOXENV=py38-django31-redismaster
+    - python: 3.6
       env: TOXENV=py36-djangomaster-redislatest
     - python: 3.6
       env: TOXENV=py36-djangomaster-redismaster
