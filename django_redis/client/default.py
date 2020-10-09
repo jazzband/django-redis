@@ -2,6 +2,8 @@ import random
 import re
 import socket
 from collections import OrderedDict
+from datetime import datetime
+from typing import Union
 
 from django.conf import settings
 from django.core.cache.backends.base import DEFAULT_TIMEOUT, get_key_func
@@ -242,6 +244,19 @@ class DefaultClient:
 
         if client.exists(key):
             client.expire(key, timeout)
+
+    def expire_at(self, key, when: Union[datetime, int], version=None, client=None):
+        """
+        Set an expire flag on a ``key`` to ``when``, which can be represented
+        as an integer indicating unix time or a Python datetime object.
+        """
+        if client is None:
+            client = self.get_client(write=True)
+
+        key = self.make_key(key, version=version)
+
+        if client.exists(key):
+            client.expireat(key, when)
 
     def lock(
         self,
