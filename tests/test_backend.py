@@ -24,7 +24,7 @@ herd.CACHE_HERD_TIMEOUT = 2
 
 
 def make_key(key, prefix, version):
-    return f"{prefix}#{version}#{key}"
+    return "{}#{}#{}".format(prefix, version, key)
 
 
 def reverse_key(key):
@@ -322,12 +322,19 @@ class DjangoRedisCacheTests(unittest.TestCase):
         value = "value"
 
         with patch.object(pipeline, "set") as mocked_set:
-            self.cache.set(key, value, client=pipeline)
+            self.cache.set(
+                key,
+                value,
+                client=pipeline,
+            )
 
         if isinstance(self.cache.client, herd.HerdClient):
             default_timeout = self.cache.client._backend.default_timeout
             herd_timeout = (default_timeout + herd.CACHE_HERD_TIMEOUT) * 1000
-            herd_pack_value = self.cache.client._pack(value, default_timeout)
+            herd_pack_value = self.cache.client._pack(
+                value,
+                default_timeout,
+            )
             mocked_set.assert_called_once_with(
                 self.cache.client.make_key(key, version=None),
                 self.cache.client.encode(herd_pack_value),
