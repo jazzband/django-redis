@@ -626,7 +626,10 @@ class DjangoRedisCacheTests(unittest.TestCase):
         ttl = self.cache.ttl("foo")
         self.assertAlmostEqual(ttl, timedelta(hours=1).total_seconds() * 2, delta=1)
 
-        # Test settings expiration time 1 hour in past, which effectively deletes the key.
+        """
+        Test settings expiration time 1 hour in past, which 
+        effectively deletes the key.
+        """
         expiration_time = datetime.datetime.now() - timedelta(hours=2)
         self.cache.expire_at("foo", expiration_time)
         value = self.cache.get("foo")
