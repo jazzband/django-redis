@@ -1,5 +1,5 @@
-from lz4.frame import compress as _compress
-from lz4.frame import decompress as _decompress
+from lz4.frame import compress as _compress  # type: ignore
+from lz4.frame import decompress as _decompress  # type: ignore
 
 from ..exceptions import CompressorError
 from .base import BaseCompressor
