@@ -17,7 +17,7 @@ class HashRing:
         self.nodes.append(node)
 
         for x in range(self.replicas):
-            _key = "{}:{}".format(node, x)
+            _key = f"{node}:{x}"
             _hash = hashlib.sha256(_key.encode()).hexdigest()
 
             self.ring[_hash] = node
