@@ -24,7 +24,7 @@ herd.CACHE_HERD_TIMEOUT = 2
 
 
 def make_key(key, prefix, version):
-    return "{}#{}#{}".format(prefix, version, key)
+    return f"{prefix}#{version}#{key}"
 
 
 def reverse_key(key):
