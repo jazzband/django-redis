@@ -4,10 +4,6 @@ cache: pip
 matrix:
   include:
     - env: TOXENV=lint
-    - python: 3.5
-      env: TOXENV=py35-django22-redislatest
-    - python: 3.5
-      env: TOXENV=py35-django22-redismaster
     - python: 3.6
       env: TOXENV=py36-django22-redislatest
     - python: 3.6
