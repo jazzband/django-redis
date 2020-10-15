@@ -75,12 +75,6 @@ matrix:
     - env: TOXENV=py37-djangomaster-redismaster
     - env: TOXENV=py38-djangomaster-redislatest
     - env: TOXENV=py38-djangomaster-redismaster
-    - env: TOXENV=py39-dev-django22-redislatest
-    - env: TOXENV=py39-dev-django22-redismaster
-    - env: TOXENV=py39-dev-django30-redislatest
-    - env: TOXENV=py39-dev-django30-redismaster
-    - env: TOXENV=py39-dev-django31-redislatest
-    - env: TOXENV=py39-dev-django31-redismaster
     - env: TOXENV=py39-dev-djangomaster-redislatest
     - env: TOXENV=py39-dev-djangomaster-redismaster
 
