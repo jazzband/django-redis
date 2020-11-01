@@ -16,9 +16,9 @@ matrix:
       env: TOXENV=py38-django22-redislatest
     - python: 3.8
       env: TOXENV=py38-django22-redismaster
-    - python: 3.9-dev
+    - python: 3.9
       env: TOXENV=py39-django22-redislatest
-    - python: 3.9-dev
+    - python: 3.9
       env: TOXENV=py39-django22-redismaster
     - python: 3.6
       env: TOXENV=py36-django30-redislatest
@@ -32,9 +32,9 @@ matrix:
       env: TOXENV=py38-django30-redislatest
     - python: 3.8
       env: TOXENV=py38-django30-redismaster
-    - python: 3.9-dev
+    - python: 3.9
       env: TOXENV=py39-django30-redislatest
-    - python: 3.9-dev
+    - python: 3.9
       env: TOXENV=py39-django30-redismaster
     - python: 3.6
       env: TOXENV=py36-django31-redislatest
@@ -48,9 +48,9 @@ matrix:
       env: TOXENV=py38-django31-redislatest
     - python: 3.8
       env: TOXENV=py38-django31-redismaster
-    - python: 3.9-dev
+    - python: 3.9
       env: TOXENV=py39-django31-redislatest
-    - python: 3.9-dev
+    - python: 3.9
       env: TOXENV=py39-django31-redismaster
     - python: 3.6
       env: TOXENV=py36-djangomaster-redislatest
@@ -64,9 +64,9 @@ matrix:
       env: TOXENV=py38-djangomaster-redislatest
     - python: 3.8
       env: TOXENV=py38-djangomaster-redismaster
-    - python: 3.9-dev
+    - python: 3.9
       env: TOXENV=py39-djangomaster-redislatest
-    - python: 3.9-dev
+    - python: 3.9
       env: TOXENV=py39-djangomaster-redismaster
   allow_failures:
     - env: TOXENV=py36-djangomaster-redislatest
