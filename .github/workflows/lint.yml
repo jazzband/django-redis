@@ -1,0 +1,21 @@
+name: Lint
+
+on:
+  - push
+  - pull_request
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+
+      - name: Install dependencies
+        run: python -m pip install tox
+
+      - name: Run
+        run: tox -e lint
