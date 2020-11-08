@@ -1,0 +1,43 @@
+name: Test
+
+on:
+  - push
+  - pull_request
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version:
+          - 3.6
+          - 3.7
+          - 3.8
+          - 3.9
+        django:
+          - django22
+          - django30
+          - django31
+          - djangomaster
+        redis:
+          - redislatest
+          - redismaster
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Start Redis
+        uses: supercharge/redis-github-action@1.1.0
+
+      - name: Install dependencies
+        run: python -m pip install tox
+
+      - name: Run tests
+        run: tox -e ${{ matrix.django }}-${{ matrix.redis }}
