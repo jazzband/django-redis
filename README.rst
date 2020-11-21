@@ -85,9 +85,9 @@ django-redis uses the redis-py native URL notation for connection strings, it
 allows better interoperability and has a connection string in more "standard"
 way. Some examples:
 
-- ``redis://[:password]@localhost:6379/0``
-- ``rediss://[:password]@localhost:6379/0``
-- ``unix://[:password]@/path/to/socket.sock?db=0``
+- ``redis://[[username]:[password]]@localhost:6379/0``
+- ``rediss://[[username]:[password]]@localhost:6379/0``
+- ``unix://[[username]:[password]]@/path/to/socket.sock?db=0``
 
 Three URL schemes are supported:
 
@@ -100,6 +100,37 @@ There are several ways to specify a database number:
 - A ``db`` querystring option, e.g. ``redis://localhost?db=0``
 - If using the ``redis://`` scheme, the path argument of the URL, e.g.
   ``redis://localhost/0``
+
+When using [Redi's ACL](https://redis.io/topics/acl), you will need to add the
+username to the URL (and provide the password with the Cache ``OPTIONS``).
+The login for the user ``django`` would look like this:
+
+.. code-block:: python
+
+    CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": "redis://django@localhost:6379/0",
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+                "PASSWORD": "mysecret"
+            }
+        }
+    }
+    
+An alternative would be write both username and password into the URL:
+
+.. code-block:: python
+
+    CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": "redis://django:mysecret@localhost:6379/0",
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            }
+        }
+    }
 
 In some circumstances the password you should use to connect Redis
 is not URL-safe, in this case you can escape it or just use the
