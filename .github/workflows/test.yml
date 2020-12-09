@@ -16,9 +16,9 @@ jobs:
           - '3.8'
           - '3.9'
         django-version:
-          - '22'
-          - '30'
-          - '31'
+          - '2.2'
+          - '3.0'
+          - '3.1'
           - 'master'
         redis-version:
           - 'latest'
