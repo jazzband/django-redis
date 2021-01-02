@@ -106,7 +106,7 @@ There are several ways to specify a database number:
 - If using the ``redis://`` scheme, the path argument of the URL, e.g.
   ``redis://localhost/0``
 
-When using [Redi's ACL](https://redis.io/topics/acl), you will need to add the
+When using `Redis' ACLs <https://redis.io/topics/acl>`_, you will need to add the
 username to the URL (and provide the password with the Cache ``OPTIONS``).
 The login for the user ``django`` would look like this:
 
