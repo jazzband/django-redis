@@ -26,4 +26,3 @@ CACHES = {
 }
 
 INSTALLED_APPS = ["django.contrib.sessions"]
-DJANGO_REDIS_CLOSE_CONNECTION = False
