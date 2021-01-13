@@ -2,7 +2,7 @@ name: Test
 
 on:
   - push
-
+  - pull_request
 jobs:
   build:
     name: build (Python ${{ matrix.python-version }}, Django ${{ matrix.django-version }}, Redis.py ${{ matrix.redis-version }})
