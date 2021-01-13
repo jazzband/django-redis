@@ -24,6 +24,17 @@ jobs:
           - 'latest'
           - 'master'
 
+    services:
+      redis:
+        image: redis:latest
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+        - 6379:6379
+
     steps:
     - uses: actions/checkout@v2
 
@@ -31,9 +42,6 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
-
-    - name: Start Redis
-      uses: supercharge/redis-github-action@1.1.0
 
     - name: Get pip cache dir
       id: pip-cache
