@@ -703,11 +703,9 @@ class DjangoRedisCacheTests(unittest.TestCase):
 
 
 class DjangoRedisCacheTestsWithClose(DjangoRedisCacheTests):
+    @override_settings(DJANGO_REDIS_CLOSE_CONNECTION=True)
     def test_close(self):
-        with override_settings(
-            CACHE=settings.CACHES, DJANGO_REDIS_CLOSE_CONNECTION=True
-        ):
-            super().test_close()
+        super().test_close()
 
 
 class DjangoRedisCacheWithCloseAndBlockingConnectionPool(
