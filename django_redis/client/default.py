@@ -568,9 +568,11 @@ class DefaultClient:
     def close(self, **kwargs):
         if getattr(settings, "DJANGO_REDIS_CLOSE_CONNECTION", False):
             for i in range(len(self._clients)):
-                for c in self._clients[i].connection_pool._available_connections:
-                    c.disconnect()
-                self._clients[i] = None
+                client = self._clients[i]
+                if client is not None:
+                    for connection in client.connection_pool._available_connections:
+                        connection.disconnect()
+                self._clients[i] is None
 
     def touch(self, key, timeout=DEFAULT_TIMEOUT, version=None, client=None):
         """
