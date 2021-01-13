@@ -572,7 +572,7 @@ class DefaultClient:
                 if client is not None:
                     for connection in client.connection_pool._available_connections:
                         connection.disconnect()
-                self._clients[i] is None
+                self._clients[i] = None
 
     def touch(self, key, timeout=DEFAULT_TIMEOUT, version=None, client=None):
         """

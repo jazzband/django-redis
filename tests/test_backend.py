@@ -720,7 +720,8 @@ class DjangoRedisCacheWithCloseAndBlockingConnectionPool(
             "timeout": None,
             "max_connections": 100,
         }
-        cm = override_settings(CACHES=cache_settings)
+        cm = override_settings(CACHES=cache_settings,
+                               DJANGO_REDIS_CLOSE_CONNECTION=True)
         cm.enable()
         self.addCleanup(cm.disable)
         super().setUp()
