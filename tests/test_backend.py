@@ -727,6 +727,9 @@ class DjangoRedisCacheWithCloseAndBlockingConnectionPool(
         self.addCleanup(cm.disable)
         super().setUp()
 
+    def test_set_call_empty_pipeline(self):
+        self.skipTest("Unreliable with blocking connection pool")
+
 
 class DjangoOmitExceptionsTests(unittest.TestCase):
     def setUp(self):
