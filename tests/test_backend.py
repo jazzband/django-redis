@@ -288,7 +288,7 @@ class DjangoRedisCacheTests(unittest.TestCase):
 
         res = cache.get("add_key")
         self.assertEqual(res, "Initial value")
-
+        cache.delete("other_key")
         res = self.cache.add("other_key", "New value")
         self.assertIs(res, True)
 
@@ -700,6 +700,32 @@ class DjangoRedisCacheTests(unittest.TestCase):
         self.assertIs(result, True)
         time.sleep(2)
         self.assertEqual(self.cache.get("test_key"), "foo")
+
+
+class DjangoRedisCacheTestsWithClose(DjangoRedisCacheTests):
+    def test_close(self):
+        with override_settings(
+            CACHE=settings.CACHES, DJANGO_REDIS_CLOSE_CONNECTION=True
+        ):
+            super().test_close()
+
+
+class DjangoRedisCacheWithCloseAndBlockingConnectionPool(
+    DjangoRedisCacheTestsWithClose
+):
+    def setUp(self):
+        cache_settings = copy.deepcopy(settings.CACHES)
+        cache_settings["default"]["OPTIONS"][
+            "CONNECTION_POOL_CLASS"
+        ] = "redis.connection.BlockingConnectionPool"
+        cache_settings["default"]["OPTIONS"]["CONNECTION_POOL_KWARGS"] = {
+            "timeout": None,
+            "max_connections": 100,
+        }
+        cm = override_settings(CACHES=cache_settings)
+        cm.enable()
+        self.addCleanup(cm.disable)
+        super().setUp()
 
 
 class DjangoOmitExceptionsTests(unittest.TestCase):
