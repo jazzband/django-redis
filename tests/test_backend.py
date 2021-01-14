@@ -559,6 +559,7 @@ class DjangoRedisCacheTests(unittest.TestCase):
             "*foo-a*", itersize=expected_count
         )
 
+    @override_settings(DJANGO_REDIS_CLOSE_CONNECTION=True)
     def test_close(self):
         self.cache.set("f", "1")
         self.cache.close()
@@ -699,12 +700,6 @@ class DjangoRedisCacheTests(unittest.TestCase):
         self.assertIs(result, True)
         time.sleep(2)
         self.assertEqual(self.cache.get("test_key"), "foo")
-
-
-class DjangoRedisCacheTestsWithClose(DjangoRedisCacheTests):
-    @override_settings(DJANGO_REDIS_CLOSE_CONNECTION=True)
-    def test_close(self):
-        super().test_close()
 
 
 class DjangoOmitExceptionsTests(unittest.TestCase):
