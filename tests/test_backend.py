@@ -288,7 +288,6 @@ class DjangoRedisCacheTests(unittest.TestCase):
 
         res = cache.get("add_key")
         self.assertEqual(res, "Initial value")
-
         res = self.cache.add("other_key", "New value")
         self.assertIs(res, True)
 
@@ -559,10 +558,10 @@ class DjangoRedisCacheTests(unittest.TestCase):
             "*foo-a*", itersize=expected_count
         )
 
+    @override_settings(DJANGO_REDIS_CLOSE_CONNECTION=True)
     def test_close(self):
-        cache = caches["default"]
-        cache.set("f", "1")
-        cache.close()
+        self.cache.set("f", "1")
+        self.cache.close()
 
     def test_ttl(self):
         cache = caches["default"]
