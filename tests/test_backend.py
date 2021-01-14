@@ -1218,3 +1218,20 @@ class TestShardClient(unittest.TestCase):
         client.delete_pattern(pattern="foo*")
 
         connection.delete.assert_called_once_with(*connection.scan_iter.return_value)
+
+
+class TestClearClient(unittest.TestCase):
+    cache_name = "default"
+    key = "foo"
+    value = "bar"
+
+    def setUp(self) -> None:
+        self.cache = caches[self.cache_name]
+
+    def test_clear(self):
+        self.cache.set(self.key, self.value)
+        value_from_cache = self.cache.get(self.key)
+        self.assertEqual(value_from_cache, self.value)
+        self.cache.clear()
+        value_from_cache_after_clear = self.cache.get(self.value)
+        self.assertIsNone(value_from_cache_after_clear)
