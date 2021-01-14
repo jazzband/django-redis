@@ -277,3 +277,7 @@ class ShardClient(DefaultClient):
             client = self.get_server(key)
 
         return super().touch(key=key, timeout=timeout, version=version, client=client)
+
+    def clear(self, client=None):
+        for _, connection in self._serverdict.items():
+            connection.flushdb()
