@@ -560,9 +560,8 @@ class DjangoRedisCacheTests(unittest.TestCase):
         )
 
     def test_close(self):
-        cache = caches["default"]
-        cache.set("f", "1")
-        cache.close()
+        self.cache.set("f", "1")
+        self.cache.close()
 
     def test_ttl(self):
         cache = caches["default"]
@@ -706,29 +705,6 @@ class DjangoRedisCacheTestsWithClose(DjangoRedisCacheTests):
     @override_settings(DJANGO_REDIS_CLOSE_CONNECTION=True)
     def test_close(self):
         super().test_close()
-
-
-class DjangoRedisCacheWithCloseAndBlockingConnectionPool(
-    DjangoRedisCacheTestsWithClose
-):
-    def setUp(self):
-        cache_settings = copy.deepcopy(settings.CACHES)
-        cache_settings["default"]["OPTIONS"][
-            "CONNECTION_POOL_CLASS"
-        ] = "redis.connection.BlockingConnectionPool"
-        cache_settings["default"]["OPTIONS"]["CONNECTION_POOL_KWARGS"] = {
-            "timeout": None,
-            "max_connections": 100,
-        }
-        cm = override_settings(
-            CACHES=cache_settings, DJANGO_REDIS_CLOSE_CONNECTION=True
-        )
-        cm.enable()
-        self.addCleanup(cm.disable)
-        super().setUp()
-
-    def test_set_call_empty_pipeline(self):
-        self.skipTest("Unreliable with blocking connection pool")
 
 
 class DjangoOmitExceptionsTests(unittest.TestCase):

@@ -569,9 +569,7 @@ class DefaultClient:
         if getattr(settings, "DJANGO_REDIS_CLOSE_CONNECTION", False):
             for i in range(len(self._clients)):
                 client = self._clients[i]
-                if client is not None:
-                    for connection in client.connection_pool._available_connections:
-                        connection.disconnect()
+                self._disconnect_client(client)
                 self._clients[i] = None
 
     def touch(self, key, timeout=DEFAULT_TIMEOUT, version=None, client=None):
@@ -592,3 +590,9 @@ class DefaultClient:
             # Convert to milliseconds
             timeout = int(timeout * 1000)
             return bool(client.pexpire(key, timeout))
+
+    @staticmethod
+    def _disconnect_client(client):
+        if client is not None:
+            for connection in client.connection_pool._available_connections:
+                connection.disconnect()
