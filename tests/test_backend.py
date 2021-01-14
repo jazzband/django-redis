@@ -55,8 +55,10 @@ class DjangoRedisCacheTestEscapePrefix(unittest.TestCase):
         self.addCleanup(cm.disable)
 
         self.cache = caches["default"]
-        self.cache.clear()
         self.other = caches["with_prefix"]
+
+    def tearDown(self):
+        self.cache.clear()
         self.other.clear()
 
     def test_delete_pattern(self):
@@ -92,6 +94,8 @@ class DjangoRedisCacheTestCustomKeyFunction(unittest.TestCase):
         self.addCleanup(cm.disable)
 
         self.cache = caches["default"]
+
+    def tearDown(self):
         self.cache.clear()
 
     def test_custom_key_function(self):
@@ -116,6 +120,8 @@ class DjangoRedisCacheTestCustomKeyFunction(unittest.TestCase):
 class DjangoRedisCacheTests(unittest.TestCase):
     def setUp(self):
         self.cache = cache
+
+    def tearDown(self):
         self.cache.clear()
 
     def test_setnx(self):
@@ -1212,7 +1218,7 @@ class TestClearClient(unittest.TestCase):
     key = "foo"
     value = "bar"
 
-    def setUp(self) -> None:
+    def setUp(self):
         self.cache = caches[self.cache_name]
 
     def test_clear(self):
@@ -1222,3 +1228,9 @@ class TestClearClient(unittest.TestCase):
         self.cache.clear()
         value_from_cache_after_clear = self.cache.get(self.value)
         self.assertIsNone(value_from_cache_after_clear)
+
+
+class TestClearClientWithPrefix(TestClearClient):
+    cache_name = "with_prefix"
+    key = "baz"
+    value = "spam"
