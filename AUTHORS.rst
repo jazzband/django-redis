@@ -13,3 +13,4 @@ Todd Boland / boland <https://github.com/boland>
 David Zderic / dzderic <https://github.com/dzderic>
 Kirill Zaitsev / teferi <https://github.com/teferi>
 Jon Dufresne <https://github.com/jdufresne>
+Anès Foufa <https://github.com/AnesFoufa>
