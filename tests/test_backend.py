@@ -55,15 +55,11 @@ class DjangoRedisCacheTestEscapePrefix(unittest.TestCase):
         self.addCleanup(cm.disable)
 
         self.cache = caches["default"]
-        try:
-            self.cache.clear()
-        except Exception:
-            pass
         self.other = caches["with_prefix"]
-        try:
-            self.other.clear()
-        except Exception:
-            pass
+
+    def tearDown(self):
+        self.cache.clear()
+        self.other.clear()
 
     def test_delete_pattern(self):
         self.cache.set("a", "1")
@@ -98,10 +94,9 @@ class DjangoRedisCacheTestCustomKeyFunction(unittest.TestCase):
         self.addCleanup(cm.disable)
 
         self.cache = caches["default"]
-        try:
-            self.cache.clear()
-        except Exception:
-            pass
+
+    def tearDown(self):
+        self.cache.clear()
 
     def test_custom_key_function(self):
         if isinstance(self.cache.client, ShardClient):
@@ -126,10 +121,8 @@ class DjangoRedisCacheTests(unittest.TestCase):
     def setUp(self):
         self.cache = cache
 
-        try:
-            self.cache.clear()
-        except Exception:
-            pass
+    def tearDown(self):
+        self.cache.clear()
 
     def test_setnx(self):
         # we should ensure there is no test_key_nx in redis
@@ -699,6 +692,14 @@ class DjangoRedisCacheTests(unittest.TestCase):
         self.assertIs(result, True)
         time.sleep(2)
         self.assertEqual(self.cache.get("test_key"), "foo")
+
+    def test_clear(self):
+        self.cache.set("foo", "bar")
+        value_from_cache = self.cache.get("foo")
+        self.assertEqual(value_from_cache, "bar")
+        self.cache.clear()
+        value_from_cache_after_clear = self.cache.get("foo")
+        self.assertIsNone(value_from_cache_after_clear)
 
 
 class DjangoOmitExceptionsTests(unittest.TestCase):
