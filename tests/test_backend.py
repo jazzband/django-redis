@@ -288,7 +288,6 @@ class DjangoRedisCacheTests(unittest.TestCase):
 
         res = cache.get("add_key")
         self.assertEqual(res, "Initial value")
-        cache.delete("other_key")
         res = self.cache.add("other_key", "New value")
         self.assertIs(res, True)
 
