@@ -578,6 +578,11 @@ class DjangoRedisCacheTests(unittest.TestCase):
         self.cache.set("f", "1")
         self.cache.close()
 
+    def test_close_client(self):
+        with patch.object(self.cache.client, "close") as mock:
+            self.cache.close()
+            assert mock.called
+
     def test_ttl(self):
         cache = caches["default"]
 
@@ -1136,6 +1141,43 @@ class SessionTests(SessionTestsMixin, unittest.TestCase):
         ):
             self.skipTest("msgpack serializer doesn't support datetime serialization")
         super().test_actual_expiry()
+
+
+class TestClientClose(unittest.TestCase):
+    def setUp(self):
+        self.client = caches[DEFAULT_CACHE_ALIAS].client
+        self.client.set("TestClientClose", 0)
+
+    def tearDown(self):
+        self.client.delete("TestClientClose")
+        self.client.clear()
+
+    def test_close_client_disconnect_default(self):
+        with patch.object(self.client.connection_factory, "disconnect") as mock:
+            self.client.close()
+            assert not mock.called
+
+    @override_settings(DJANGO_REDIS_CLOSE_CONNECTION=True)
+    def test_close_disconnect_settings(self):
+        with patch.object(self.client.connection_factory, "disconnect") as mock:
+            self.client.close()
+            assert mock.called
+
+    def test_close_disconnect_settings_cache(self):
+        settings.CACHES[DEFAULT_CACHE_ALIAS]["OPTIONS"]["CLOSE_CONNECTION"] = True
+        with override_settings(CACHES=settings.CACHES):
+            # enabling override_settings context emits 'setting_changed' signal
+            # (re-set the value to populate again client connections)
+            self.client.set("TestClientClose", 0)
+            with patch.object(self.client.connection_factory, "disconnect") as mock:
+                self.client.close()
+                assert mock.called
+
+    def test_close_disconnect_client_options(self):
+        self.client._options["CLOSE_CONNECTION"] = True
+        with patch.object(self.client.connection_factory, "disconnect") as mock:
+            self.client.close()
+            assert mock.called
 
 
 class TestDefaultClient(unittest.TestCase):

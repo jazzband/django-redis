@@ -105,6 +105,12 @@ class DefaultClient:
         """
         return self.connection_factory.connect(self._server[index])
 
+    def disconnect(self, index=0, client=None):
+        """delegates the connection factory to disconnect the client"""
+        if not client:
+            client = self._clients[index]
+        return self.connection_factory.disconnect(client) if client else None
+
     def set(
         self,
         key,
@@ -566,12 +572,19 @@ class DefaultClient:
         return CacheKey(self._backend.key_func(pattern, prefix, version))
 
     def close(self, **kwargs):
-        if getattr(settings, "DJANGO_REDIS_CLOSE_CONNECTION", False):
-            for i in range(len(self._clients)):
-                client = self._clients[i]
-                if client is not None:
-                    client.connection_pool.disconnect()
-                self._clients[i] = None
+        close_flag = self._options.get(
+            "CLOSE_CONNECTION",
+            getattr(settings, "DJANGO_REDIS_CLOSE_CONNECTION", False),
+        )
+        if close_flag:
+            self.do_close_clients()
+
+    def do_close_clients(self):
+        """ default implementation: Override in custom client """
+        num_clients = len(self._clients)
+        for idx in range(num_clients):
+            self.disconnect(index=idx)
+        self._clients = [None] * num_clients
 
     def touch(self, key, timeout=DEFAULT_TIMEOUT, version=None, client=None):
         """
