@@ -347,6 +347,28 @@ class DjangoRedisCacheTests(unittest.TestCase):
         res = self.cache.delete("a")
         self.assertFalse(bool(res))
 
+    @patch("django_redis.cache.DJANGO_VERSION", (3, 1, 0, "final", 0))
+    def test_delete_return_value_type_new31(self):
+        """delete() returns a boolean instead of int since django version 3.1"""
+        self.cache.set("a", 1)
+        res = self.cache.delete("a")
+        self.assertEqual(type(res), bool)
+        self.assertTrue(res)
+        res = self.cache.delete("b")
+        self.assertEqual(type(res), bool)
+        self.assertFalse(res)
+
+    @patch("django_redis.cache.DJANGO_VERSION", (3, 0, 1, "final", 0))
+    def test_delete_return_value_type_before31(self):
+        """delete() returns a int before django version 3.1"""
+        self.cache.set("a", 1)
+        res = self.cache.delete("a")
+        self.assertEqual(type(res), int)
+        self.assertEqual(res, 1)
+        res = self.cache.delete("b")
+        self.assertEqual(type(res), int)
+        self.assertEqual(res, 0)
+
     def test_delete_many(self):
         self.cache.set_many({"a": 1, "b": 2, "c": 3})
         res = self.cache.delete_many(["a", "b"])
