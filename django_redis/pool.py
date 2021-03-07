@@ -8,7 +8,7 @@ class ConnectionFactory:
     # Store connection pool by cache backend options.
     #
     # _pools is a process-global, as otherwise _pools is cleared every time
-    # ConnectionFactory is instiated, as Django creates new cache client
+    # ConnectionFactory is instantiated, as Django creates new cache client
     # (DefaultClient) instance for every request.
 
     _pools = {}
@@ -66,9 +66,17 @@ class ConnectionFactory:
         connection = self.get_connection(params)
         return connection
 
+    def disconnect(self, connection):
+        """
+        Given a not null client connection it disconnect from the Redis server.
+
+        The default implementation uses a pool to hold connections.
+        """
+        connection.connection_pool.disconnect()
+
     def get_connection(self, params):
         """
-        Given a now preformated params, return a
+        Given a now preformatted params, return a
         new connection.
 
         The default implementation uses a cached pools

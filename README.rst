@@ -745,6 +745,31 @@ setting ``REDIS_CLIENT_KWARGS``.
         }
     }
 
+
+Closing Connections
+~~~~~~~~~~~~~~~~~~~
+
+The default django-redis behavior on close() is to keep the connections to Redis server.
+
+You can change this default behaviour for all caches by the ``DJANGO_REDIS_CLOSE_CONNECTION = True``
+in the django settings (globally) or (at cache level) by setting ``CLOSE_CONNECTION: True`` in the ``OPTIONS``
+for each configured cache.
+
+Setting True as a value will instruct the django-redis to close all the connections (since v. 4.12.2), irrespectively of its current usage.
+
+.. code-block:: python
+
+    CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": "redis://127.0.0.1:6379/1",
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+                "CLOSE_CONNECTION": True,
+            }
+        }
+    }
+
 License
 -------
 
