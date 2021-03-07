@@ -24,6 +24,11 @@ jobs:
         redis-version:
           - 'latest'
           - 'master'
+        exclude:
+          - django-version: 'master'
+            python-version: '3.6'
+          - django-version: 'master'
+            python-version: '3.7'
 
     services:
       redis:
