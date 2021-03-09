@@ -785,7 +785,7 @@ class DjangoOmitExceptionsPriority2Tests(unittest.TestCase):
 
 
 # Copied from Django's sessions test suite. Keep in sync with upstream.
-# https://github.com/django/django/blob/master/tests/sessions_tests/tests.py
+# https://github.com/django/django/blob/main/tests/sessions_tests/tests.py
 class SessionTestsMixin:
     # This does not inherit from TestCase to avoid any tests being run with this
     # class, which wouldn't work, and to allow different TestCase subclasses to

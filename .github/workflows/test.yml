@@ -20,14 +20,14 @@ jobs:
           - '2.2'
           - '3.0'
           - '3.1'
-          - 'master'
+          - 'main'
         redis-version:
           - 'latest'
           - 'master'
         exclude:
-          - django-version: 'master'
+          - django-version: 'main'
             python-version: '3.6'
-          - django-version: 'master'
+          - django-version: 'main'
             python-version: '3.7'
 
     services:
