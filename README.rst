@@ -589,6 +589,87 @@ Django setting ``DJANGO_REDIS_CONNECTION_FACTORY``.
             # creating a new connection using the `get_connection` method.
             pass
 
+Use the sentinel connection factory
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In order to facilitate using `Redis Sentinels`_, django-redis comes with a
+built in sentinel connection factory, which creates sentinel connection pools.
+In order to enable this functionality you should add the following:
+
+
+.. code-block:: python
+    :caption: myproj/settings.py
+
+    # Enable the alternate connection factory.
+    DJANGO_REDIS_CONNECTION_FACTORY = 'django_redis.pool.SentinelConnectionFactory'
+
+    # These sentinels are shared between all the examples, and are passed
+    # directly to redis Sentinel. These can also be defined inline.
+    SENTINELS = [
+        ('sentinel-1', 26379),
+        ('sentinel-2', 26379),
+        ('sentinel-3', 26379),
+    ]
+
+    CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": "redis://service_name/db",
+            "OPTIONS": {
+                # While the default client will work, this will check you
+                # have configured things correctly, and also create a
+                # primary and replica pool for the service specified by
+                # LOCATION rather than requiring two URLs.
+                "CLIENT_CLASS", "django_redis.client.SentinelClient"
+
+                # Sentinels which are passed directly to redis Sentinel.
+                "SENTINELS": SENTINELS,
+
+                # kwargs for redis Sentinel (optional).
+                "SENTINEL_KWARGS": {},
+
+                # You can still override the connection pool (optional).
+                "CONNECTION_POOL_CLASS": "redis.sentinel.SentinelConnectionPool",
+            },
+        },
+
+        # A minimal example using the SentinelClient.
+        "minimal": {
+            "BACKEND": "django_redis.cache.RedisCache",
+
+            # The SentinelClient will use this location for both the primaries
+            # and replicas.
+            "LOCATION": "redis://minimal_service_name/db",
+
+            "OPTIONS": {
+                "CLIENT_CLASS", "django_redis.client.SentinelClient"
+                "SENTINELS": SENTINELS,
+            },
+        }
+
+        # A minimal example using the DefaultClient.
+        "other": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": [
+                # The DefaultClient is [primary, replicas...], but with the
+                # SentinelConnectionPool it only requires one "is_master=0".
+                "redis://other_service_name/db?is_master=1",
+                "redis://other_service_name/db?is_master=0",
+            ],
+            "OPTIONS": {"SENTINELS": SENTINELS},
+        },
+
+        # A minimal example only using only replicas in read only mode (and
+        # the DefaultClient).
+        "readonly": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": "redis://readonly_service_name/db?is_master=0",
+            "OPTIONS": {"SENTINELS": SENTINELS},
+        },
+    }
+
+.. _Redis Sentinels: https://redis.io/topics/sentinel
+
 Pluggable parsers
 ~~~~~~~~~~~~~~~~~
 

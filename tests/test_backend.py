@@ -38,7 +38,9 @@ class DjangoRedisConnectionStrings(unittest.TestCase):
             "redis://localhost/2",
             "rediss://localhost:3333?db=2",
         ]
-        cf = pool.get_connection_factory(options={})
+        cf = pool.get_connection_factory(
+            path="django_redis.pool.ConnectionFactory", options={}
+        )
         for connection_string in connection_strings:
             with self.subTest(connection_string):
                 res = cf.make_connection_params(connection_string)
