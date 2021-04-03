@@ -288,7 +288,8 @@ class DefaultClient:
         key = self.make_key(key, version=version)
 
         if client.exists(key):
-            client.expire(key, timeout)
+            timeout = int(timeout * 1000)
+            client.pexpire(key, timeout)
 
     def expire_at(
         self,
@@ -588,10 +589,10 @@ class DefaultClient:
         if not client.exists(key):
             return 0
 
-        t = client.ttl(key)
+        t = client.pttl(key)
 
         if t >= 0:
-            return t
+            return t / 1000
         elif t == -1:
             return None
         elif t == -2:
