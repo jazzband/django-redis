@@ -1,7 +1,7 @@
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 from django.core.exceptions import ImproperlyConfigured
-from redis.sentinel import SentinelConnectionPool
+from redis.sentinel import SentinelConnectionPool  # type: ignore
 
 from .default import DefaultClient
 
