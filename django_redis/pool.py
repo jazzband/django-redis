@@ -1,13 +1,12 @@
 from typing import Dict
-
 from urllib.parse import parse_qs, urlparse
 
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.module_loading import import_string
+from redis import Redis
 from redis.connection import DefaultParser, to_bool
 from redis.sentinel import Sentinel  # type: ignore
-from redis import Redis
 
 
 class ConnectionFactory:
