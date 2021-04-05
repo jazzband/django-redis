@@ -592,7 +592,7 @@ class DefaultClient:
         t = client.pttl(key)
 
         if t >= 0:
-            return t / 1000
+            return round(t / 1000, 3)
         elif t == -1:
             return None
         elif t == -2:
