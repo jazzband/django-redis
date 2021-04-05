@@ -29,17 +29,6 @@ jobs:
           - django-version: 'main'
             python-version: '3.7'
 
-    services:
-      redis:
-        image: redis:latest
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-        - 6379:6379
-
     steps:
     - uses: actions/checkout@v2
 
@@ -69,33 +58,12 @@ jobs:
 
     - name: Tox tests
       run: |
-        # setup a redis sentinel
-        CONF=$(mktemp)
-
-        cat > "$CONF" <<EOF
-        sentinel monitor default_service 127.0.0.1 6379 1
-        sentinel down-after-milliseconds default_service 3200
-        sentinel failover-timeout default_service 10000
-        sentinel parallel-syncs default_service 1
-        EOF
-
-        # start and wait for the sentinel to be healthy
-        REDIS_SENTINEL=$(docker run \
-          --health-cmd 'redis-cli -p 26379:26379 ping' \
-          --health-interval 10s \
-          --health-retries 5 \
-          --health-timeout 5s \
-          --network host \
-          --user $(id -u):$(id -g) \
-          --volume /tmp:/tmp \
-          --detach redis:latest redis-server "$CONF" --sentinel)
-        trap "docker stop $REDIS_SENTINEL" EXIT
-        while
-          docker inspect $REDIS_SENTINEL \
-            --format '{{.State.Health.Status}}' \
-              | grep -q starting
-        do sleep 1
-        done
+        REDIS_PRIMARY=$(tests/start_redis.sh)
+        REDIS_SENTINEL=$(tests/start_redis.sh --sentinel)
+        CONTAINERS="$REDIS_PRIMARY $REDIS_SENTINEL"
+        trap "docker stop $CONTAINERS && docker rm $CONTAINERS" EXIT
+        tests/wait_for_redis.sh $REDIS_PRIMARY 6379
+        tests/wait_for_redis.sh $REDIS_SENTINEL 26379
 
         tox
       env:

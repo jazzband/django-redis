@@ -1,26 +1,20 @@
-Test requirements
------------------
+Running the test suite
+----------------------
 
-Python packages
-~~~~~~~~~~~~~~~
+.. code-block:: bash
 
-Install the development requirements using the requirements.txt file:
+  # start redis and a sentinel (uses docker with image redis:latest)
+  PRIMARY=$(tests/start_redis.sh)
+  SENTINEL=$(tests/start_redis.sh --sentinel)
 
-    pip install -r requirements.txt
+  # or just wait 5 - 10 seconds and most likely this would be the case
+  tests/wait_for_redis.sh $PRIMARY 6379
+  tests/wait_for_redis.sh $SENTINEL 26379
 
-redis
-~~~~~
+  # run the tests
+  tox
 
-* redis listening on default socket 127.0.0.1:6379
-* for runtests-sentinel.py: redis sentinel listening on default socket
-  127.0.0.1:26379 with the following config:
-
-    sentinel monitor default_service 127.0.0.1 6379 1
-    sentinel down-after-milliseconds default_service 3200
-    sentinel failover-timeout default_service 10000
-    sentinel parallel-syncs default_service 1
-
-After this, run this command:
-
-    python runtests.py
-    python runtests.py <test_file>.<TestClass>.<MethodName>
+  # shut down redis
+  for container in $PRIMARY $SENTINEL; do
+    docker stop $container && docker rm $container
+  done
