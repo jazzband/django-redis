@@ -17,17 +17,27 @@ jobs:
           - '3.9'
         django-version:
           - '2.2'
-          - '3.0'
           - '3.1'
-          - 'main'
+          - '3.2'
         redis-version:
           - 'latest'
-          - 'master'
-        exclude:
+
+        # only test pre-release dependencies for the latest Python
+        include:
+          # latest Django with pre-release redis
+          - django-version: '3.2'
+            redis-version: 'master'
+            python-version: '3.9'
+
+          # latest redis with pre-release Django
           - django-version: 'main'
-            python-version: '3.6'
+            redis-version: 'latest'
+            python-version: '3.9'
+
+          # pre-release Django and redis
           - django-version: 'main'
-            python-version: '3.7'
+            redis-version: 'master'
+            python-version: '3.9'
 
     steps:
     - uses: actions/checkout@v2
