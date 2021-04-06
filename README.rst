@@ -6,8 +6,10 @@ Redis cache backend for Django
     :target: https://jazzband.co/
     :alt: Jazzband
 
-.. image:: https://github.com/jazzband/django-redis/workflows/Test/badge.svg
-   :target: https://github.com/jazzband/django-redis/actions
+[![Test]()]()
+
+.. image:: https://github.com/jazzband/django-redis/actions/workflows/ci.yml/badge.svg
+   :target: https://github.com/jazzband/django-redis/actions/workflows/ci.yml
    :alt: GitHub Actions
 
 .. image:: https://codecov.io/gh/jazzband/django-redis/branch/master/graph/badge.svg
