@@ -581,6 +581,7 @@ class DefaultClient:
         """
         Executes TTL redis command and return the "time-to-live" of specified key.
         If key is a non volatile key, it returns None.
+        Warning: ttl previously returned an int. Now it returns a float.
         """
         if client is None:
             client = self.get_client(write=False)

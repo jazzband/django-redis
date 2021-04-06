@@ -350,9 +350,11 @@ It returns:
     >>> from django.core.cache import cache
     >>> cache.set("foo", "value", timeout=25)
     >>> cache.ttl("foo")
-    25
+    25.0
     >>> cache.ttl("not-existent")
-    0
+    0.0
+
+Note: ttl previously returned an int. Now it returns a float.
 
 Expire & Persist
 ~~~~~~~~~~~~~~~~
