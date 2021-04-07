@@ -444,7 +444,7 @@ class DefaultClient:
 
                 # try to keep TTL of key
 
-                timeout = client.ttl(key)
+                timeout = self.ttl(key)
                 # returns -2 if the key does not exist
                 # means, that key have expired
                 if timeout == -2:
