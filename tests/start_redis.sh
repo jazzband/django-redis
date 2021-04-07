@@ -36,6 +36,8 @@ done
 
 # open a unix socket for socket tests
 if [[ $SENTINEL == 0 ]]; then
+  # make sure the file doesn't already exist
+  rm -f /tmp/redis.sock
   ARGS=("${ARGS[@]}" --unixsocket /tmp/redis.sock --unixsocketperm 777)
 fi
 
