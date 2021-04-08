@@ -83,7 +83,11 @@ jobs:
     - name: Upload coverage
       uses: codecov/codecov-action@v1
       with:
-        name: Python ${{ matrix.python-version }}
+        env_vars: DJANGO,REDIS,PYTHON
+      env:
+        DJANGO: ${{ matrix.django-version }}
+        REDIS: ${{ matrix.redis-version }}
+        PYTHON: ${{ matrix.python-version }}
 
   lint:
     name: Lint
