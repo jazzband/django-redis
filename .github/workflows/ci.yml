@@ -57,7 +57,7 @@ jobs:
       with:
         path: ${{ steps.pip-cache.outputs.dir }}
         key:
-          ${{ matrix.python-version }}-test-${{ hashFiles('**/setup.cfg') }}
+          ${{ matrix.python-version }}-test-django-${{ matrix.django-version }}-redis-${{ matrix.redis-version }}-${{ hashFiles('**/setup.*') }}
         restore-keys: |
           ${{ matrix.python-version }}-test-
 
@@ -113,7 +113,7 @@ jobs:
         with:
           path: ${{ steps.pip-cache.outputs.dir }}
           key:
-            ${{ matrix.python-version }}-lint-${{ matrix.linter }}-${{ hashFiles('**/setup.cfg') }}
+            ${{ matrix.python-version }}-lint-${{ matrix.linter }}-${{ hashFiles('**/setup.*') }}
           restore-keys: |
             ${{ matrix.python-version }}-lint-
 
