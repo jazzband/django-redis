@@ -84,6 +84,7 @@ jobs:
       uses: codecov/codecov-action@v1
       with:
         env_vars: DJANGO,REDIS,PYTHON
+        flags: tests
       env:
         DJANGO: ${{ matrix.django-version }}
         REDIS: ${{ matrix.redis-version }}
@@ -108,4 +109,4 @@ jobs:
       - name: Upload coverage
         uses: codecov/codecov-action@v1
         with:
-          name: mypy
+          flags: mypy
