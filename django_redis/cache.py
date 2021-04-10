@@ -1,6 +1,6 @@
 import functools
 import logging
-from typing import Any, Callable, Dict
+from typing import Any, Callable, Dict, Optional
 
 from django import VERSION as DJANGO_VERSION
 from django.conf import settings
@@ -14,7 +14,9 @@ DJANGO_REDIS_SCAN_ITERSIZE = getattr(settings, "DJANGO_REDIS_SCAN_ITERSIZE", 10)
 CONNECTION_INTERRUPTED = object()
 
 
-def omit_exception(method: Callable = None, return_value=None):
+def omit_exception(
+    method: Optional[Callable] = None, return_value: Optional[Any] = None
+):
     """
     Simple decorator that intercepts connection
     errors and ignores these if settings specify this.

@@ -3,10 +3,7 @@ SECRET_KEY = "django_tests_secret_key"
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": [
-            "unix:///tmp/redis.sock?db=1",
-            "unix:///tmp/redis.sock?db=1",
-        ],
+        "LOCATION": ["unix:///tmp/redis.sock?db=1", "unix:///tmp/redis.sock?db=1"],
         "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient"},
     },
     "doesnotexist": {

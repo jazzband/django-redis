@@ -6,7 +6,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.utils.module_loading import import_string
 from redis import Redis
 from redis.connection import DefaultParser, to_bool
-from redis.sentinel import Sentinel  # type: ignore
+from redis.sentinel import Sentinel
 
 
 class ConnectionFactory:
