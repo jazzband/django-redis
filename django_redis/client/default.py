@@ -128,7 +128,7 @@ class DefaultClient:
         value: Any,
         timeout: Optional[float] = DEFAULT_TIMEOUT,
         version: Optional[int] = None,
-        client: Redis = None,
+        client: Optional[Redis] = None,
         nx: bool = False,
         xx: bool = False,
     ) -> bool:
@@ -188,7 +188,7 @@ class DefaultClient:
         key: Any,
         delta: int = 1,
         version: Optional[int] = None,
-        client: Redis = None,
+        client: Optional[Redis] = None,
     ) -> int:
         """
         Adds delta to the cache version for the supplied key. Returns the
@@ -227,7 +227,7 @@ class DefaultClient:
         value: Any,
         timeout: Any = DEFAULT_TIMEOUT,
         version: Optional[Any] = None,
-        client: Redis = None,
+        client: Optional[Redis] = None,
     ) -> bool:
         """
         Add a value to the cache, failing if the key already exists.
@@ -241,7 +241,7 @@ class DefaultClient:
         key: Any,
         default=None,
         version: Optional[int] = None,
-        client: Redis = None,
+        client: Optional[Redis] = None,
     ) -> Any:
         """
         Retrieve a value from the cache.
@@ -264,7 +264,7 @@ class DefaultClient:
         return self.decode(value)
 
     def persist(
-        self, key: Any, version: Optional[int] = None, client: Redis = None
+        self, key: Any, version: Optional[int] = None, client: Optional[Redis] = None
     ) -> None:
         if client is None:
             client = self.get_client(write=True)
@@ -275,7 +275,11 @@ class DefaultClient:
             client.persist(key)
 
     def expire(
-        self, key: Any, timeout, version: Optional[int] = None, client: Redis = None
+        self,
+        key: Any,
+        timeout,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
     ) -> None:
         if client is None:
             client = self.get_client(write=True)
@@ -292,7 +296,7 @@ class DefaultClient:
         timeout=None,
         sleep=0.1,
         blocking_timeout=None,
-        client: Redis = None,
+        client: Optional[Redis] = None,
         thread_local=True,
     ):
         if client is None:
@@ -312,7 +316,7 @@ class DefaultClient:
         key: Any,
         version: Optional[int] = None,
         prefix: Optional[str] = None,
-        client: Redis = None,
+        client: Optional[Redis] = None,
     ) -> int:
         """
         Remove a key from the cache.
@@ -330,8 +334,8 @@ class DefaultClient:
         pattern: str,
         version: Optional[int] = None,
         prefix: Optional[str] = None,
-        client: Redis = None,
-        itersize=None,
+        client: Optional[Redis] = None,
+        itersize: Optional[int] = None,
     ) -> int:
         """
         Remove all keys matching pattern.
@@ -342,18 +346,18 @@ class DefaultClient:
 
         pattern = self.make_pattern(pattern, version=version, prefix=prefix)
 
-        kwargs = {"match": pattern, "count": itersize}
-
         try:
             count = 0
-            for key in client.scan_iter(**kwargs):
+            for key in client.scan_iter(match=pattern, count=itersize):
                 client.delete(key)
                 count += 1
             return count
         except _main_exceptions as e:
             raise ConnectionInterrupted(connection=client) from e
 
-    def delete_many(self, keys, version: Optional[int] = None, client: Redis = None):
+    def delete_many(
+        self, keys, version: Optional[int] = None, client: Optional[Redis] = None
+    ):
         """
         Remove multiple keys at once.
         """
@@ -371,7 +375,7 @@ class DefaultClient:
         except _main_exceptions as e:
             raise ConnectionInterrupted(connection=client) from e
 
-    def clear(self, client: Redis = None) -> None:
+    def clear(self, client: Optional[Redis] = None) -> None:
         """
         Flush all cache keys.
         """
@@ -412,7 +416,7 @@ class DefaultClient:
         return value
 
     def get_many(
-        self, keys, version: Optional[int] = None, client: Redis = None
+        self, keys, version: Optional[int] = None, client: Optional[Redis] = None
     ) -> OrderedDict:
         """
         Retrieve many keys.
@@ -444,7 +448,7 @@ class DefaultClient:
         data: Dict[Any, Any],
         timeout: Optional[float] = DEFAULT_TIMEOUT,
         version: Optional[int] = None,
-        client: Redis = None,
+        client: Optional[Redis] = None,
     ) -> None:
         """
         Set a bunch of values in the cache at once from a dict of key/value
@@ -469,7 +473,7 @@ class DefaultClient:
         key: Any,
         delta: int = 1,
         version: Optional[int] = None,
-        client: Redis = None,
+        client: Optional[Redis] = None,
         ignore_key_check: bool = False,
     ) -> int:
         if client is None:
@@ -521,7 +525,7 @@ class DefaultClient:
         key: Any,
         delta: int = 1,
         version: Optional[int] = None,
-        client: Redis = None,
+        client: Optional[Redis] = None,
         ignore_key_check: bool = False,
     ) -> int:
         """
@@ -542,7 +546,7 @@ class DefaultClient:
         key: Any,
         delta: int = 1,
         version: Optional[int] = None,
-        client: Redis = None,
+        client: Optional[Redis] = None,
     ) -> int:
         """
         Decreace delta to value in the cache. If the key does not exist, raise a
@@ -551,7 +555,7 @@ class DefaultClient:
         return self._incr(key=key, delta=-delta, version=version, client=client)
 
     def ttl(
-        self, key: Any, version: Optional[int] = None, client: Redis = None
+        self, key: Any, version: Optional[int] = None, client: Optional[Redis] = None
     ) -> Optional[int]:
         """
         Executes TTL redis command and return the "time-to-live" of specified key.
@@ -577,7 +581,7 @@ class DefaultClient:
             return None
 
     def has_key(
-        self, key: Any, version: Optional[int] = None, client: Redis = None
+        self, key: Any, version: Optional[int] = None, client: Optional[Redis] = None
     ) -> bool:
         """
         Test if key exists.
@@ -595,8 +599,8 @@ class DefaultClient:
     def iter_keys(
         self,
         search: str,
-        itersize=None,
-        client: Redis = None,
+        itersize: Optional[int] = None,
+        client: Optional[Redis] = None,
         version: Optional[int] = None,
     ) -> Iterator[str]:
         """
@@ -612,7 +616,7 @@ class DefaultClient:
             yield self.reverse_key(item.decode())
 
     def keys(
-        self, search: str, version: Optional[int] = None, client: Redis = None
+        self, search: str, version: Optional[int] = None, client: Optional[Redis] = None
     ) -> List[Any]:
         """
         Execute KEYS command and return matched results.
@@ -632,7 +636,7 @@ class DefaultClient:
 
     def make_key(
         self, key: Any, version: Optional[Any] = None, prefix: Optional[str] = None
-    ) -> str:
+    ) -> CacheKey:
         if isinstance(key, CacheKey):
             return key
 
@@ -680,7 +684,7 @@ class DefaultClient:
         key: Any,
         timeout: Optional[float] = DEFAULT_TIMEOUT,
         version: Optional[int] = None,
-        client: Redis = None,
+        client: Optional[Redis] = None,
     ) -> bool:
         """
         Sets a new expiration for a key.
