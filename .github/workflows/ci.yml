@@ -4,7 +4,11 @@ on: [push, pull_request]
 
 jobs:
   test:
-    name: Test Python ${{ matrix.python-version }}, Django ${{ matrix.django-version }}, Redis.py ${{ matrix.redis-version }}
+    name: >
+      Test Python ${{ matrix.python-version }},
+      Django ${{ matrix.django-version }},
+      Redis.py ${{ matrix.redis-version }}
+
     runs-on: ubuntu-latest
 
     strategy:
@@ -40,67 +44,93 @@ jobs:
             python-version: '3.9'
 
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
-      with:
-        python-version: ${{ matrix.python-version }}
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
 
-    - name: Get pip cache dir
-      id: pip-cache
-      run: |
-        echo "::set-output name=dir::$(pip cache dir)"
+      - name: Get pip cache dir
+        id: pip-cache
+        run: |
+          echo "::set-output name=dir::$(pip cache dir)"
 
-    - name: Cache
-      uses: actions/cache@v2
-      with:
-        path: ${{ steps.pip-cache.outputs.dir }}
-        key:
-          ${{ matrix.python-version }}-v1-${{ hashFiles('**/setup.py') }}-${{ hashFiles('**/tox.ini') }}
-        restore-keys: |
-          ${{ matrix.python-version }}-v1-
+      - name: Cache
+        uses: actions/cache@v2
+        with:
+          path: ${{ steps.pip-cache.outputs.dir }}
+          key: pip-test-python-${{ matrix.python-version }}-django-${{ matrix.django-version }}-redis-${{ matrix.redis-version }}-${{ hashFiles('**/setup.*') }}
+          restore-keys: |
+            pip-test-python-${{ matrix.python-version }}-django-${{ matrix.django-version }}-redis-${{ matrix.redis-version }}
+            pip-test-python-${{ matrix.python-version }}
+            pip-test-
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        python -m pip install --upgrade tox tox-gh-actions
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --upgrade tox tox-gh-actions
 
-    - name: Tox tests
-      run: |
-        REDIS_PRIMARY=$(tests/start_redis.sh)
-        REDIS_SENTINEL=$(tests/start_redis.sh --sentinel)
-        CONTAINERS="$REDIS_PRIMARY $REDIS_SENTINEL"
-        trap "docker stop $CONTAINERS && docker rm $CONTAINERS" EXIT
-        tests/wait_for_redis.sh $REDIS_PRIMARY 6379
-        tests/wait_for_redis.sh $REDIS_SENTINEL 26379
+      - name: Tox tests
+        run: |
+          REDIS_PRIMARY=$(tests/start_redis.sh)
+          REDIS_SENTINEL=$(tests/start_redis.sh --sentinel)
+          CONTAINERS="$REDIS_PRIMARY $REDIS_SENTINEL"
+          trap "docker stop $CONTAINERS && docker rm $CONTAINERS" EXIT
+          tests/wait_for_redis.sh $REDIS_PRIMARY 6379
+          tests/wait_for_redis.sh $REDIS_SENTINEL 26379
 
-        tox
-      env:
-        DJANGO: ${{ matrix.django-version }}
-        REDIS: ${{ matrix.redis-version }}
+          tox
+        env:
+          DJANGO: ${{ matrix.django-version }}
+          REDIS: ${{ matrix.redis-version }}
 
-    - name: Upload coverage
-      uses: codecov/codecov-action@v1
-      with:
-        env_vars: DJANGO,REDIS,PYTHON
-      env:
-        DJANGO: ${{ matrix.django-version }}
-        REDIS: ${{ matrix.redis-version }}
-        PYTHON: ${{ matrix.python-version }}
+      - name: Upload coverage
+        uses: codecov/codecov-action@v1
+        with:
+          env_vars: DJANGO,REDIS,PYTHON
+        env:
+          DJANGO: ${{ matrix.django-version }}
+          REDIS: ${{ matrix.redis-version }}
+          PYTHON: ${{ matrix.python-version }}
 
   lint:
-    name: Lint
+    name: Lint (${{ matrix.tool }})
     runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        tool:
+          - 'black'
+          - 'flake8'
+          - 'isort'
 
     steps:
       - uses: actions/checkout@v2
 
       - name: Set up Python
         uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Get pip cache dir
+        id: pip-cache
+        run: |
+          echo "::set-output name=dir::$(pip cache dir)"
+
+      - name: Cache
+        uses: actions/cache@v2
+        with:
+          path: ${{ steps.pip-cache.outputs.dir }}
+          key: pip-lint-${{ hashFiles('**/setup.*') }}
+          restore-keys: |
+            pip-lint-
 
       - name: Install dependencies
-        run: python -m pip install tox
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --upgrade tox
 
       - name: Run
-        run: tox -e lint
+        run: tox -e ${{ matrix.tool }}
