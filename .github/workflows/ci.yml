@@ -138,6 +138,7 @@ jobs:
         run: tox -e ${{ matrix.tool }}
 
       - name: Upload coverage
+        if: ${{ matrix.tool == 'mypy' }}
         uses: codecov/codecov-action@v1
         with:
           flags: mypy
