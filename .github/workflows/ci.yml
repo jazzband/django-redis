@@ -60,8 +60,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{ steps.pip-cache.outputs.dir }}
-          key:
-            pip-test-python-${{ matrix.python-version }}-django-${{ matrix.django-version }}-redis-${{ matrix.redis-version }}-${{ hashFiles('**/setup.*') }}
+          key: pip-test-python-${{ matrix.python-version }}-django-${{ matrix.django-version }}-redis-${{ matrix.redis-version }}-${{ hashFiles('**/setup.*') }}
           restore-keys: |
             pip-test-python-${{ matrix.python-version }}-django-${{ matrix.django-version }}-redis-${{ matrix.redis-version }}
             pip-test-python-${{ matrix.python-version }}
@@ -124,8 +123,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{ steps.pip-cache.outputs.dir }}
-          key:
-            pip-lint-${{ hashFiles('**/setup.*') }}
+          key: pip-lint-${{ hashFiles('**/setup.*') }}
           restore-keys: |
             pip-lint-
 
