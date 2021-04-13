@@ -1,13 +1,13 @@
 import bisect
 import hashlib
-from typing import Dict, Generator, List, Optional, Tuple, Union
+from typing import Dict, Iterable, Iterator, List, Optional, Tuple
 
 
 class HashRing:
     nodes = []  # type: List[str]
 
     def __init__(
-        self, nodes: Union[List[str], Tuple[str, ...]] = (), replicas: int = 128
+            self, nodes: Iterable[str] = (), replicas: int = 128
     ):
         self.replicas: int = replicas
         self.ring: Dict[str, str] = {}
@@ -48,9 +48,7 @@ class HashRing:
         idx = min(idx - 1, (self.replicas * len(self.nodes)) - 1)
         return self.ring[self.sorted_keys[idx]], idx
 
-    def iter_nodes(
-        self, key: str
-    ) -> Generator[Tuple[Optional[str], Optional[str]], str, None]:
+    def iter_nodes(self, key: str) -> Iterator[str]:
         if len(self.ring) == 0:
             yield None, None
 
