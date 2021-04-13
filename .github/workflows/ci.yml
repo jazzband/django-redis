@@ -89,6 +89,7 @@ jobs:
         uses: codecov/codecov-action@v1
         with:
           env_vars: DJANGO,REDIS,PYTHON
+          flags: tests
         env:
           DJANGO: ${{ matrix.django-version }}
           REDIS: ${{ matrix.redis-version }}
@@ -105,6 +106,7 @@ jobs:
           - 'black'
           - 'flake8'
           - 'isort'
+          - 'mypy'
 
     steps:
       - uses: actions/checkout@v2
@@ -132,5 +134,11 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install --upgrade tox
 
-      - name: Run
+      - name: Run ${{ matrix.tool }}
         run: tox -e ${{ matrix.tool }}
+
+      - name: Upload coverage
+        if: ${{ matrix.tool == 'mypy' }}
+        uses: codecov/codecov-action@v1
+        with:
+          flags: mypy
