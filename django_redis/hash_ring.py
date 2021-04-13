@@ -48,7 +48,7 @@ class HashRing:
         idx = min(idx - 1, (self.replicas * len(self.nodes)) - 1)
         return self.ring[self.sorted_keys[idx]], idx
 
-    def iter_nodes(self, key: str) -> Iterator[str]:
+    def iter_nodes(self, key: str) -> Iterator[Tuple[Optional[str], Optional[str]]]:
         if len(self.ring) == 0:
             yield None, None
 
