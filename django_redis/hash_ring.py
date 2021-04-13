@@ -6,9 +6,7 @@ from typing import Dict, Iterable, Iterator, List, Optional, Tuple
 class HashRing:
     nodes = []  # type: List[str]
 
-    def __init__(
-            self, nodes: Iterable[str] = (), replicas: int = 128
-    ):
+    def __init__(self, nodes: Iterable[str] = (), replicas: int = 128):
         self.replicas: int = replicas
         self.ring: Dict[str, str] = {}
         self.sorted_keys: List[str] = []
