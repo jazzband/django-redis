@@ -6,7 +6,7 @@ from typing import Dict, Iterable, Iterator, List, Optional, Tuple
 class HashRing:
     nodes = []  # type: List[str]
 
-    def __init__(self, nodes: Iterable[str] = (), replicas: int = 128):
+    def __init__(self, nodes: Iterable[str] = (), replicas: int = 128) -> None:
         self.replicas: int = replicas
         self.ring: Dict[str, str] = {}
         self.sorted_keys: List[str] = []
@@ -14,7 +14,7 @@ class HashRing:
         for node in nodes:
             self.add_node(node)
 
-    def add_node(self, node: str):
+    def add_node(self, node: str) -> None:
         self.nodes.append(node)
 
         for x in range(self.replicas):
@@ -26,14 +26,14 @@ class HashRing:
 
         self.sorted_keys.sort()
 
-    def remove_node(self, node: str):
+    def remove_node(self, node: str) -> None:
         self.nodes.remove(node)
         for x in range(self.replicas):
             _hash = hashlib.sha256(f"{node}:{x}".encode()).hexdigest()
             del self.ring[_hash]
             self.sorted_keys.remove(_hash)
 
-    def get_node(self, key) -> Optional[str]:
+    def get_node(self, key: str) -> Optional[str]:
         n, i = self.get_node_pos(key)
         return n
 
