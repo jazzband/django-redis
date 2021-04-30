@@ -26,3 +26,4 @@ dump.rdb
 .venv
 .coverage
 coverage.xml
+cobertura.xml
