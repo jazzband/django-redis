@@ -507,8 +507,8 @@ class DefaultClient:
                 # In this situations redis will throw ResponseError
 
                 # try to keep TTL of key
+                timeout = self.ttl(key, version=version, client=client)
 
-                timeout = client.ttl(key)
                 # returns -2 if the key does not exist
                 # means, that key have expired
                 if timeout == -2:
@@ -673,7 +673,7 @@ class DefaultClient:
             self.do_close_clients()
 
     def do_close_clients(self):
-        """ default implementation: Override in custom client """
+        """default implementation: Override in custom client"""
         num_clients = len(self._clients)
         for idx in range(num_clients):
             self.disconnect(index=idx)
