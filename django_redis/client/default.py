@@ -509,6 +509,12 @@ class DefaultClient:
                 # try to keep TTL of key
 
                 timeout = client.ttl(key)
+
+                # returns -1 if the key does exist and does not have expiration
+                # keeping it that way by setting timeout to None
+                if timeout == -1:
+                    timeout = None
+
                 # returns -2 if the key does not exist
                 # means, that key have expired
                 if timeout == -2:
@@ -673,7 +679,7 @@ class DefaultClient:
             self.do_close_clients()
 
     def do_close_clients(self):
-        """ default implementation: Override in custom client """
+        """default implementation: Override in custom client"""
         num_clients = len(self._clients)
         for idx in range(num_clients):
             self.disconnect(index=idx)

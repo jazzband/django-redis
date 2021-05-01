@@ -428,6 +428,37 @@ class DjangoRedisCacheTests(unittest.TestCase):
         res = self.cache.get("num")
         self.assertEqual(res, 5)
 
+    def test_incr_no_timeout(self):
+        if isinstance(self.cache.client, herd.HerdClient):
+            self.skipTest("HerdClient doesn't support incr")
+
+        self.cache.set("num", 1, timeout=None)
+
+        self.cache.incr("num")
+        res = self.cache.get("num")
+        self.assertEqual(res, 2)
+
+        self.cache.incr("num", 10)
+        res = self.cache.get("num")
+        self.assertEqual(res, 12)
+
+        # max 64 bit signed int
+        self.cache.set("num", 9223372036854775807, timeout=None)
+
+        self.cache.incr("num")
+        res = self.cache.get("num")
+        self.assertEqual(res, 9223372036854775808)
+
+        self.cache.incr("num", 2)
+        res = self.cache.get("num")
+        self.assertEqual(res, 9223372036854775810)
+
+        self.cache.set("num", 3, timeout=None)
+
+        self.cache.incr("num", 2)
+        res = self.cache.get("num")
+        self.assertEqual(res, 5)
+
     def test_incr_error(self):
         if isinstance(self.cache.client, herd.HerdClient):
             self.skipTest("HerdClient doesn't support incr")
