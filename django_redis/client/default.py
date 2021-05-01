@@ -679,7 +679,7 @@ class DefaultClient:
             self.do_close_clients()
 
     def do_close_clients(self):
-        """ default implementation: Override in custom client """
+        """default implementation: Override in custom client"""
         num_clients = len(self._clients)
         for idx in range(num_clients):
             self.disconnect(index=idx)
