@@ -205,13 +205,7 @@ class DefaultClient:
         value = self.get(old_key, version=version, client=client)
 
         try:
-            ttl = client.ttl(old_key)
-
-            # redis ttl returns -1 if key does not have a timeout,
-            # so ttl has to be set to None to preserve the absence of a timeout
-            # in the new version as well
-            if ttl == -1:
-                ttl = None
+            ttl = self.ttl(old_key, version=version, client=client)
         except _main_exceptions as e:
             raise ConnectionInterrupted(connection=client) from e
 
