@@ -197,7 +197,7 @@ class ShardClient(DefaultClient):
         value = self.get(old_key, version=version, client=client)
 
         try:
-            ttl = client.ttl(old_key)
+            ttl = self.ttl(old_key, version=version, client=client)
         except ConnectionError as e:
             raise ConnectionInterrupted(connection=client) from e
 

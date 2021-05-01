@@ -572,6 +572,15 @@ class DjangoRedisCacheTests(unittest.TestCase):
         res = self.cache.get("keytest", version=2)
         self.assertEqual(res, 2)
 
+    def test_ttl_incr_version_no_timeout(self):
+        self.cache.set("my_key", "hello world!", timeout=None)
+
+        self.cache.incr_version("my_key")
+
+        my_value = self.cache.get("my_key", version=2)
+
+        self.assertEqual(my_value, "hello world!")
+
     def test_delete_pattern(self):
         for key in ["foo-aa", "foo-ab", "foo-bb", "foo-bc"]:
             self.cache.set(key, "foo")
@@ -617,11 +626,8 @@ class DjangoRedisCacheTests(unittest.TestCase):
             assert mock.called
 
     def test_ttl(self):
-        cache = caches["default"]
-
-        # Test ttl
-        cache.set("foo", "bar", 10)
-        ttl = cache.ttl("foo")
+        self.cache.set("foo", "bar", 10)
+        ttl = self.cache.ttl("foo")
 
         if isinstance(cache.client, herd.HerdClient):
             self.assertAlmostEqual(ttl, 12)
@@ -629,17 +635,17 @@ class DjangoRedisCacheTests(unittest.TestCase):
             self.assertAlmostEqual(ttl, 10)
 
         # Test ttl None
-        cache.set("foo", "foo", timeout=None)
-        ttl = cache.ttl("foo")
+        self.cache.set("foo", "foo", timeout=None)
+        ttl = self.cache.ttl("foo")
         self.assertIsNone(ttl)
 
         # Test ttl with expired key
-        cache.set("foo", "foo", timeout=-1)
-        ttl = cache.ttl("foo")
+        self.cache.set("foo", "foo", timeout=-1)
+        ttl = self.cache.ttl("foo")
         self.assertEqual(ttl, 0)
 
         # Test ttl with not existent key
-        ttl = cache.ttl("not-existent-key")
+        ttl = self.cache.ttl("not-existent-key")
         self.assertEqual(ttl, 0)
 
     def test_persist(self):
