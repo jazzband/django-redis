@@ -1,6 +1,8 @@
 import functools
 import logging
+from typing import Any, Callable, Dict, Optional
 
+from django import VERSION as DJANGO_VERSION
 from django.conf import settings
 from django.core.cache.backends.base import BaseCache
 from django.utils.module_loading import import_string
@@ -12,7 +14,9 @@ DJANGO_REDIS_SCAN_ITERSIZE = getattr(settings, "DJANGO_REDIS_SCAN_ITERSIZE", 10)
 CONNECTION_INTERRUPTED = object()
 
 
-def omit_exception(method=None, return_value=None):
+def omit_exception(
+    method: Optional[Callable] = None, return_value: Optional[Any] = None
+):
     """
     Simple decorator that intercepts connection
     errors and ignores these if settings specify this.
@@ -37,7 +41,7 @@ def omit_exception(method=None, return_value=None):
 
 
 class RedisCache(BaseCache):
-    def __init__(self, server, params):
+    def __init__(self, server: str, params: Dict[str, Any]) -> None:
         super().__init__(params)
         self._server = server
         self._params = params
@@ -95,7 +99,9 @@ class RedisCache(BaseCache):
 
     @omit_exception
     def delete(self, *args, **kwargs):
-        return self.client.delete(*args, **kwargs)
+        """returns a boolean instead of int since django version 3.1"""
+        result = self.client.delete(*args, **kwargs)
+        return bool(result) if DJANGO_VERSION >= (3, 1, 0) else result
 
     @omit_exception
     def delete_pattern(self, *args, **kwargs):

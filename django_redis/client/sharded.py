@@ -3,7 +3,6 @@ from collections import OrderedDict
 from datetime import datetime
 from typing import Union
 
-from django.conf import settings
 from redis.exceptions import ConnectionError
 
 from ..exceptions import ConnectionInterrupted
@@ -24,10 +23,10 @@ class ShardClient(DefaultClient):
         self._ring = HashRing(self._server)
         self._serverdict = self.connect()
 
-    def get_client(self, write=True):
+    def get_client(self, *args, **kwargs):
         raise NotImplementedError
 
-    def connect(self):
+    def connect(self, index=0):
         connection_dict = {}
         for name in self._server:
             connection_dict[name] = self.connection_factory.connect(name)
@@ -212,7 +211,7 @@ class ShardClient(DefaultClient):
         value = self.get(old_key, version=version, client=client)
 
         try:
-            ttl = client.ttl(old_key)
+            ttl = self.ttl(old_key, version=version, client=client)
         except ConnectionError as e:
             raise ConnectionInterrupted(connection=client) from e
 
@@ -279,11 +278,9 @@ class ShardClient(DefaultClient):
                 res += connection.delete(*keys)
         return res
 
-    def close(self, **kwargs):
-        if getattr(settings, "DJANGO_REDIS_CLOSE_CONNECTION", False):
-            for client in self._serverdict.values():
-                for c in client.connection_pool._available_connections:
-                    c.disconnect()
+    def do_close_clients(self):
+        for client in self._serverdict.values():
+            self.disconnect(client=client)
 
     def touch(self, key, timeout=DEFAULT_TIMEOUT, version=None, client=None):
         if client is None:
@@ -291,3 +288,7 @@ class ShardClient(DefaultClient):
             client = self.get_server(key)
 
         return super().touch(key=key, timeout=timeout, version=version, client=client)
+
+    def clear(self, client=None):
+        for connection in self._serverdict.values():
+            connection.flushdb()

@@ -6,8 +6,13 @@ Redis cache backend for Django
     :target: https://jazzband.co/
     :alt: Jazzband
 
-.. image:: https://travis-ci.org/jazzband/django-redis.svg?branch=master
-    :target: https://travis-ci.org/jazzband/django-redis
+.. image:: https://github.com/jazzband/django-redis/actions/workflows/ci.yml/badge.svg
+   :target: https://github.com/jazzband/django-redis/actions/workflows/ci.yml
+   :alt: GitHub Actions
+
+.. image:: https://codecov.io/gh/jazzband/django-redis/branch/master/graph/badge.svg
+   :target: https://codecov.io/gh/jazzband/django-redis
+   :alt: Coverage
 
 .. image:: https://img.shields.io/pypi/v/django-redis.svg?style=flat
     :target: https://pypi.org/project/django-redis/
@@ -85,9 +90,9 @@ django-redis uses the redis-py native URL notation for connection strings, it
 allows better interoperability and has a connection string in more "standard"
 way. Some examples:
 
-- ``redis://[:password]@localhost:6379/0``
-- ``rediss://[:password]@localhost:6379/0``
-- ``unix://[:password]@/path/to/socket.sock?db=0``
+- ``redis://[[username]:[password]]@localhost:6379/0``
+- ``rediss://[[username]:[password]]@localhost:6379/0``
+- ``unix://[[username]:[password]]@/path/to/socket.sock?db=0``
 
 Three URL schemes are supported:
 
@@ -100,6 +105,37 @@ There are several ways to specify a database number:
 - A ``db`` querystring option, e.g. ``redis://localhost?db=0``
 - If using the ``redis://`` scheme, the path argument of the URL, e.g.
   ``redis://localhost/0``
+
+When using `Redis' ACLs <https://redis.io/topics/acl>`_, you will need to add the
+username to the URL (and provide the password with the Cache ``OPTIONS``).
+The login for the user ``django`` would look like this:
+
+.. code-block:: python
+
+    CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": "redis://django@localhost:6379/0",
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+                "PASSWORD": "mysecret"
+            }
+        }
+    }
+    
+An alternative would be write both username and password into the URL:
+
+.. code-block:: python
+
+    CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": "redis://django:mysecret@localhost:6379/0",
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            }
+        }
+    }
 
 In some circumstances the password you should use to connect Redis
 is not URL-safe, in this case you can escape it or just use the
@@ -553,6 +589,87 @@ Django setting ``DJANGO_REDIS_CONNECTION_FACTORY``.
             # creating a new connection using the `get_connection` method.
             pass
 
+Use the sentinel connection factory
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In order to facilitate using `Redis Sentinels`_, django-redis comes with a
+built in sentinel connection factory, which creates sentinel connection pools.
+In order to enable this functionality you should add the following:
+
+
+.. code-block:: python
+    :caption: myproj/settings.py
+
+    # Enable the alternate connection factory.
+    DJANGO_REDIS_CONNECTION_FACTORY = 'django_redis.pool.SentinelConnectionFactory'
+
+    # These sentinels are shared between all the examples, and are passed
+    # directly to redis Sentinel. These can also be defined inline.
+    SENTINELS = [
+        ('sentinel-1', 26379),
+        ('sentinel-2', 26379),
+        ('sentinel-3', 26379),
+    ]
+
+    CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": "redis://service_name/db",
+            "OPTIONS": {
+                # While the default client will work, this will check you
+                # have configured things correctly, and also create a
+                # primary and replica pool for the service specified by
+                # LOCATION rather than requiring two URLs.
+                "CLIENT_CLASS", "django_redis.client.SentinelClient"
+
+                # Sentinels which are passed directly to redis Sentinel.
+                "SENTINELS": SENTINELS,
+
+                # kwargs for redis Sentinel (optional).
+                "SENTINEL_KWARGS": {},
+
+                # You can still override the connection pool (optional).
+                "CONNECTION_POOL_CLASS": "redis.sentinel.SentinelConnectionPool",
+            },
+        },
+
+        # A minimal example using the SentinelClient.
+        "minimal": {
+            "BACKEND": "django_redis.cache.RedisCache",
+
+            # The SentinelClient will use this location for both the primaries
+            # and replicas.
+            "LOCATION": "redis://minimal_service_name/db",
+
+            "OPTIONS": {
+                "CLIENT_CLASS", "django_redis.client.SentinelClient"
+                "SENTINELS": SENTINELS,
+            },
+        }
+
+        # A minimal example using the DefaultClient.
+        "other": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": [
+                # The DefaultClient is [primary, replicas...], but with the
+                # SentinelConnectionPool it only requires one "is_master=0".
+                "redis://other_service_name/db?is_master=1",
+                "redis://other_service_name/db?is_master=0",
+            ],
+            "OPTIONS": {"SENTINELS": SENTINELS},
+        },
+
+        # A minimal example only using only replicas in read only mode (and
+        # the DefaultClient).
+        "readonly": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": "redis://readonly_service_name/db?is_master=0",
+            "OPTIONS": {"SENTINELS": SENTINELS},
+        },
+    }
+
+.. _Redis Sentinels: https://redis.io/topics/sentinel
+
 Pluggable parsers
 ~~~~~~~~~~~~~~~~~
 
@@ -709,6 +826,31 @@ setting ``REDIS_CLIENT_KWARGS``.
         }
     }
 
+
+Closing Connections
+~~~~~~~~~~~~~~~~~~~
+
+The default django-redis behavior on close() is to keep the connections to Redis server.
+
+You can change this default behaviour for all caches by the ``DJANGO_REDIS_CLOSE_CONNECTION = True``
+in the django settings (globally) or (at cache level) by setting ``CLOSE_CONNECTION: True`` in the ``OPTIONS``
+for each configured cache.
+
+Setting True as a value will instruct the django-redis to close all the connections (since v. 4.12.2), irrespectively of its current usage.
+
+.. code-block:: python
+
+    CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": "redis://127.0.0.1:6379/1",
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+                "CLOSE_CONNECTION": True,
+            }
+        }
+    }
+
 License
 -------
 
@@ -730,7 +872,7 @@ License
     3. The name of the author may not be used to endorse or promote products
        derived from this software without specific prior written permission.
 
-    THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+    THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS`` AND ANY EXPRESS OR
     IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
     OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
     IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,

@@ -38,7 +38,9 @@ class DjangoRedisConnectionStrings(unittest.TestCase):
             "redis://localhost/2",
             "rediss://localhost:3333?db=2",
         ]
-        cf = pool.get_connection_factory(options={})
+        cf = pool.get_connection_factory(
+            path="django_redis.pool.ConnectionFactory", options={}
+        )
         for connection_string in connection_strings:
             with self.subTest(connection_string):
                 res = cf.make_connection_params(connection_string)
@@ -55,15 +57,11 @@ class DjangoRedisCacheTestEscapePrefix(unittest.TestCase):
         self.addCleanup(cm.disable)
 
         self.cache = caches["default"]
-        try:
-            self.cache.clear()
-        except Exception:
-            pass
         self.other = caches["with_prefix"]
-        try:
-            self.other.clear()
-        except Exception:
-            pass
+
+    def tearDown(self):
+        self.cache.clear()
+        self.other.clear()
 
     def test_delete_pattern(self):
         self.cache.set("a", "1")
@@ -98,10 +96,9 @@ class DjangoRedisCacheTestCustomKeyFunction(unittest.TestCase):
         self.addCleanup(cm.disable)
 
         self.cache = caches["default"]
-        try:
-            self.cache.clear()
-        except Exception:
-            pass
+
+    def tearDown(self):
+        self.cache.clear()
 
     def test_custom_key_function(self):
         if isinstance(self.cache.client, ShardClient):
@@ -126,10 +123,8 @@ class DjangoRedisCacheTests(unittest.TestCase):
     def setUp(self):
         self.cache = cache
 
-        try:
-            self.cache.clear()
-        except Exception:
-            pass
+    def tearDown(self):
+        self.cache.clear()
 
     def test_setnx(self):
         # we should ensure there is no test_key_nx in redis
@@ -288,7 +283,6 @@ class DjangoRedisCacheTests(unittest.TestCase):
 
         res = cache.get("add_key")
         self.assertEqual(res, "Initial value")
-
         res = self.cache.add("other_key", "New value")
         self.assertIs(res, True)
 
@@ -362,6 +356,28 @@ class DjangoRedisCacheTests(unittest.TestCase):
         res = self.cache.delete("a")
         self.assertFalse(bool(res))
 
+    @patch("django_redis.cache.DJANGO_VERSION", (3, 1, 0, "final", 0))
+    def test_delete_return_value_type_new31(self):
+        """delete() returns a boolean instead of int since django version 3.1"""
+        self.cache.set("a", 1)
+        res = self.cache.delete("a")
+        self.assertEqual(type(res), bool)
+        self.assertTrue(res)
+        res = self.cache.delete("b")
+        self.assertEqual(type(res), bool)
+        self.assertFalse(res)
+
+    @patch("django_redis.cache.DJANGO_VERSION", (3, 0, 1, "final", 0))
+    def test_delete_return_value_type_before31(self):
+        """delete() returns a int before django version 3.1"""
+        self.cache.set("a", 1)
+        res = self.cache.delete("a")
+        self.assertEqual(type(res), int)
+        self.assertEqual(res, 1)
+        res = self.cache.delete("b")
+        self.assertEqual(type(res), int)
+        self.assertEqual(res, 0)
+
     def test_delete_many(self):
         self.cache.set_many({"a": 1, "b": 2, "c": 3})
         res = self.cache.delete_many(["a", "b"])
@@ -414,6 +430,37 @@ class DjangoRedisCacheTests(unittest.TestCase):
         self.assertEqual(res, 9223372036854775810)
 
         self.cache.set("num", 3)
+
+        self.cache.incr("num", 2)
+        res = self.cache.get("num")
+        self.assertEqual(res, 5)
+
+    def test_incr_no_timeout(self):
+        if isinstance(self.cache.client, herd.HerdClient):
+            self.skipTest("HerdClient doesn't support incr")
+
+        self.cache.set("num", 1, timeout=None)
+
+        self.cache.incr("num")
+        res = self.cache.get("num")
+        self.assertEqual(res, 2)
+
+        self.cache.incr("num", 10)
+        res = self.cache.get("num")
+        self.assertEqual(res, 12)
+
+        # max 64 bit signed int
+        self.cache.set("num", 9223372036854775807, timeout=None)
+
+        self.cache.incr("num")
+        res = self.cache.get("num")
+        self.assertEqual(res, 9223372036854775808)
+
+        self.cache.incr("num", 2)
+        res = self.cache.get("num")
+        self.assertEqual(res, 9223372036854775810)
+
+        self.cache.set("num", 3, timeout=None)
 
         self.cache.incr("num", 2)
         res = self.cache.get("num")
@@ -532,6 +579,15 @@ class DjangoRedisCacheTests(unittest.TestCase):
         res = self.cache.get("keytest", version=2)
         self.assertEqual(res, 2)
 
+    def test_ttl_incr_version_no_timeout(self):
+        self.cache.set("my_key", "hello world!", timeout=None)
+
+        self.cache.incr_version("my_key")
+
+        my_value = self.cache.get("my_key", version=2)
+
+        self.assertEqual(my_value, "hello world!")
+
     def test_delete_pattern(self):
         for key in ["foo-aa", "foo-ab", "foo-bb", "foo-bc"]:
             self.cache.set(key, "foo")
@@ -566,17 +622,19 @@ class DjangoRedisCacheTests(unittest.TestCase):
             "*foo-a*", itersize=expected_count
         )
 
+    @override_settings(DJANGO_REDIS_CLOSE_CONNECTION=True)
     def test_close(self):
-        cache = caches["default"]
-        cache.set("f", "1")
-        cache.close()
+        self.cache.set("f", "1")
+        self.cache.close()
+
+    def test_close_client(self):
+        with patch.object(self.cache.client, "close") as mock:
+            self.cache.close()
+            assert mock.called
 
     def test_ttl(self):
-        cache = caches["default"]
-
-        # Test ttl
-        cache.set("foo", "bar", 10)
-        ttl = cache.ttl("foo")
+        self.cache.set("foo", "bar", 10)
+        ttl = self.cache.ttl("foo")
 
         if isinstance(cache.client, herd.HerdClient):
             self.assertAlmostEqual(ttl, 12)
@@ -584,17 +642,17 @@ class DjangoRedisCacheTests(unittest.TestCase):
             self.assertAlmostEqual(ttl, 10)
 
         # Test ttl None
-        cache.set("foo", "foo", timeout=None)
-        ttl = cache.ttl("foo")
+        self.cache.set("foo", "foo", timeout=None)
+        ttl = self.cache.ttl("foo")
         self.assertIsNone(ttl)
 
         # Test ttl with expired key
-        cache.set("foo", "foo", timeout=-1)
-        ttl = cache.ttl("foo")
+        self.cache.set("foo", "foo", timeout=-1)
+        ttl = self.cache.ttl("foo")
         self.assertEqual(ttl, 0)
 
         # Test ttl with not existent key
-        ttl = cache.ttl("not-existent-key")
+        ttl = self.cache.ttl("not-existent-key")
         self.assertEqual(ttl, 0)
 
     def test_persist(self):
@@ -733,6 +791,14 @@ class DjangoRedisCacheTests(unittest.TestCase):
         time.sleep(2)
         self.assertEqual(self.cache.get("test_key"), "foo")
 
+    def test_clear(self):
+        self.cache.set("foo", "bar")
+        value_from_cache = self.cache.get("foo")
+        self.assertEqual(value_from_cache, "bar")
+        self.cache.clear()
+        value_from_cache_after_clear = self.cache.get("foo")
+        self.assertIsNone(value_from_cache_after_clear)
+
 
 class DjangoOmitExceptionsTests(unittest.TestCase):
     def setUp(self):
@@ -790,7 +856,7 @@ class DjangoOmitExceptionsPriority2Tests(unittest.TestCase):
 
 
 # Copied from Django's sessions test suite. Keep in sync with upstream.
-# https://github.com/django/django/blob/master/tests/sessions_tests/tests.py
+# https://github.com/django/django/blob/main/tests/sessions_tests/tests.py
 class SessionTestsMixin:
     # This does not inherit from TestCase to avoid any tests being run with this
     # class, which wouldn't work, and to allow different TestCase subclasses to
@@ -1146,6 +1212,43 @@ class SessionTests(SessionTestsMixin, unittest.TestCase):
         ):
             self.skipTest("msgpack serializer doesn't support datetime serialization")
         super().test_actual_expiry()
+
+
+class TestClientClose(unittest.TestCase):
+    def setUp(self):
+        self.client = caches[DEFAULT_CACHE_ALIAS].client
+        self.client.set("TestClientClose", 0)
+
+    def tearDown(self):
+        self.client.delete("TestClientClose")
+        self.client.clear()
+
+    def test_close_client_disconnect_default(self):
+        with patch.object(self.client.connection_factory, "disconnect") as mock:
+            self.client.close()
+            assert not mock.called
+
+    @override_settings(DJANGO_REDIS_CLOSE_CONNECTION=True)
+    def test_close_disconnect_settings(self):
+        with patch.object(self.client.connection_factory, "disconnect") as mock:
+            self.client.close()
+            assert mock.called
+
+    def test_close_disconnect_settings_cache(self):
+        settings.CACHES[DEFAULT_CACHE_ALIAS]["OPTIONS"]["CLOSE_CONNECTION"] = True
+        with override_settings(CACHES=settings.CACHES):
+            # enabling override_settings context emits 'setting_changed' signal
+            # (re-set the value to populate again client connections)
+            self.client.set("TestClientClose", 0)
+            with patch.object(self.client.connection_factory, "disconnect") as mock:
+                self.client.close()
+                assert mock.called
+
+    def test_close_disconnect_client_options(self):
+        self.client._options["CLOSE_CONNECTION"] = True
+        with patch.object(self.client.connection_factory, "disconnect") as mock:
+            self.client.close()
+            assert mock.called
 
 
 class TestDefaultClient(unittest.TestCase):

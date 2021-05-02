@@ -1,0 +1,14 @@
+coverage:
+  status:
+    project:
+      default:
+        target: auto
+      mypy:
+        target: auto
+        flags:
+          - mypy
+
+      tests:
+        target: auto
+        flags:
+          - tests

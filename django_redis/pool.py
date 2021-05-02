@@ -1,6 +1,12 @@
+from typing import Dict
+from urllib.parse import parse_qs, urlparse
+
 from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured
 from django.utils.module_loading import import_string
-from redis.connection import DefaultParser
+from redis import Redis
+from redis.connection import DefaultParser, to_bool
+from redis.sentinel import Sentinel
 
 
 class ConnectionFactory:
@@ -8,10 +14,10 @@ class ConnectionFactory:
     # Store connection pool by cache backend options.
     #
     # _pools is a process-global, as otherwise _pools is cleared every time
-    # ConnectionFactory is instiated, as Django creates new cache client
+    # ConnectionFactory is instantiated, as Django creates new cache client
     # (DefaultClient) instance for every request.
 
-    _pools = {}
+    _pools = {}  # type: Dict[str, Redis]
 
     def __init__(self, options):
         pool_cls_path = options.get(
@@ -57,7 +63,7 @@ class ConnectionFactory:
 
         return kwargs
 
-    def connect(self, url):
+    def connect(self, url: str) -> Redis:
         """
         Given a basic connection parameters,
         return a new connection.
@@ -66,9 +72,17 @@ class ConnectionFactory:
         connection = self.get_connection(params)
         return connection
 
+    def disconnect(self, connection):
+        """
+        Given a not null client connection it disconnect from the Redis server.
+
+        The default implementation uses a pool to hold connections.
+        """
+        connection.connection_pool.disconnect()
+
     def get_connection(self, params):
         """
-        Given a now preformated params, return a
+        Given a now preformatted params, return a
         new connection.
 
         The default implementation uses a cached pools
@@ -113,6 +127,53 @@ class ConnectionFactory:
         if pool.connection_kwargs.get("password", None) is None:
             pool.connection_kwargs["password"] = params.get("password", None)
             pool.reset()
+
+        return pool
+
+
+class SentinelConnectionFactory(ConnectionFactory):
+    def __init__(self, options):
+        # allow overriding the default SentinelConnectionPool class
+        options.setdefault(
+            "CONNECTION_POOL_CLASS", "redis.sentinel.SentinelConnectionPool"
+        )
+        super().__init__(options)
+
+        sentinels = options.get("SENTINELS")
+        if not sentinels:
+            raise ImproperlyConfigured(
+                "SENTINELS must be provided as a list of (host, port)."
+            )
+
+        # provide the connection pool kwargs to the sentinel in case it
+        # needs to use the socket options for the sentinels themselves
+        connection_kwargs = self.make_connection_params(None)
+        connection_kwargs.pop("url")
+        connection_kwargs.update(self.pool_cls_kwargs)
+        self._sentinel = Sentinel(
+            sentinels,
+            sentinel_kwargs=options.get("SENTINEL_KWARGS"),
+            **connection_kwargs,
+        )
+
+    def get_connection_pool(self, params):
+        """
+        Given a connection parameters, return a new sentinel connection pool
+        for them.
+        """
+        url = urlparse(params["url"])
+
+        # explicitly set service_name and sentinel_manager for the
+        # SentinelConnectionPool constructor since will be called by from_url
+        cp_params = dict(params)
+        cp_params.update(service_name=url.hostname, sentinel_manager=self._sentinel)
+        pool = super().get_connection_pool(cp_params)
+
+        # convert "is_master" to a boolean if set on the URL, otherwise if not
+        # provided it defaults to True.
+        is_master = parse_qs(url.query).get("is_master")
+        if is_master:
+            pool.is_master = to_bool(is_master[0])
 
         return pool
 
