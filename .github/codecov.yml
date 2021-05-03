@@ -1,4 +1,8 @@
 coverage:
+  # small changes should not fail coverage
+  precision: 1
+  round: up
+
   status:
     project:
       default:
