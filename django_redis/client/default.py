@@ -290,7 +290,13 @@ class DefaultClient:
         if client.exists(key):
             client.expire(key, timeout)
 
-    def expire_at(self, key, when: Union[datetime, int], version=None, client=None):
+    def expire_at(
+        self,
+        key: Any,
+        when: Union[datetime, int],
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
+    ) -> None:
         """
         Set an expire flag on a ``key`` to ``when``, which can be represented
         as an integer indicating unix time or a Python datetime object.
