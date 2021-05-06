@@ -9,7 +9,7 @@ jobs:
       Django ${{ matrix.django-version }},
       Redis.py ${{ matrix.redis-version }}
 
-    timeout-minutes: 60
+    timeout-minutes: 10
     runs-on: ubuntu-latest
 
     strategy:
@@ -99,7 +99,7 @@ jobs:
   lint:
     name: Lint (${{ matrix.tool }})
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 10
 
     strategy:
       fail-fast: false
