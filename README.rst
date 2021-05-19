@@ -620,7 +620,7 @@ In order to enable this functionality you should add the following:
                 # have configured things correctly, and also create a
                 # primary and replica pool for the service specified by
                 # LOCATION rather than requiring two URLs.
-                "CLIENT_CLASS", "django_redis.client.SentinelClient"
+                "CLIENT_CLASS": "django_redis.client.SentinelClient",
 
                 # Sentinels which are passed directly to redis Sentinel.
                 "SENTINELS": SENTINELS,
@@ -642,10 +642,10 @@ In order to enable this functionality you should add the following:
             "LOCATION": "redis://minimal_service_name/db",
 
             "OPTIONS": {
-                "CLIENT_CLASS", "django_redis.client.SentinelClient"
+                "CLIENT_CLASS": "django_redis.client.SentinelClient",
                 "SENTINELS": SENTINELS,
             },
-        }
+        },
 
         # A minimal example using the DefaultClient.
         "other": {
