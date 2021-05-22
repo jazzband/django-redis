@@ -630,18 +630,44 @@ class DjangoRedisCacheTests(unittest.TestCase):
         ttl = self.cache.ttl("foo")
 
         if isinstance(cache.client, herd.HerdClient):
-            self.assertAlmostEqual(ttl, 12, delta=0.01)
+            self.assertAlmostEqual(ttl, 12)
         else:
-            self.assertAlmostEqual(ttl, 10, delta=0.01)
+            self.assertAlmostEqual(ttl, 10)
+
+        # Test ttl None
+        cache.set("foo", "foo", timeout=None)
+        ttl = cache.ttl("foo")
+        self.assertIsNone(ttl)
+
+        # Test ttl with expired key
+        cache.set("foo", "foo", timeout=-1)
+        ttl = cache.ttl("foo")
+        self.assertEqual(ttl, 0)
+
+        # Test ttl with not existent key
+        ttl = cache.ttl("not-existent-key")
+        self.assertEqual(ttl, 0)
+
+    def test_pttl(self):
+        cache = caches["default"]
+
+        # Test ttl
+        cache.set("foo", "bar", 10)
+        ttl = cache.pttl("foo")
+
+        if isinstance(cache.client, herd.HerdClient):
+            self.assertAlmostEqual(ttl, 12000)
+        else:
+            self.assertAlmostEqual(ttl, 10000)
 
         # Test ttl with float value
         cache.set("foo", "bar", 5.5)
-        ttl = cache.ttl("foo")
+        ttl = cache.pttl("foo")
 
         if isinstance(cache.client, herd.HerdClient):
-            self.assertAlmostEqual(ttl, 7.5, delta=0.01)
+            self.assertAlmostEqual(ttl, 7500)
         else:
-            self.assertAlmostEqual(ttl, 5.5, delta=0.01)
+            self.assertAlmostEqual(ttl, 5500)
 
         # Test ttl None
         self.cache.set("foo", "foo", timeout=None)
@@ -668,7 +694,13 @@ class DjangoRedisCacheTests(unittest.TestCase):
         self.cache.set("foo", "bar", timeout=None)
         self.cache.expire("foo", 20)
         ttl = self.cache.ttl("foo")
-        self.assertAlmostEqual(ttl, 20, delta=0.01)
+        self.assertAlmostEqual(ttl, 20)
+
+    def test_pexpire(self):
+        self.cache.set("foo", "bar", timeout=None)
+        self.cache.pexpire("foo", 20500)
+        ttl = self.cache.pttl("foo")
+        self.assertAlmostEqual(ttl, 20500)
 
     def test_expire_at(self):
 

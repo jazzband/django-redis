@@ -149,6 +149,10 @@ class RedisCache(BaseCache):
         return self.client.ttl(*args, **kwargs)
 
     @omit_exception
+    def pttl(self, *args, **kwargs):
+        return self.client.pttl(*args, **kwargs)
+
+    @omit_exception
     def persist(self, *args, **kwargs):
         return self.client.persist(*args, **kwargs)
 
@@ -159,6 +163,9 @@ class RedisCache(BaseCache):
     @omit_exception
     def expire_at(self, *args, **kwargs):
         return self.client.expire_at(*args, **kwargs)
+
+    def pexpire(self, *args, **kwargs):
+        return self.client.pexpire(*args, **kwargs)
 
     @omit_exception
     def lock(self, *args, **kwargs):

@@ -350,11 +350,21 @@ It returns:
     >>> from django.core.cache import cache
     >>> cache.set("foo", "value", timeout=25)
     >>> cache.ttl("foo")
-    25.0
+    25
     >>> cache.ttl("not-existent")
-    0.0
+    0
 
-Note: ttl previously returned an int. Now it returns a float.
+With Redis, you can access to ttl of any stored key in milliseconds, for it, django-redis
+exposes ``pttl`` function.
+
+.. code-block:: pycon
+
+    >>> from django.core.cache import cache
+    >>> cache.set("foo", "value", timeout=25)
+    >>> cache.pttl("foo")
+    25000
+    >>> cache.pttl("not-existent")
+    0
 
 Expire & Persist
 ~~~~~~~~~~~~~~~~
@@ -377,6 +387,14 @@ specify a new expiration timeout using the ``persist`` and ``expire`` methods:
     >>> cache.expire("foo", timeout=5)
     >>> cache.ttl("foo")
     5
+
+The ``pexpire`` method can be used to provide millisecond precision:
+.. code-block:: pycon
+
+    >>> cache.set("foo", "bar", timeout=22)
+    >>> cache.pexpire("foo", timeout=5500)
+    >>> cache.pttl("foo")
+    5500
 
 Locks
 ~~~~~
