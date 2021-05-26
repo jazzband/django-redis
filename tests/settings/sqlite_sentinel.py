@@ -41,3 +41,5 @@ CACHES = {
 }
 
 INSTALLED_APPS = ["django.contrib.sessions"]
+
+USE_TZ = False
