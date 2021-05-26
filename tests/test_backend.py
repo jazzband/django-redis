@@ -629,45 +629,10 @@ class DjangoRedisCacheTests(unittest.TestCase):
         self.cache.set("foo", "bar", 10)
         ttl = self.cache.ttl("foo")
 
-        if isinstance(cache.client, herd.HerdClient):
+        if isinstance(self.cache.client, herd.HerdClient):
             self.assertAlmostEqual(ttl, 12)
         else:
             self.assertAlmostEqual(ttl, 10)
-
-        # Test ttl None
-        cache.set("foo", "foo", timeout=None)
-        ttl = cache.ttl("foo")
-        self.assertIsNone(ttl)
-
-        # Test ttl with expired key
-        cache.set("foo", "foo", timeout=-1)
-        ttl = cache.ttl("foo")
-        self.assertEqual(ttl, 0)
-
-        # Test ttl with not existent key
-        ttl = cache.ttl("not-existent-key")
-        self.assertEqual(ttl, 0)
-
-    def test_pttl(self):
-        cache = caches["default"]
-
-        # Test ttl
-        cache.set("foo", "bar", 10)
-        ttl = cache.pttl("foo")
-
-        if isinstance(cache.client, herd.HerdClient):
-            self.assertAlmostEqual(ttl, 12000, delta=1)
-        else:
-            self.assertAlmostEqual(ttl, 10000, delta=1)
-
-        # Test ttl with float value
-        cache.set("foo", "bar", 5.5)
-        ttl = cache.pttl("foo")
-
-        if isinstance(cache.client, herd.HerdClient):
-            self.assertAlmostEqual(ttl, 7500, delta=1)
-        else:
-            self.assertAlmostEqual(ttl, 5500, delta=1)
 
         # Test ttl None
         self.cache.set("foo", "foo", timeout=None)
@@ -681,6 +646,40 @@ class DjangoRedisCacheTests(unittest.TestCase):
 
         # Test ttl with not existent key
         ttl = self.cache.ttl("not-existent-key")
+        self.assertEqual(ttl, 0)
+
+    def test_pttl(self):
+
+        # Test pttl
+        self.cache.set("foo", "bar", 10)
+        ttl = self.cache.pttl("foo")
+
+        if isinstance(self.cache.client, herd.HerdClient):
+            self.assertAlmostEqual(ttl, 12000, delta=1)
+        else:
+            self.assertAlmostEqual(ttl, 10000, delta=1)
+
+        # Test pttl with float value
+        self.cache.set("foo", "bar", 5.5)
+        ttl = self.cache.pttl("foo")
+
+        if isinstance(cache.client, herd.HerdClient):
+            self.assertAlmostEqual(ttl, 7500, delta=1)
+        else:
+            self.assertAlmostEqual(ttl, 5500, delta=1)
+
+        # Test pttl None
+        self.cache.set("foo", "foo", timeout=None)
+        ttl = self.cache.pttl("foo")
+        self.assertIsNone(ttl)
+
+        # Test pttl with expired key
+        self.cache.set("foo", "foo", timeout=-1)
+        ttl = self.cache.pttl("foo")
+        self.assertEqual(ttl, 0)
+
+        # Test pttl with not existent key
+        ttl = self.cache.pttl("not-existent-key")
         self.assertEqual(ttl, 0)
 
     def test_persist(self):
