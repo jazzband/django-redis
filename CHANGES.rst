@@ -1,6 +1,24 @@
 Changelog
 =========
 
+Version 5.0.0
+--------------
+
+Date: TBD
+
+- supporting django 3.1 and django 3.2
+- dropped support for python 3.5
+- added support for python 3.9
+- started type hinting the codebase
+- ensure connections are closed
+- fixed ``ShardClient`` ``.clear()`` method
+- ``.delete()`` now returns boolean from django 3.1 onwards
+- disconnect connection pools on ``.close()``
+- added support for redis sentinel
+- added ``.expire_at()`` method
+- fixed ``.incr()`` when ttl is ``None`` or when the number is larger than 64 bit
+- fixed ``.incr_version()`` when ttl is ``None``
+
 Version 4.12.1
 --------------
 
@@ -206,7 +224,7 @@ Version 4.0.0
 
 - Remove usage of deprecated ``get_cache`` method.
 - Added connection option SOCKET_CONNECT_TIMEOUT. [Jorge C. Leitão].
-- Replace setex and friends with set, because it now supports all need for atomic.
+- Replace ``setex`` and friends with set, because it now supports all need for atomic.
   updates (thanks to @23doors) (re revert changes from 3.8.x branch).
 - Fix django 1.8 compatibilities.
 - Fix django 1.9 compatibilities.
