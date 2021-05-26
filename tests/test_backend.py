@@ -656,18 +656,18 @@ class DjangoRedisCacheTests(unittest.TestCase):
         ttl = cache.pttl("foo")
 
         if isinstance(cache.client, herd.HerdClient):
-            self.assertAlmostEqual(ttl, 12000)
+            self.assertAlmostEqual(ttl, 12000, delta=1)
         else:
-            self.assertAlmostEqual(ttl, 10000)
+            self.assertAlmostEqual(ttl, 10000, delta=1)
 
         # Test ttl with float value
         cache.set("foo", "bar", 5.5)
         ttl = cache.pttl("foo")
 
         if isinstance(cache.client, herd.HerdClient):
-            self.assertAlmostEqual(ttl, 7500)
+            self.assertAlmostEqual(ttl, 7500, delta=1)
         else:
-            self.assertAlmostEqual(ttl, 5500)
+            self.assertAlmostEqual(ttl, 5500, delta=1)
 
         # Test ttl None
         self.cache.set("foo", "foo", timeout=None)
@@ -700,7 +700,7 @@ class DjangoRedisCacheTests(unittest.TestCase):
         self.cache.set("foo", "bar", timeout=None)
         self.cache.pexpire("foo", 20500)
         ttl = self.cache.pttl("foo")
-        self.assertAlmostEqual(ttl, 20500)
+        self.assertAlmostEqual(ttl, 20500, delta=1)
 
     def test_expire_at(self):
 

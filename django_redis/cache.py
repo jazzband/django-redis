@@ -164,6 +164,7 @@ class RedisCache(BaseCache):
     def expire_at(self, *args, **kwargs):
         return self.client.expire_at(*args, **kwargs)
 
+    @omit_exception
     def pexpire(self, *args, **kwargs):
         return self.client.pexpire(*args, **kwargs)
 
