@@ -1,4 +1,6 @@
 SECRET_KEY = "django_tests_secret_key"
+USE_TZ = False
+
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",

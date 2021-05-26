@@ -1,4 +1,5 @@
 SECRET_KEY = "django_tests_secret_key"
+USE_TZ = False
 
 DJANGO_REDIS_CONNECTION_FACTORY = "django_redis.pool.SentinelConnectionFactory"
 
