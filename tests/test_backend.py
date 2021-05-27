@@ -653,7 +653,8 @@ class DjangoRedisCacheTests(unittest.TestCase):
         # Test pttl
         self.cache.set("foo", "bar", 10)
         ttl = self.cache.pttl("foo")
-
+        
+        # delta is set to 1 as precision error causes tests to fail
         if isinstance(self.cache.client, herd.HerdClient):
             self.assertAlmostEqual(ttl, 12000, delta=1)
         else:
@@ -699,6 +700,7 @@ class DjangoRedisCacheTests(unittest.TestCase):
         self.cache.set("foo", "bar", timeout=None)
         self.cache.pexpire("foo", 20500)
         ttl = self.cache.pttl("foo")
+        # delta is set to 1 as precision error causes tests to fail
         self.assertAlmostEqual(ttl, 20500, delta=1)
 
     def test_expire_at(self):
