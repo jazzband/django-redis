@@ -138,6 +138,18 @@ class ShardClient(DefaultClient):
 
         return super().ttl(key=key, version=version, client=client)
 
+    def pttl(self, key, version=None, client=None):
+        """
+        Executes PTTL redis command and return the "time-to-live" of specified key
+        in milliseconds. If key is a non volatile key, it returns None.
+        """
+
+        if client is None:
+            key = self.make_key(key, version=version)
+            client = self.get_server(key)
+
+        return super().pttl(key=key, version=version, client=client)
+
     def persist(self, key, version=None, client=None):
         if client is None:
             key = self.make_key(key, version=version)
@@ -151,6 +163,13 @@ class ShardClient(DefaultClient):
             client = self.get_server(key)
 
         return super().expire(key=key, timeout=timeout, version=version, client=client)
+
+    def pexpire(self, key, timeout, version=None, client=None):
+        if client is None:
+            key = self.make_key(key, version=version)
+            client = self.get_server(key)
+
+        return super().pexpire(key=key, timeout=timeout, version=version, client=client)
 
     def expire_at(self, key, when: Union[datetime, int], version=None, client=None):
         """

@@ -18,6 +18,10 @@ Date: TBD
 - added ``.expire_at()`` method
 - fixed ``.incr()`` when ttl is ``None`` or when the number is larger than 64 bit
 - fixed ``.incr_version()`` when ttl is ``None``
+- added ``.pttl()`` method to the clients to support milli-second precision for
+  ttl of a key
+- added ``.pexpire()`` method to the clients to support milli-second precision
+  for setting expiry of a key
 
 Version 4.12.1
 --------------

@@ -290,6 +290,15 @@ class DefaultClient:
         if client.exists(key):
             client.expire(key, timeout)
 
+    def pexpire(self, key, timeout, version=None, client=None):
+        if client is None:
+            client = self.get_client(write=True)
+
+        key = self.make_key(key, version=version)
+
+        if client.exists(key):
+            client.pexpire(key, timeout)
+
     def expire_at(
         self,
         key: Any,
@@ -589,6 +598,30 @@ class DefaultClient:
             return 0
 
         t = client.ttl(key)
+
+        if t >= 0:
+            return t
+        elif t == -1:
+            return None
+        elif t == -2:
+            return 0
+        else:
+            # Should never reach here
+            return None
+
+    def pttl(self, key, version=None, client=None):
+        """
+        Executes PTTL redis command and return the "time-to-live" of specified key.
+        If key is a non volatile key, it returns None.
+        """
+        if client is None:
+            client = self.get_client(write=False)
+
+        key = self.make_key(key, version=version)
+        if not client.exists(key):
+            return 0
+
+        t = client.pttl(key)
 
         if t >= 0:
             return t

@@ -629,7 +629,7 @@ class DjangoRedisCacheTests(unittest.TestCase):
         self.cache.set("foo", "bar", 10)
         ttl = self.cache.ttl("foo")
 
-        if isinstance(cache.client, herd.HerdClient):
+        if isinstance(self.cache.client, herd.HerdClient):
             self.assertAlmostEqual(ttl, 12)
         else:
             self.assertAlmostEqual(ttl, 10)
@@ -648,6 +648,41 @@ class DjangoRedisCacheTests(unittest.TestCase):
         ttl = self.cache.ttl("not-existent-key")
         self.assertEqual(ttl, 0)
 
+    def test_pttl(self):
+
+        # Test pttl
+        self.cache.set("foo", "bar", 10)
+        ttl = self.cache.pttl("foo")
+
+        # delta is set to 10 as precision error causes tests to fail
+        if isinstance(self.cache.client, herd.HerdClient):
+            self.assertAlmostEqual(ttl, 12000, delta=10)
+        else:
+            self.assertAlmostEqual(ttl, 10000, delta=10)
+
+        # Test pttl with float value
+        self.cache.set("foo", "bar", 5.5)
+        ttl = self.cache.pttl("foo")
+
+        if isinstance(cache.client, herd.HerdClient):
+            self.assertAlmostEqual(ttl, 7500, delta=10)
+        else:
+            self.assertAlmostEqual(ttl, 5500, delta=10)
+
+        # Test pttl None
+        self.cache.set("foo", "foo", timeout=None)
+        ttl = self.cache.pttl("foo")
+        self.assertIsNone(ttl)
+
+        # Test pttl with expired key
+        self.cache.set("foo", "foo", timeout=-1)
+        ttl = self.cache.pttl("foo")
+        self.assertEqual(ttl, 0)
+
+        # Test pttl with not existent key
+        ttl = self.cache.pttl("not-existent-key")
+        self.assertEqual(ttl, 0)
+
     def test_persist(self):
         self.cache.set("foo", "bar", timeout=20)
         self.cache.persist("foo")
@@ -660,6 +695,13 @@ class DjangoRedisCacheTests(unittest.TestCase):
         self.cache.expire("foo", 20)
         ttl = self.cache.ttl("foo")
         self.assertAlmostEqual(ttl, 20)
+
+    def test_pexpire(self):
+        self.cache.set("foo", "bar", timeout=None)
+        self.cache.pexpire("foo", 20500)
+        ttl = self.cache.pttl("foo")
+        # delta is set to 10 as precision error causes tests to fail
+        self.assertAlmostEqual(ttl, 20500, delta=10)
 
     def test_expire_at(self):
 
