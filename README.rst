@@ -871,7 +871,7 @@ Setting True as a value will instruct the django-redis to close all the connecti
 License
 -------
 
-.. code-block:: none
+.. code-block:: text
 
     Copyright (c) 2011-2015 Andrey Antukh <niwi@niwi.nz>
     Copyright (c) 2011 Sean Bleier
