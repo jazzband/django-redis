@@ -4,7 +4,7 @@ Changelog
 Version 5.0.0
 --------------
 
-Date: TBD
+Date: 2021-05-30
 
 - supporting django 3.1 and django 3.2
 - dropped support for python 3.5
