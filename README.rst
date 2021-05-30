@@ -122,7 +122,7 @@ The login for the user ``django`` would look like this:
             }
         }
     }
-    
+
 An alternative would be write both username and password into the URL:
 
 .. code-block:: python
@@ -545,7 +545,6 @@ possible with django-redis using the ``CONNECTION_POOL_CLASS`` parameter in the
 backend options.
 
 .. code-block:: python
-    :caption: myproj/mypool.py
 
     from redis.connection import ConnectionPool
 
@@ -554,7 +553,6 @@ backend options.
         pass
 
 .. code-block:: python
-    :caption: myproj/settings.py
 
     # Omitting all backend declaration boilerplate code.
 
@@ -618,7 +616,6 @@ In order to enable this functionality you should add the following:
 
 
 .. code-block:: python
-    :caption: myproj/settings.py
 
     # Enable the alternate connection factory.
     DJANGO_REDIS_CONNECTION_FACTORY = 'django_redis.pool.SentinelConnectionFactory'
