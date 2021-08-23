@@ -389,6 +389,7 @@ specify a new expiration timeout using the ``persist`` and ``expire`` methods:
     5
 
 The ``pexpire`` method can be used to provide millisecond precision:
+
 .. code-block:: pycon
 
     >>> cache.set("foo", "bar", timeout=22)
