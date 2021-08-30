@@ -3,65 +3,36 @@ requires = ["setuptools>=40.6.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 
-[tool.coverage.run]
-parallel = true
-branch = true
-source = ["django_redis"]
-
-[tool.coverage.paths]
-source = ["src", ".tox/*/site-packages"]
-
-[tool.coverage.report]
-show_missing = true
-exclude_lines = [
-    "pragma: no cover",
-    # PyPy is unacceptably slow under coverage.
-    "if PYPY:",
-]
-
-
-[tool.black]
-line-length = 79
-extend-exclude = '''
-# Exclude pattern matching test till black gains Python 3.10 support
-.*test_pattern_matching.*
-'''
-
-
 [tool.interrogate]
 verbose = 2
 fail-under = 100
 whitelist-regex = ["test_.*"]
 
 
-[tool.isort]
-profile = "attrs"
-
-
 [tool.towncrier]
-    package = "django_redis"
-    package_dir = "."
-    filename = "CHANGELOG.rst"
-    template = "changelog.d/towncrier_template.rst"
-    issue_format = "`#{issue} <https://github.com/jazzband/django-redis/issues/{issue}>`_"
-    directory = "changelog.d"
-    title_format = "{version} ({project_date})"
-    underlines = ["-", "^"]
+package = "django_redis"
+package_dir = "."
+filename = "CHANGELOG.rst"
+template = "changelog.d/towncrier_template.rst"
+issue_format = "`#{issue} <https://github.com/jazzband/django-redis/issues/{issue}>`_"
+directory = "changelog.d"
+title_format = "{version} ({project_date})"
+underlines = ["-", "^"]
 
-    [[tool.towncrier.section]]
-        path = ""
+[[tool.towncrier.section]]
+    path = ""
 
-    [[tool.towncrier.type]]
-        directory = "breaking"
-        name = "Backward-incompatible Changes"
-        showcontent = true
+[[tool.towncrier.type]]
+    directory = "breaking"
+    name = "Backward-incompatible Changes"
+    showcontent = true
 
-    [[tool.towncrier.type]]
-        directory = "deprecation"
-        name = "Deprecations"
-        showcontent = true
+[[tool.towncrier.type]]
+    directory = "deprecation"
+    name = "Deprecations"
+    showcontent = true
 
-    [[tool.towncrier.type]]
-        directory = "change"
-        name = "Changes"
-        showcontent = true
+[[tool.towncrier.type]]
+    directory = "change"
+    name = "Changes"
+    showcontent = true
