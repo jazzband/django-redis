@@ -1,10 +1,10 @@
 Changelog
 =========
 
-Version 5.0.0
---------------
+.. towncrier release notes start
 
-Date: 2021-05-30
+django-redis 5.0.0 (2021-05-30)
+===============================
 
 - supporting django 3.1 and django 3.2
 - dropped support for python 3.5
@@ -23,18 +23,16 @@ Date: 2021-05-30
 - added ``.pexpire()`` method to the clients to support milli-second precision
   for setting expiry of a key
 
-Version 4.12.1
---------------
 
-Date: 2020-05-27
+django-redis 4.12.1 (2020-05-27)
+================================
 
 - No code changes.
 - Fixed a typo in setup.cfg metadata preventing a successful release.
 
-Version 4.12.0
---------------
 
-Date: 2020-05-27
+django-redis 4.12.0 (2020-05-27)
+================================
 
 - The project has moved to `Jazzband <https://jazzband.co/>`_. This is the
   first release under the new organization. The new repository URL is
@@ -50,10 +48,9 @@ Date: 2020-05-27
 - Fixed ``DefaultClient.set()`` to work with empty ``Pipeline``.
 - The ``thread_local`` parameter is now forwarded to the Redis client.
 
-Version 4.11.0
---------------
 
-Date: 2019-12-13
+django-redis 4.11.0 (2019-12-13)
+================================
 
 - Removed support for Python 2.7 and 3.4.
 - Removed support for Django 2.0 and 2.1.
@@ -64,10 +61,9 @@ Date: 2019-12-13
 - Fixed prefix escaping for the sharded client.
 - Fixed ``.add()`` method to return a bool.
 
-Version 4.10.0
---------------
 
-Date: 2018-10-19
+django-redis 4.10.0 (2018-10-19)
+================================
 
 - Add support and testing for Django 2.1 and Python 3.7. No actual code changes
   were required.
@@ -75,18 +71,14 @@ Date: 2018-10-19
 - Add touch command.
 
 
-Version 4.9.1
--------------
-
-Date: 2018-10-19
+django-redis 4.9.1 (2018-10-19)
+===============================
 
 - Pin redis version to 2.10.6
 
 
-Version 4.9.0
--------------
-
-Date: 2018-03-01
+django-redis 4.9.0 (2018-03-01)
+===============================
 
 - Add testing and support for Django 2.0. No actual code changes were required.
 - Escape ``KEY_PREFIX`` and ``VERSION`` when used in glob expressions.
@@ -102,10 +94,8 @@ Date: 2018-03-01
 - Add support for atomic incr if key is not set.
 
 
-Version 4.8.0
--------------
-
-Date: 2017-04-25
+django-redis 4.8.0 (2017-04-25)
+===============================
 
 - Drop deprecated exception with typo ConnectionInterrumped. Use
   ConnectionInterrupted instead.
@@ -116,28 +106,22 @@ Date: 2017-04-25
 - Fix compatibility warnings with python 3.6
 
 
-Version 4.7.0
--------------
-
-Date: 2017-01-02
+django-redis 4.7.0 (2017-01-02)
+===============================
 
 - Add the ability to enable write to replica servers when the primary server is
   not available.
 - Add ``itersize`` parameter to ``delete_pattern``.
 
 
-Version 4.6.0
--------------
-
-Date: 2016-11-02
+django-redis 4.6.0 (2016-11-02)
+===============================
 
 - Fix incorrect behavior of ``clear()`` method.
 
 
-Version 4.5.0
--------------
-
-Date: 2016-09-21
+django-redis 4.5.0 (2016-09-21)
+===============================
 
 - Now only support Django 1.8 and above. Support for older versions has been dropped.
 - Remove undocumented and deprecated support for old connection string format.
@@ -147,43 +131,33 @@ Date: 2016-09-21
 - Fix compatibility issues with latest django version (1.10).
 
 
-Version 4.4.4
--------------
-
-Date: 2016-07-25
+django-redis 4.4.4 (2016-07-25)
+===============================
 
 - Fix possible race condition on incr implementation using
   lua script (thanks to @prokaktus).
 
 
-Version 4.4.3
--------------
-
-Date: 2016-05-17
+django-redis 4.4.3 (2016-05-17)
+===============================
 
 - Fix minor ttl inconsistencies.
 
 
-Version 4.4.2
--------------
-
-Date: 2016-04-21
+django-redis 4.4.2 (2016-04-21)
+===============================
 
 - Fix timeout bug (thanks to @skorokithakis)
 
 
-Version 4.4.1
--------------
-
-Date: 2016-04-13
+django-redis 4.4.1 (2016-04-13)
+===============================
 
 - Add additional check for avoid wrong exception on ``get_redis_connection``.
 
 
-Version 4.4.0
--------------
-
-Date: 2016-04-12
+django-redis 4.4.0 (2016-04-12)
+===============================
 
 - Make redis client pluggable (thanks to @arnuschky)
 - Add version number inside python module (thanks to @BertrandBordage)
@@ -192,30 +166,24 @@ Date: 2016-04-12
 - BREAKING CHANGE: improved compression support (make it more plugable).
 
 
-Version 4.3.0
--------------
-
-Date: 2015-10-31
+django-redis 4.3.0 (2015-10-31)
+===============================
 
 - Improved exception handling in herd client (thanks to @brandoshmando)
 - Fix bug that not allows use generators on delete_many (thanks to @ostcar).
 - Remove obsolete code that makes hard dependency to mspack.
 
 
-Version 4.2.0
--------------
-
-Date: 2015-07-03
+django-redis 4.2.0 (2015-07-03)
+===============================
 
 - Add ``persist`` and ``expire`` methods.
 - Remove old and broken dummy client.
 - Expose a redis lock method.
 
 
-Version 4.1.0
--------------
-
-Date: 2015-06-15
+django-redis 4.1.0 (2015-06-15)
+===============================
 
 - Add plugable serializers architecture (thanks to @jdufresne)
 - Add json serializer (thanks to @jdufresne)
@@ -223,8 +191,8 @@ Date: 2015-06-15
 - Implement delete_pattern using iter_scan for better performance (thanks to @lenzenmi)
 
 
-Version 4.0.0
--------------
+django-redis 4.0.0
+==================
 
 - Remove usage of deprecated ``get_cache`` method.
 - Added connection option SOCKET_CONNECT_TIMEOUT. [Jorge C. Leitão].
@@ -237,26 +205,26 @@ Version 4.0.0
 - BREAKING CHANGE: ``redis_cache`` is no longer a valid package name
 
 
-Version 3.8.4
--------------
+django-redis 3.8.4
+==================
 
 - Backport django 1.8 fixes from master.
 
 
-Version 3.8.3
--------------
+django-redis 3.8.3
+==================
 
 - Minor fix on regular expression for old url notation.
 
 
-Version 3.8.2
--------------
+django-redis 3.8.2
+==================
 
 - Revert some changes from 3.8.1 that are incompatible with redis server < 2.6.12
 
 
-Version 3.8.1
--------------
+django-redis 3.8.1
+==================
 
 - Fix documentation related to new url format.
 - Fix documentation parts that uses now removed functions.
@@ -265,8 +233,8 @@ Version 3.8.1
   updates (thanks to @23doors).
 
 
-Version 3.8.0
--------------
+django-redis 3.8.0
+==================
 
 - Add compression support. (Thanks to @alanjds)
 - Change package name from redis_cache to django_redis.
@@ -279,57 +247,61 @@ Version 3.8.0
 - Remove deprecated ``raw_cache`` property from backend.
 
 
-Version 3.7.2
--------------
+django-redis 3.7.2
+==================
 
 - Add missing forward of version parameter from ``add()`` to ``set()`` function. (by @fellowshipofone)
 
-Version 3.7.1
--------------
+
+django-redis 3.7.1
+==================
 
 - Improve docs (by @dkingman).
 - Fix missing imports on sentinel client (by @opapy).
 - Connection closing improvements on sentinel client (by @opapy).
 
-Version 3.7.0
--------------
+
+django-redis 3.7.0
+==================
 
 - Add support for django's ``KEY_FUNCTION`` and ``REVERSE_KEY_FUNCTION`` (by @teferi)
 - Accept float value for socket timeout.
 - Fix wrong behavior of ``DJANGO_REDIS_IGNORE_EXCEPTIONS`` with socket timeouts.
 - Backward incompatible change: now raises original exceptions instead of self defined.
 
-Version 3.6.2
--------------
+
+django-redis 3.6.2
+==================
 
 - Add ttl method purposed to be included in django core.
 - Add iter_keys method that uses redis scan methods for memory efficient keys retrieval.
 - Add version keyword parameter to keys.
 - Deprecate django 1.3.x support.
 
-Version 3.6.1
--------------
+
+django-redis 3.6.1
+==================
 
 - Fix wrong import on sentinel client.
 
 
-Version 3.6.0
--------------
+django-redis 3.6.0
+==================
 
 - Add pluggable connection factory.
 - Negative timeouts now works as expected.
 - Delete operation now returns a number of deleted items instead of None.
 
 
-Version 3.5.1
--------------
+django-redis 3.5.1
+==================
 
 - Fixed redis-py < 2.9.0 incompatibilities
 - Fixed runtests error with django 1.7
 
 
-Version 3.5.0
--------------
+django-redis 3.5.0
+==================
 
 - Removed: stats module (should be replaced with an other in future)
 - New: experimental client for add support to redis-sentinel.
@@ -339,8 +311,8 @@ Version 3.5.0
 - Fix incr_version wrong behavior when using shard client (wrong client used for set new key).
 
 
-Version 3.4.0
--------------
+django-redis 3.4.0
+==================
 
 - Fix exception name from ConnectionInterrumped to
   ConnectionInterrupted maintaining an old exception class
@@ -364,13 +336,14 @@ Version 3.4.0
 - Bugfixes related to some index error on hashring module.
 
 
-Version 3.3.0
--------------
+django-redis 3.3.0
+==================
 
 - Add SOCKET_TIMEOUT attribute to OPTIONS (thanks to @eclipticplane)
 
-Version 3.2.0
--------------
+
+django-redis 3.2.0
+==================
 
 - Changed default behavior of connection error exceptions: now by default
     raises exception on connection error is occurred.
@@ -381,49 +354,56 @@ Thanks to Mümin Öztürk:
 - cache.incr and cache.decr now uses redis incrby command (atomic operation)
 
 
-Version 3.1.7
--------------
+django-redis 3.1.7
+==================
 
 - Fix python3 compatibility on utils module.
 
-Version 3.1.6
--------------
+django-redis 3.1.6
+==================
 
 - Add nx argument on set method for both clients (thanks to Kirill Zaitsev)
 
-Version 3.1.5
--------------
+
+django-redis 3.1.5
+==================
 
 - Bug fixes on sharded client.
 
-Version 3.1.4
--------------
+
+django-redis 3.1.4
+==================
 
 - Now reuse connection pool on massive use of ``get_cache`` method.
 
-Version 3.1.3
--------------
+
+django-redis 3.1.3
+==================
 
 - Fixed python 2.6 compatibility.
 
-Version 3.1.2
--------------
+
+django-redis 3.1.2
+==================
 
 - Now on call close() not disconnect all connection pool.
 
-Version 3.1.1
--------------
+
+django-redis 3.1.1
+==================
 
 - Fixed incorrect exception message on LOCATION has wrong format.
     (Thanks to Yoav Weiss)
 
-Version 3.1
------------
+
+django-redis 3.1
+================
 
 - Helpers for access to raw redis connection.
 
-Version 3.0
------------
+
+django-redis 3.0
+================
 
 - Python 3.2+ support.
 - Code cleaning and refactor.
@@ -432,27 +412,27 @@ Version 3.0
 - Unified connection string.
 
 
-Version 2.2.2
--------------
+django-redis 2.2.2
+==================
 
 - Bug fixes on ``keys`` and ``delete_pattern`` methods.
 
 
-Version 2.2.1
--------------
+django-redis 2.2.1
+==================
 
 - Remove duplicate check if key exists on ``incr`` method.
 - Fix incorrect behavior of ``delete_pattern`` with sharded client.
 
 
-Version 2.2
------------
+django-redis 2.2
+================
 
 - New ``delete_pattern`` method. Useful for delete keys using wildcard syntax.
 
 
-Version 2.1
------------
+django-redis 2.1
+================
 
 - Many bug fixes.
 - Client side sharding.
