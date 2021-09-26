@@ -276,6 +276,21 @@ Let see an example, of how make it work with *lzma* compression format:
         }
     }
 
+*Zstandard (zstd)* compression support (requires the pyzstd library):
+
+.. code-block:: python
+
+    import pyzstd
+
+    CACHES = {
+        "default": {
+            # ...
+            "OPTIONS": {
+                "COMPRESSOR": "django_redis.compressors.zstd.ZStdCompressor",
+            }
+        }
+    }
+
 Memcached exceptions behavior
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
