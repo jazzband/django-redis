@@ -7,7 +7,6 @@ import unittest
 from datetime import timedelta
 
 import pytest
-
 from django.conf import settings
 from django.contrib.sessions.backends.cache import SessionStore as CacheSession
 from django.core.cache import DEFAULT_CACHE_ALIAS, cache, caches
@@ -38,7 +37,7 @@ def reverse_key(key):
         "unix://tmp/foo.bar?db=1",
         "redis://localhost/2",
         "rediss://localhost:3333?db=2",
-    ]
+    ],
 )
 def test_connection_strings(connection_string):
     cf = pool.get_connection_factory(
@@ -106,7 +105,9 @@ def test_custom_key_function(settings):
     keys = cache.keys("foo*")
     assert set(keys) == {"foo-bb", "foo-bc"}
     # ensure our custom function was actually called
-    assert {k.decode() for k in cache.client.get_client(write=False).keys("*")} == {"#1#foo-bc", "#1#foo-bb"}
+    assert {k.decode() for k in cache.client.get_client(write=False).keys("*")} == (
+        {"#1#foo-bc", "#1#foo-bb"}
+    )
     cache.clear()
 
 
@@ -117,7 +118,6 @@ def default_cache():
 
 
 class TestDjangoRedisCache:
-
     def test_setnx(self, default_cache):
         # we should ensure there is no test_key_nx in redis
         default_cache.delete("test_key_nx")
@@ -595,7 +595,9 @@ class TestDjangoRedisCache:
 
         client_mock.delete_pattern.assert_called_once_with("*foo-a*", itersize=2)
 
-    def test_delete_pattern_with_settings_default_scan_count(self, default_cache, mocker):
+    def test_delete_pattern_with_settings_default_scan_count(
+        self, default_cache, mocker
+    ):
         client_mock = mocker.patch("django_redis.cache.RedisCache.client")
         for key in ["foo-aa", "foo-ab", "foo-bb", "foo-bc"]:
             default_cache.set(key, "foo")
@@ -758,7 +760,8 @@ class TestDjangoRedisCache:
 
         # Test generator object
         result = cache.iter_keys("foo*")
-        assert next(result) != None
+        next_value = next(result)
+        assert next_value is not None
 
     def test_primary_replica_switching(self, default_cache):
         if isinstance(default_cache.client, ShardClient):
@@ -916,7 +919,9 @@ class SessionTestsMixin:
         assert self.session.modified is False
 
     def test_pop_default_named_argument(self):
-        assert self.session.pop("some key", default="does not exist") == "does not exist"
+        assert self.session.pop("some key", default="does not exist") == (
+            "does not exist"
+        )
         assert self.session.accessed is True
         assert self.session.modified is False
 
@@ -1234,15 +1239,18 @@ def default_cache_client():
 
 
 class TestClientClose:
-
     def test_close_client_disconnect_default(self, default_cache_client, mocker):
-        mock = mocker.patch.object(default_cache_client.connection_factory, "disconnect")
+        mock = mocker.patch.object(
+            default_cache_client.connection_factory, "disconnect"
+        )
         default_cache_client.close()
         assert not mock.called
 
     def test_close_disconnect_settings(self, default_cache_client, settings, mocker):
         settings.DJANGO_REDIS_CLOSE_CONNECTION = True
-        mock = mocker.patch.object(default_cache_client.connection_factory, "disconnect")
+        mock = mocker.patch.object(
+            default_cache_client.connection_factory, "disconnect"
+        )
         default_cache_client.close()
         assert mock.called
 
@@ -1252,24 +1260,25 @@ class TestClientClose:
             # enabling override_settings context emits 'setting_changed' signal
             # (re-set the value to populate again client connections)
             default_cache_client.set("TestClientClose", 0)
-            mock = mocker.patch.object(default_cache_client.connection_factory, "disconnect")
+            mock = mocker.patch.object(
+                default_cache_client.connection_factory, "disconnect"
+            )
             default_cache_client.close()
             assert mock.called
 
     def test_close_disconnect_client_options(self, default_cache_client, mocker):
         default_cache_client._options["CLOSE_CONNECTION"] = True
-        mock = mocker.patch.object(default_cache_client.connection_factory, "disconnect")
+        mock = mocker.patch.object(
+            default_cache_client.connection_factory, "disconnect"
+        )
         default_cache_client.close()
         assert mock.called
 
 
 class TestDefaultClient:
-
-    def test_delete_pattern_calls_get_client_given_no_client(
-        self, mocker
-    ):
+    def test_delete_pattern_calls_get_client_given_no_client(self, mocker):
         get_client_mock = mocker.patch("test_backend.DefaultClient.get_client")
-        init_mock = mocker.patch("test_backend.DefaultClient.__init__", return_value=None)
+        mocker.patch("test_backend.DefaultClient.__init__", return_value=None)
         client = DefaultClient()
         client._backend = mocker.Mock()
         client._backend.key_prefix = ""
@@ -1277,12 +1286,12 @@ class TestDefaultClient:
         client.delete_pattern(pattern="foo*")
         get_client_mock.assert_called_once_with(write=True)
 
-    def test_delete_pattern_calls_make_pattern(
-        self, mocker
-    ):
+    def test_delete_pattern_calls_make_pattern(self, mocker):
         make_pattern_mock = mocker.patch("test_backend.DefaultClient.make_pattern")
-        get_client_mock = mocker.patch("test_backend.DefaultClient.get_client", return_value=mocker.Mock())
-        init_mock = mocker.patch("test_backend.DefaultClient.__init__", return_value=None)
+        get_client_mock = mocker.patch(
+            "test_backend.DefaultClient.get_client", return_value=mocker.Mock()
+        )
+        mocker.patch("test_backend.DefaultClient.__init__", return_value=None)
         client = DefaultClient()
         client._backend = mocker.Mock()
         client._backend.key_prefix = ""
@@ -1296,12 +1305,12 @@ class TestDefaultClient:
 
         make_pattern_mock.assert_called_once_with("foo*", **kwargs)
 
-    def test_delete_pattern_calls_scan_iter_with_count_if_itersize_given(
-        self, mocker
-    ):
+    def test_delete_pattern_calls_scan_iter_with_count_if_itersize_given(self, mocker):
         make_pattern_mock = mocker.patch("test_backend.DefaultClient.make_pattern")
-        get_client_mock = mocker.patch("test_backend.DefaultClient.get_client", return_value=mocker.Mock())
-        init_mock = mocker.patch("test_backend.DefaultClient.__init__", return_value=None)
+        get_client_mock = mocker.patch(
+            "test_backend.DefaultClient.get_client", return_value=mocker.Mock()
+        )
+        mocker.patch("test_backend.DefaultClient.__init__", return_value=None)
         client = DefaultClient()
         client._backend = mocker.Mock()
         client._backend.key_prefix = ""
@@ -1315,10 +1324,8 @@ class TestDefaultClient:
 
 
 class TestShardClient:
-    def test_delete_pattern_calls_scan_iter_with_count_if_itersize_given(
-        self, mocker
-    ):
-        init_mock = mocker.patch("test_backend.ShardClient.__init__", return_value=None)
+    def test_delete_pattern_calls_scan_iter_with_count_if_itersize_given(self, mocker):
+        mocker.patch("test_backend.ShardClient.__init__", return_value=None)
         make_pattern_mock = mocker.patch("test_backend.DefaultClient.make_pattern")
         client = ShardClient()
         client._backend = mocker.Mock()
@@ -1336,7 +1343,7 @@ class TestShardClient:
 
     def test_delete_pattern_calls_scan_iter(self, mocker):
         make_pattern_mock = mocker.patch("test_backend.DefaultClient.make_pattern")
-        init_mock = mocker.patch("test_backend.ShardClient.__init__", return_value=None)
+        mocker.patch("test_backend.ShardClient.__init__", return_value=None)
         client = ShardClient()
         client._backend = mocker.Mock()
         client._backend.key_prefix = ""
@@ -1350,11 +1357,9 @@ class TestShardClient:
             match=make_pattern_mock.return_value
         )
 
-    def test_delete_pattern_calls_delete_for_given_keys(
-        self, mocker
-    ):
-        make_pattern_mock = mocker.patch("test_backend.DefaultClient.make_pattern")
-        init_mock = mocker.patch("test_backend.ShardClient.__init__", return_value=None)
+    def test_delete_pattern_calls_delete_for_given_keys(self, mocker):
+        mocker.patch("test_backend.DefaultClient.make_pattern")
+        mocker.patch("test_backend.ShardClient.__init__", return_value=None)
         client = ShardClient()
         client._backend = mocker.Mock()
         client._backend.key_prefix = ""
