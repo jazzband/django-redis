@@ -623,9 +623,9 @@ class TestDjangoRedisCache:
         ttl = default_cache.ttl("foo")
 
         if isinstance(default_cache.client, herd.HerdClient):
-            assert round(abs(ttl-12), 7) == 0
+            assert pytest.approx(ttl) == 12
         else:
-            assert round(abs(ttl-10), 7) == 0
+            assert pytest.approx(ttl) == 10
 
         # Test ttl None
         default_cache.set("foo", "foo", timeout=None)
@@ -658,9 +658,9 @@ class TestDjangoRedisCache:
         ttl = default_cache.pttl("foo")
 
         if isinstance(cache.client, herd.HerdClient):
-            assert abs(ttl-7500) < 10
+            assert pytest.approx(ttl, 10) == 7500
         else:
-            assert abs(ttl-5500) < 10
+            assert pytest.approx(ttl, 10) == 5500
 
         # Test pttl None
         default_cache.set("foo", "foo", timeout=None)
@@ -687,7 +687,7 @@ class TestDjangoRedisCache:
         default_cache.set("foo", "bar", timeout=None)
         default_cache.expire("foo", 20)
         ttl = default_cache.ttl("foo")
-        assert round(abs(ttl-20), 7) == 0
+        assert pytest.approx(ttl) == 20
 
     def test_pexpire(self, default_cache):
         default_cache.set("foo", "bar", timeout=None)
