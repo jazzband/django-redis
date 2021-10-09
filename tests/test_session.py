@@ -4,9 +4,9 @@ from datetime import timedelta
 
 from django.conf import settings
 from django.contrib.sessions.backends.cache import SessionStore as CacheSession
-from django.core.cache import DEFAULT_CACHE_ALIAS, cache, caches
-from django.utils import timezone
+from django.core.cache import DEFAULT_CACHE_ALIAS, caches
 from django.test import override_settings
+from django.utils import timezone
 
 from django_redis.serializers.msgpack import MSGPackSerializer
 
