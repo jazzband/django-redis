@@ -7,6 +7,8 @@ import unittest
 from datetime import timedelta
 from unittest.mock import Mock, patch
 
+import pytest
+
 from django.conf import settings
 from django.contrib.sessions.backends.cache import SessionStore as CacheSession
 from django.core.cache import DEFAULT_CACHE_ALIAS, cache, caches
@@ -31,92 +33,82 @@ def reverse_key(key):
     return key.split("#", 2)[2]
 
 
-class DjangoRedisConnectionStrings(unittest.TestCase):
-    def test_connection_strings(self):
-        connection_strings = [
-            "unix://tmp/foo.bar?db=1",
-            "redis://localhost/2",
-            "rediss://localhost:3333?db=2",
-        ]
-        cf = pool.get_connection_factory(
-            path="django_redis.pool.ConnectionFactory", options={}
-        )
-        for connection_string in connection_strings:
-            with self.subTest(connection_string):
-                res = cf.make_connection_params(connection_string)
-                self.assertEqual(res["url"], connection_string)
+@pytest.mark.parametrize(
+    "connection_string",
+    [
+        "unix://tmp/foo.bar?db=1",
+        "redis://localhost/2",
+        "rediss://localhost:3333?db=2",
+    ]
+)
+def test_connection_strings(connection_string):
+    cf = pool.get_connection_factory(
+        path="django_redis.pool.ConnectionFactory", options={}
+    )
+    res = cf.make_connection_params(connection_string)
+    assert res["url"] == connection_string
 
 
-class DjangoRedisCacheTestEscapePrefix(unittest.TestCase):
-    def setUp(self):
-
-        caches_setting = copy.deepcopy(settings.CACHES)
-        caches_setting["default"]["KEY_PREFIX"] = "*"
-        cm = override_settings(CACHES=caches_setting)
-        cm.enable()
-        self.addCleanup(cm.disable)
-
-        self.cache = caches["default"]
-        self.other = caches["with_prefix"]
-
-    def tearDown(self):
-        self.cache.clear()
-        self.other.clear()
-
-    def test_delete_pattern(self):
-        self.cache.set("a", "1")
-        self.other.set("b", "2")
-        self.cache.delete_pattern("*")
-        self.assertIs(self.cache.has_key("a"), False)
-        self.assertEqual(self.other.get("b"), "2")
-
-    def test_iter_keys(self):
-        if isinstance(self.cache.client, ShardClient):
-            self.skipTest("ShardClient doesn't support iter_keys")
-
-        self.cache.set("a", "1")
-        self.other.set("b", "2")
-        self.assertEqual(list(self.cache.iter_keys("*")), ["a"])
-
-    def test_keys(self):
-        self.cache.set("a", "1")
-        self.other.set("b", "2")
-        keys = self.cache.keys("*")
-        self.assertIn("a", keys)
-        self.assertNotIn("b", keys)
+@pytest.fixture()
+def available_caches(settings):
+    caches_setting = copy.deepcopy(settings.CACHES)
+    caches_setting["default"]["KEY_PREFIX"] = "*"
+    settings.CACHES = caches_setting
+    cache = caches["default"]
+    other = caches["with_prefix"]
+    yield cache, other
+    cache.clear()
+    other.clear()
 
 
-class DjangoRedisCacheTestCustomKeyFunction(unittest.TestCase):
-    def setUp(self):
-        caches_setting = copy.deepcopy(settings.CACHES)
-        caches_setting["default"]["KEY_FUNCTION"] = "test_backend.make_key"
-        caches_setting["default"]["REVERSE_KEY_FUNCTION"] = "test_backend.reverse_key"
-        cm = override_settings(CACHES=caches_setting)
-        cm.enable()
-        self.addCleanup(cm.disable)
+class TestDjangoRedisCacheEscapePrefix:
+    def test_delete_pattern(self, available_caches):
+        cache, other = available_caches
+        cache.set("a", "1")
+        other.set("b", "2")
+        cache.delete_pattern("*")
+        assert cache.has_key("a") is False
+        assert other.get("b") == "2"
 
-        self.cache = caches["default"]
+    def test_iter_keys(self, available_caches):
+        cache, other = available_caches
+        if isinstance(cache.client, ShardClient):
+            pytest.skip("ShardClient doesn't support iter_keys")
 
-    def tearDown(self):
-        self.cache.clear()
+        cache.set("a", "1")
+        other.set("b", "2")
+        assert list(cache.iter_keys("*")) == ["a"]
 
-    def test_custom_key_function(self):
-        if isinstance(self.cache.client, ShardClient):
-            self.skipTest("ShardClient doesn't support get_client")
+    def test_keys(self, available_caches):
+        cache, other = available_caches
+        cache.set("a", "1")
+        other.set("b", "2")
+        keys = cache.keys("*")
+        assert "a" in keys
+        assert "b" not in keys
 
-        for key in ["foo-aa", "foo-ab", "foo-bb", "foo-bc"]:
-            self.cache.set(key, "foo")
 
-        res = self.cache.delete_pattern("*foo-a*")
-        self.assertTrue(bool(res))
+def test_custom_key_function(settings):
+    caches_setting = copy.deepcopy(settings.CACHES)
+    caches_setting["default"]["KEY_FUNCTION"] = "test_backend.make_key"
+    caches_setting["default"]["REVERSE_KEY_FUNCTION"] = "test_backend.reverse_key"
+    settings.CACHES = caches_setting
+    cache = caches["default"]
 
-        keys = self.cache.keys("foo*")
-        self.assertEqual(set(keys), {"foo-bb", "foo-bc"})
-        # ensure our custom function was actually called
-        self.assertEqual(
-            {k.decode() for k in self.cache.client.get_client(write=False).keys("*")},
-            {"#1#foo-bc", "#1#foo-bb"},
-        )
+    if isinstance(cache.client, ShardClient):
+        pytest.skip("ShardClient doesn't support get_client")
+
+    for key in ["foo-aa", "foo-ab", "foo-bb", "foo-bc"]:
+        cache.set(key, "foo")
+
+    res = cache.delete_pattern("*foo-a*")
+    assert bool(res)
+
+    keys = cache.keys("foo*")
+    assert set(keys) == {"foo-bb", "foo-bc"}
+    # ensure our custom function was actually called
+    assert {k.decode() for k in cache.client.get_client(write=False).keys("*")} == {"#1#foo-bc", "#1#foo-bb"}
+    cache.clear()
 
 
 class DjangoRedisCacheTests(unittest.TestCase):
