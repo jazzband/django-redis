@@ -43,7 +43,7 @@ class TestDjangoRedisCache:
     def test_setnx_timeout(self, cache):
         # test that timeout still works for nx=True
         res = cache.set("test_key_nx", 1, timeout=2, nx=True)
-        assert res
+        assert res is True
         time.sleep(3)
         res = cache.get("test_key_nx")
         assert res is None
@@ -249,7 +249,7 @@ class TestDjangoRedisCache:
         cache.set("a", 1)
         res = cache.delete("a")
         assert isinstance(res, bool)
-        assert res
+        assert res is True
         res = cache.delete("b")
         assert isinstance(res, bool)
         assert res is False
@@ -259,10 +259,10 @@ class TestDjangoRedisCache:
         mocker.patch("django_redis.cache.DJANGO_VERSION", new=(3, 0, 1, "final", 0))
         cache.set("a", 1)
         res = cache.delete("a")
-        assert type(res) == int
+        assert isinstance(res, int)
         assert res == 1
         res = cache.delete("b")
-        assert type(res) == int
+        assert isinstance(res, int)
         assert res == 0
 
     def test_delete_many(self, cache):
