@@ -5,7 +5,6 @@ import threading
 import time
 import unittest
 from datetime import timedelta
-from unittest.mock import Mock, patch
 
 import pytest
 
@@ -300,7 +299,7 @@ class TestDjangoRedisCache:
         res = default_cache.get_many(["a", "b", "c"])
         assert res == {"a": 1, "b": 2, "c": 3}
 
-    def test_set_call_empty_pipeline(self, default_cache):
+    def test_set_call_empty_pipeline(self, default_cache, mocker):
         if isinstance(default_cache.client, ShardClient):
             self.skipTest("ShardClient doesn't support get_client")
 
@@ -308,8 +307,8 @@ class TestDjangoRedisCache:
         key = "key"
         value = "value"
 
-        with patch.object(pipeline, "set") as mocked_set:
-            default_cache.set(key, value, client=pipeline)
+        mocked_set = mocker.patch.object(pipeline, "set")
+        default_cache.set(key, value, client=pipeline)
 
         if isinstance(default_cache.client, herd.HerdClient):
             default_timeout = default_cache.client._backend.default_timeout
@@ -613,10 +612,10 @@ class TestDjangoRedisCache:
         default_cache.set("f", "1")
         default_cache.close()
 
-    def test_close_client(self, default_cache):
-        with patch.object(default_cache.client, "close") as mock:
-            default_cache.close()
-            assert mock.called
+    def test_close_client(self, default_cache, mocker):
+        mock = mocker.patch.object(default_cache.client, "close")
+        default_cache.close()
+        assert mock.called
 
     def test_ttl(self, default_cache):
         default_cache.set("foo", "bar", 10)
@@ -1272,20 +1271,20 @@ class TestDefaultClient:
         get_client_mock = mocker.patch("test_backend.DefaultClient.get_client")
         init_mock = mocker.patch("test_backend.DefaultClient.__init__", return_value=None)
         client = DefaultClient()
-        client._backend = Mock()
+        client._backend = mocker.Mock()
         client._backend.key_prefix = ""
 
         client.delete_pattern(pattern="foo*")
         get_client_mock.assert_called_once_with(write=True)
 
     def test_delete_pattern_calls_make_pattern(
-        self,  mocker
+        self, mocker
     ):
         make_pattern_mock = mocker.patch("test_backend.DefaultClient.make_pattern")
-        get_client_mock = mocker.patch("test_backend.DefaultClient.get_client", return_value=Mock())
+        get_client_mock = mocker.patch("test_backend.DefaultClient.get_client", return_value=mocker.Mock())
         init_mock = mocker.patch("test_backend.DefaultClient.__init__", return_value=None)
         client = DefaultClient()
-        client._backend = Mock()
+        client._backend = mocker.Mock()
         client._backend.key_prefix = ""
         get_client_mock.return_value.scan_iter.return_value = []
 
@@ -1301,10 +1300,10 @@ class TestDefaultClient:
         self, mocker
     ):
         make_pattern_mock = mocker.patch("test_backend.DefaultClient.make_pattern")
-        get_client_mock = mocker.patch("test_backend.DefaultClient.get_client", return_value=Mock())
+        get_client_mock = mocker.patch("test_backend.DefaultClient.get_client", return_value=mocker.Mock())
         init_mock = mocker.patch("test_backend.DefaultClient.__init__", return_value=None)
         client = DefaultClient()
-        client._backend = Mock()
+        client._backend = mocker.Mock()
         client._backend.key_prefix = ""
         get_client_mock.return_value.scan_iter.return_value = []
 
@@ -1322,10 +1321,10 @@ class TestShardClient:
         init_mock = mocker.patch("test_backend.ShardClient.__init__", return_value=None)
         make_pattern_mock = mocker.patch("test_backend.DefaultClient.make_pattern")
         client = ShardClient()
-        client._backend = Mock()
+        client._backend = mocker.Mock()
         client._backend.key_prefix = ""
 
-        connection = Mock()
+        connection = mocker.Mock()
         connection.scan_iter.return_value = []
         client._serverdict = {"test": connection}
 
@@ -1339,9 +1338,9 @@ class TestShardClient:
         make_pattern_mock = mocker.patch("test_backend.DefaultClient.make_pattern")
         init_mock = mocker.patch("test_backend.ShardClient.__init__", return_value=None)
         client = ShardClient()
-        client._backend = Mock()
+        client._backend = mocker.Mock()
         client._backend.key_prefix = ""
-        connection = Mock()
+        connection = mocker.Mock()
         connection.scan_iter.return_value = []
         client._serverdict = {"test": connection}
 
@@ -1357,10 +1356,10 @@ class TestShardClient:
         make_pattern_mock = mocker.patch("test_backend.DefaultClient.make_pattern")
         init_mock = mocker.patch("test_backend.ShardClient.__init__", return_value=None)
         client = ShardClient()
-        client._backend = Mock()
+        client._backend = mocker.Mock()
         client._backend.key_prefix = ""
-        connection = Mock()
-        connection.scan_iter.return_value = [Mock(), Mock()]
+        connection = mocker.Mock()
+        connection.scan_iter.return_value = [mocker.Mock(), mocker.Mock()]
         connection.delete.return_value = 0
         client._serverdict = {"test": connection}
 
