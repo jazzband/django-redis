@@ -8,7 +8,7 @@ from .base import BaseSerializer
 
 class PickleSerializer(BaseSerializer):
     def __init__(self, options) -> None:
-        self._pickle_version = -1
+        self._pickle_version = pickle.DEFAULT_PROTOCOL
         self.setup_pickle_version(options)
 
         super().__init__(options=options)
@@ -17,6 +17,11 @@ class PickleSerializer(BaseSerializer):
         if "PICKLE_VERSION" in options:
             try:
                 self._pickle_version = int(options["PICKLE_VERSION"])
+                if self._pickle_version > pickle.HIGHEST_PROTOCOL:
+                    raise ImproperlyConfigured(
+                        f"PICKLE_VERSION can't be higher than pickle.HIGHEST_PROTOCOL:"
+                        f" {pickle.HIGHEST_PROTOCOL}"
+                    )
             except (ValueError, TypeError):
                 raise ImproperlyConfigured("PICKLE_VERSION value must be an integer")
 
