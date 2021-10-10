@@ -11,7 +11,7 @@ from django_redis import pool
         "rediss://localhost:3333?db=2",
     ],
 )
-def test_connection_strings(connection_string):
+def test_connection_strings(connection_string: str):
     cf = pool.get_connection_factory(
         path="django_redis.pool.ConnectionFactory", options={}
     )

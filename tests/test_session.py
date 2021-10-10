@@ -1,14 +1,18 @@
 import base64
 import unittest
 from datetime import timedelta
+from typing import Optional, Type
 
 from django.conf import settings
+from django.contrib.sessions.backends.base import SessionBase
 from django.contrib.sessions.backends.cache import SessionStore as CacheSession
 from django.core.cache import DEFAULT_CACHE_ALIAS, caches
 from django.test import override_settings
 from django.utils import timezone
 
 from django_redis.serializers.msgpack import MSGPackSerializer
+
+SessionType = Type[SessionBase]
 
 
 # Copied from Django's sessions test suite. Keep in sync with upstream.
@@ -18,7 +22,7 @@ class SessionTestsMixin:
     # class, which wouldn't work, and to allow different TestCase subclasses to
     # be used.
 
-    backend = None  # subclasses must specify
+    backend: Optional[SessionType] = None  # subclasses must specify
 
     def setUp(self):
         self.session = self.backend()

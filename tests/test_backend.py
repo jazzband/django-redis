@@ -2,12 +2,16 @@ import datetime
 import threading
 import time
 from datetime import timedelta
+from typing import Generator, List, Union, cast
 
 import pytest
 from django.core.cache import cache as default_cache
 from django.core.cache import caches
+from pytest_django.fixtures import SettingsWrapper
+from pytest_mock import MockerFixture
 
 import django_redis.cache
+from django_redis.cache import RedisCache
 from django_redis.client import ShardClient, herd
 from django_redis.serializers.json import JSONSerializer
 from django_redis.serializers.msgpack import MSGPackSerializer
@@ -16,13 +20,13 @@ herd.CACHE_HERD_TIMEOUT = 2
 
 
 @pytest.fixture
-def cache():
+def cache() -> Generator[RedisCache, None, None]:
     yield default_cache
     default_cache.clear()
 
 
 class TestDjangoRedisCache:
-    def test_setnx(self, cache):
+    def test_setnx(self, cache: RedisCache):
         # we should ensure there is no test_key_nx in redis
         cache.delete("test_key_nx")
         res = cache.get("test_key_nx")
@@ -40,7 +44,7 @@ class TestDjangoRedisCache:
         res = cache.get("test_key_nx")
         assert res is None
 
-    def test_setnx_timeout(self, cache):
+    def test_setnx_timeout(self, cache: RedisCache):
         # test that timeout still works for nx=True
         res = cache.set("test_key_nx", 1, timeout=2, nx=True)
         assert res is True
@@ -60,19 +64,19 @@ class TestDjangoRedisCache:
         res = cache.get("test_key_nx")
         assert res is None
 
-    def test_unicode_keys(self, cache):
+    def test_unicode_keys(self, cache: RedisCache):
         cache.set("ключ", "value")
         res = cache.get("ключ")
         assert res == "value"
 
-    def test_save_and_integer(self, cache):
+    def test_save_and_integer(self, cache: RedisCache):
         cache.set("test_key", 2)
         res = cache.get("test_key", "Foo")
 
         assert isinstance(res, int)
         assert res == 2
 
-    def test_save_string(self, cache):
+    def test_save_string(self, cache: RedisCache):
         cache.set("test_key", "hello" * 1000)
         res = cache.get("test_key")
 
@@ -85,18 +89,18 @@ class TestDjangoRedisCache:
         assert isinstance(res, str)
         assert res == "2"
 
-    def test_save_unicode(self, cache):
+    def test_save_unicode(self, cache: RedisCache):
         cache.set("test_key", "heló")
         res = cache.get("test_key")
 
         assert isinstance(res, str)
         assert res == "heló"
 
-    def test_save_dict(self, cache):
+    def test_save_dict(self, cache: RedisCache):
         if isinstance(cache.client._serializer, (JSONSerializer, MSGPackSerializer)):
             # JSONSerializer and MSGPackSerializer use the isoformat for
             # datetimes.
-            now_dt = datetime.datetime.now().isoformat()
+            now_dt: Union[str, datetime.datetime] = datetime.datetime.now().isoformat()
         else:
             now_dt = datetime.datetime.now()
 
@@ -110,7 +114,7 @@ class TestDjangoRedisCache:
         assert res["name"] == "Foo"
         assert res["date"] == now_dt
 
-    def test_save_float(self, cache):
+    def test_save_float(self, cache: RedisCache):
         float_val = 1.345620002
 
         cache.set("test_key", float_val)
@@ -119,19 +123,19 @@ class TestDjangoRedisCache:
         assert isinstance(res, float)
         assert res == float_val
 
-    def test_timeout(self, cache):
+    def test_timeout(self, cache: RedisCache):
         cache.set("test_key", 222, timeout=3)
         time.sleep(4)
 
         res = cache.get("test_key")
         assert res is None
 
-    def test_timeout_0(self, cache):
+    def test_timeout_0(self, cache: RedisCache):
         cache.set("test_key", 222, timeout=0)
         res = cache.get("test_key")
         assert res is None
 
-    def test_timeout_parameter_as_positional_argument(self, cache):
+    def test_timeout_parameter_as_positional_argument(self, cache: RedisCache):
         cache.set("test_key", 222, -1)
         res = cache.get("test_key")
         assert res is None
@@ -149,7 +153,7 @@ class TestDjangoRedisCache:
         res = cache.get("test_key")
         assert res == 222
 
-    def test_timeout_negative(self, cache):
+    def test_timeout_negative(self, cache: RedisCache):
         cache.set("test_key", 222, timeout=-1)
         res = cache.get("test_key")
         assert res is None
@@ -165,12 +169,12 @@ class TestDjangoRedisCache:
         res = cache.get("test_key")
         assert res == 222
 
-    def test_timeout_tiny(self, cache):
+    def test_timeout_tiny(self, cache: RedisCache):
         cache.set("test_key", 222, timeout=0.00001)
         res = cache.get("test_key")
         assert res in (None, 222)
 
-    def test_set_add(self, cache):
+    def test_set_add(self, cache: RedisCache):
         cache.set("add_key", "Initial value")
         res = cache.add("add_key", "New value")
         assert res is False
@@ -180,7 +184,7 @@ class TestDjangoRedisCache:
         res = cache.add("other_key", "New value")
         assert res is True
 
-    def test_get_many(self, cache):
+    def test_get_many(self, cache: RedisCache):
         cache.set("a", 1)
         cache.set("b", 2)
         cache.set("c", 3)
@@ -188,7 +192,7 @@ class TestDjangoRedisCache:
         res = cache.get_many(["a", "b", "c"])
         assert res == {"a": 1, "b": 2, "c": 3}
 
-    def test_get_many_unicode(self, cache):
+    def test_get_many_unicode(self, cache: RedisCache):
         cache.set("a", "1")
         cache.set("b", "2")
         cache.set("c", "3")
@@ -196,12 +200,12 @@ class TestDjangoRedisCache:
         res = cache.get_many(["a", "b", "c"])
         assert res == {"a": "1", "b": "2", "c": "3"}
 
-    def test_set_many(self, cache):
+    def test_set_many(self, cache: RedisCache):
         cache.set_many({"a": 1, "b": 2, "c": 3})
         res = cache.get_many(["a", "b", "c"])
         assert res == {"a": 1, "b": 2, "c": 3}
 
-    def test_set_call_empty_pipeline(self, cache, mocker):
+    def test_set_call_empty_pipeline(self, cache: RedisCache, mocker: MockerFixture):
         if isinstance(cache.client, ShardClient):
             pytest.skip("ShardClient doesn't support get_client")
 
@@ -232,7 +236,7 @@ class TestDjangoRedisCache:
                 xx=False,
             )
 
-    def test_delete(self, cache):
+    def test_delete(self, cache: RedisCache):
         cache.set_many({"a": 1, "b": 2, "c": 3})
         res = cache.delete("a")
         assert bool(res) is True
@@ -243,7 +247,9 @@ class TestDjangoRedisCache:
         res = cache.delete("a")
         assert bool(res) is False
 
-    def test_delete_return_value_type_new31(self, cache, mocker):
+    def test_delete_return_value_type_new31(
+        self, cache: RedisCache, mocker: MockerFixture
+    ):
         """delete() returns a boolean instead of int since django version 3.1"""
         mocker.patch("django_redis.cache.DJANGO_VERSION", new=(3, 1, 0, "final", 0))
         cache.set("a", 1)
@@ -254,7 +260,9 @@ class TestDjangoRedisCache:
         assert isinstance(res, bool)
         assert res is False
 
-    def test_delete_return_value_type_before31(self, cache, mocker):
+    def test_delete_return_value_type_before31(
+        self, cache: RedisCache, mocker: MockerFixture
+    ):
         """delete() returns a int before django version 3.1"""
         mocker.patch("django_redis.cache.DJANGO_VERSION", new=(3, 0, 1, "final", 0))
         cache.set("a", 1)
@@ -265,7 +273,7 @@ class TestDjangoRedisCache:
         assert isinstance(res, int)
         assert res == 0
 
-    def test_delete_many(self, cache):
+    def test_delete_many(self, cache: RedisCache):
         cache.set_many({"a": 1, "b": 2, "c": 3})
         res = cache.delete_many(["a", "b"])
         assert bool(res) is True
@@ -276,7 +284,7 @@ class TestDjangoRedisCache:
         res = cache.delete_many(["a", "b"])
         assert bool(res) is False
 
-    def test_delete_many_generator(self, cache):
+    def test_delete_many_generator(self, cache: RedisCache):
         cache.set_many({"a": 1, "b": 2, "c": 3})
         res = cache.delete_many(key for key in ["a", "b"])
         assert bool(res) is True
@@ -287,11 +295,11 @@ class TestDjangoRedisCache:
         res = cache.delete_many(["a", "b"])
         assert bool(res) is False
 
-    def test_delete_many_empty_generator(self, cache):
-        res = cache.delete_many(key for key in [])
+    def test_delete_many_empty_generator(self, cache: RedisCache):
+        res = cache.delete_many(key for key in cast(List[str], []))
         assert bool(res) is False
 
-    def test_incr(self, cache):
+    def test_incr(self, cache: RedisCache):
         if isinstance(cache.client, herd.HerdClient):
             pytest.skip("HerdClient doesn't support incr")
 
@@ -322,7 +330,7 @@ class TestDjangoRedisCache:
         res = cache.get("num")
         assert res == 5
 
-    def test_incr_no_timeout(self, cache):
+    def test_incr_no_timeout(self, cache: RedisCache):
         if isinstance(cache.client, herd.HerdClient):
             pytest.skip("HerdClient doesn't support incr")
 
@@ -353,7 +361,7 @@ class TestDjangoRedisCache:
         res = cache.get("num")
         assert res == 5
 
-    def test_incr_error(self, cache):
+    def test_incr_error(self, cache: RedisCache):
         if isinstance(cache.client, herd.HerdClient):
             pytest.skip("HerdClient doesn't support incr")
 
@@ -361,7 +369,7 @@ class TestDjangoRedisCache:
             # key does not exist
             cache.incr("numnum")
 
-    def test_incr_ignore_check(self, cache):
+    def test_incr_ignore_check(self, cache: RedisCache):
         if isinstance(cache.client, ShardClient):
             pytest.skip("ShardClient doesn't support argument ignore_key_check to incr")
         if isinstance(cache.client, herd.HerdClient):
@@ -398,7 +406,7 @@ class TestDjangoRedisCache:
         res = cache.get("num")
         assert res == 5
 
-    def test_get_set_bool(self, cache):
+    def test_get_set_bool(self, cache: RedisCache):
         cache.set("bool", True)
         res = cache.get("bool")
 
@@ -411,7 +419,7 @@ class TestDjangoRedisCache:
         assert isinstance(res, bool)
         assert res is False
 
-    def test_decr(self, cache):
+    def test_decr(self, cache: RedisCache):
         if isinstance(cache.client, herd.HerdClient):
             pytest.skip("HerdClient doesn't support decr")
 
@@ -446,7 +454,7 @@ class TestDjangoRedisCache:
         res = cache.get("num")
         assert res == 9223372036854775805
 
-    def test_version(self, cache):
+    def test_version(self, cache: RedisCache):
         cache.set("keytest", 2, version=2)
         res = cache.get("keytest")
         assert res is None
@@ -454,7 +462,7 @@ class TestDjangoRedisCache:
         res = cache.get("keytest", version=2)
         assert res == 2
 
-    def test_incr_version(self, cache):
+    def test_incr_version(self, cache: RedisCache):
         cache.set("keytest", 2)
         cache.incr_version("keytest")
 
@@ -464,7 +472,7 @@ class TestDjangoRedisCache:
         res = cache.get("keytest", version=2)
         assert res == 2
 
-    def test_ttl_incr_version_no_timeout(self, cache):
+    def test_ttl_incr_version_no_timeout(self, cache: RedisCache):
         cache.set("my_key", "hello world!", timeout=None)
 
         cache.incr_version("my_key")
@@ -473,7 +481,7 @@ class TestDjangoRedisCache:
 
         assert my_value == "hello world!"
 
-    def test_delete_pattern(self, cache):
+    def test_delete_pattern(self, cache: RedisCache):
         for key in ["foo-aa", "foo-ab", "foo-bb", "foo-bc"]:
             cache.set(key, "foo")
 
@@ -486,7 +494,9 @@ class TestDjangoRedisCache:
         res = cache.delete_pattern("*foo-a*")
         assert bool(res) is False
 
-    def test_delete_pattern_with_custom_count(self, cache, mocker):
+    def test_delete_pattern_with_custom_count(
+        self, cache: RedisCache, mocker: MockerFixture
+    ):
         client_mock = mocker.patch("django_redis.cache.RedisCache.client")
         for key in ["foo-aa", "foo-ab", "foo-bb", "foo-bc"]:
             cache.set(key, "foo")
@@ -495,7 +505,9 @@ class TestDjangoRedisCache:
 
         client_mock.delete_pattern.assert_called_once_with("*foo-a*", itersize=2)
 
-    def test_delete_pattern_with_settings_default_scan_count(self, cache, mocker):
+    def test_delete_pattern_with_settings_default_scan_count(
+        self, cache: RedisCache, mocker: MockerFixture
+    ):
         client_mock = mocker.patch("django_redis.cache.RedisCache.client")
         for key in ["foo-aa", "foo-ab", "foo-bb", "foo-bc"]:
             cache.set(key, "foo")
@@ -507,17 +519,17 @@ class TestDjangoRedisCache:
             "*foo-a*", itersize=expected_count
         )
 
-    def test_close(self, cache, settings):
+    def test_close(self, cache: RedisCache, settings: SettingsWrapper):
         settings.DJANGO_REDIS_CLOSE_CONNECTION = True
         cache.set("f", "1")
         cache.close()
 
-    def test_close_client(self, cache, mocker):
+    def test_close_client(self, cache: RedisCache, mocker: MockerFixture):
         mock = mocker.patch.object(cache.client, "close")
         cache.close()
         assert mock.called
 
-    def test_ttl(self, cache):
+    def test_ttl(self, cache: RedisCache):
         cache.set("foo", "bar", 10)
         ttl = cache.ttl("foo")
 
@@ -540,7 +552,7 @@ class TestDjangoRedisCache:
         ttl = cache.ttl("not-existent-key")
         assert ttl == 0
 
-    def test_pttl(self, cache):
+    def test_pttl(self, cache: RedisCache):
 
         # Test pttl
         cache.set("foo", "bar", 10)
@@ -575,27 +587,27 @@ class TestDjangoRedisCache:
         ttl = cache.pttl("not-existent-key")
         assert ttl == 0
 
-    def test_persist(self, cache):
+    def test_persist(self, cache: RedisCache):
         cache.set("foo", "bar", timeout=20)
         cache.persist("foo")
 
         ttl = cache.ttl("foo")
         assert ttl is None
 
-    def test_expire(self, cache):
+    def test_expire(self, cache: RedisCache):
         cache.set("foo", "bar", timeout=None)
         cache.expire("foo", 20)
         ttl = cache.ttl("foo")
         assert pytest.approx(ttl) == 20
 
-    def test_pexpire(self, cache):
+    def test_pexpire(self, cache: RedisCache):
         cache.set("foo", "bar", timeout=None)
         cache.pexpire("foo", 20500)
         ttl = cache.pttl("foo")
         # delta is set to 10 as precision error causes tests to fail
         assert pytest.approx(ttl, 10) == 20500
 
-    def test_expire_at(self, cache):
+    def test_expire_at(self, cache: RedisCache):
 
         # Test settings expiration time 1 hour ahead by datetime.
         cache.set("foo", "bar", timeout=None)
@@ -618,7 +630,7 @@ class TestDjangoRedisCache:
         value = cache.get("foo")
         assert value is None
 
-    def test_lock(self, cache):
+    def test_lock(self, cache: RedisCache):
         lock = cache.lock("foobar")
         lock.acquire(blocking=True)
 
@@ -626,7 +638,7 @@ class TestDjangoRedisCache:
         lock.release()
         assert not cache.has_key("foobar")
 
-    def test_lock_released_by_thread(self, cache):
+    def test_lock_released_by_thread(self, cache: RedisCache):
         lock = cache.lock("foobar", thread_local=False)
         lock.acquire(blocking=True)
 
@@ -639,8 +651,8 @@ class TestDjangoRedisCache:
 
         assert not cache.has_key("foobar")
 
-    def test_iter_keys(self, cache):
-        cache = caches["default"]
+    def test_iter_keys(self, cache: RedisCache):
+        cache = cast(RedisCache, caches["default"])
         if isinstance(cache.client, ShardClient):
             pytest.skip("ShardClient doesn't support iter_keys")
 
@@ -652,20 +664,38 @@ class TestDjangoRedisCache:
         result = set(cache.iter_keys("foo*"))
         assert result == {"foo1", "foo2", "foo3"}
 
+    def test_iter_keys_itersize(self, cache: RedisCache):
+        cache = cast(RedisCache, caches["default"])
+        if isinstance(cache.client, ShardClient):
+            pytest.skip("ShardClient doesn't support iter_keys")
+
+        cache.set("foo1", 1)
+        cache.set("foo2", 1)
+        cache.set("foo3", 1)
+
         # Test limited result
         result = list(cache.iter_keys("foo*", itersize=2))
         assert len(result) == 3
+
+    def test_iter_keys_generator(self, cache: RedisCache):
+        cache = cast(RedisCache, caches["default"])
+        if isinstance(cache.client, ShardClient):
+            pytest.skip("ShardClient doesn't support iter_keys")
+
+        cache.set("foo1", 1)
+        cache.set("foo2", 1)
+        cache.set("foo3", 1)
 
         # Test generator object
         result = cache.iter_keys("foo*")
         next_value = next(result)
         assert next_value is not None
 
-    def test_primary_replica_switching(self, cache):
+    def test_primary_replica_switching(self, cache: RedisCache):
         if isinstance(cache.client, ShardClient):
             pytest.skip("ShardClient doesn't support get_client")
 
-        cache = caches["sample"]
+        cache = cast(RedisCache, caches["sample"])
         client = cache.client
         client._server = ["foo", "bar"]
         client._clients = ["Foo", "Bar"]
@@ -673,14 +703,14 @@ class TestDjangoRedisCache:
         assert client.get_client(write=True) == "Foo"
         assert client.get_client(write=False) == "Bar"
 
-    def test_touch_zero_timeout(self, cache):
+    def test_touch_zero_timeout(self, cache: RedisCache):
         cache.set("test_key", 222, timeout=10)
 
         assert cache.touch("test_key", 0) is True
         res = cache.get("test_key")
         assert res is None
 
-    def test_touch_positive_timeout(self, cache):
+    def test_touch_positive_timeout(self, cache: RedisCache):
         cache.set("test_key", 222, timeout=10)
 
         assert cache.touch("test_key", 2) is True
@@ -688,17 +718,17 @@ class TestDjangoRedisCache:
         time.sleep(3)
         assert cache.get("test_key") is None
 
-    def test_touch_negative_timeout(self, cache):
+    def test_touch_negative_timeout(self, cache: RedisCache):
         cache.set("test_key", 222, timeout=10)
 
         assert cache.touch("test_key", -1) is True
         res = cache.get("test_key")
         assert res is None
 
-    def test_touch_missed_key(self, cache):
+    def test_touch_missed_key(self, cache: RedisCache):
         assert cache.touch("test_key_does_not_exist", 1) is False
 
-    def test_touch_forever(self, cache):
+    def test_touch_forever(self, cache: RedisCache):
         cache.set("test_key", "foo", timeout=1)
         result = cache.touch("test_key", None)
         assert result is True
@@ -706,18 +736,18 @@ class TestDjangoRedisCache:
         time.sleep(2)
         assert cache.get("test_key") == "foo"
 
-    def test_touch_forever_nonexistent(self, cache):
+    def test_touch_forever_nonexistent(self, cache: RedisCache):
         result = cache.touch("test_key_does_not_exist", None)
         assert result is False
 
-    def test_touch_default_timeout(self, cache):
+    def test_touch_default_timeout(self, cache: RedisCache):
         cache.set("test_key", "foo", timeout=1)
         result = cache.touch("test_key")
         assert result is True
         time.sleep(2)
         assert cache.get("test_key") == "foo"
 
-    def test_clear(self, cache):
+    def test_clear(self, cache: RedisCache):
         cache.set("foo", "bar")
         value_from_cache = cache.get("foo")
         assert value_from_cache == "bar"
