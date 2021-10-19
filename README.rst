@@ -614,7 +614,7 @@ In order to enable this functionality you should add the following:
     CACHES = {
         "default": {
             "BACKEND": "django_redis.cache.RedisCache",
-            # The hostname in location is actually used as the master name
+            # The hostname in LOCATION is the primary (service / master) name
             "LOCATION": "redis://service_name/db",
             "OPTIONS": {
                 # While the default client will work, this will check you
