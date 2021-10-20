@@ -193,8 +193,8 @@ Pickle version
 
 For almost all values, django-redis uses pickle to serialize objects.
 
-The latest available version of pickle is used by default. If you want set a
-concrete version, you can do it, using ``PICKLE_VERSION`` option:
+The ``pickle.DEFAULT_PROTOCOL`` version of pickle is used by default to ensure safe upgrades and compatibility across Python versions.
+If you want set a concrete version, you can do it, using ``PICKLE_VERSION`` option:
 
 .. code-block:: python
 
@@ -202,7 +202,7 @@ concrete version, you can do it, using ``PICKLE_VERSION`` option:
         "default": {
             # ...
             "OPTIONS": {
-                "PICKLE_VERSION": -1  # Use the latest protocol version
+                "PICKLE_VERSION": -1  # Will use highest protocol version available
             }
         }
     }
