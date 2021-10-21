@@ -1,0 +1,12 @@
+[tool.towncrier]
+directory = "changelog.d"
+filename = "CHANGELOG.rst"
+issue_format = "`#{issue} <https://github.com/jazzband/django-redis/issues/{issue}>`_"
+name = "django-redis"
+package = "django_redis"
+type = [
+  { name = "Features",                  directory = "feature", showcontent = true },
+  { name = "Bug Fixes",                 directory = "bugfix",  showcontent = true },
+  { name = "Documentation",             directory = "doc",  showcontent = true },
+  { name = "Deprecations and Removals", directory = "removal", showcontent = true },
+]
