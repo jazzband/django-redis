@@ -29,11 +29,7 @@ jobs:
         run: |
           python setup.py --version
           python setup.py sdist --format=gztar bdist_wheel
-          # Allow twine check errors for now because our README has sections
-          # that will produce errors, but have been uploaded in the past.
-          #
-          # PR: https://github.com/pypa/readme_renderer/pull/199
-          twine check dist/* || true
+          twine check dist/*
 
       - name: Upload packages to Jazzband
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
