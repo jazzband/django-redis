@@ -885,6 +885,24 @@ Setting True as a value will instruct the django-redis to close all the connecti
         }
     }
 
+SSL/TLS and Self-Signed certificates
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In case you encounter a Redis server offering a TLS connection using a self-signed certificate, your settings may look something like:
+
+.. code-block:: python
+
+    CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": "rediss://127.0.0.1:6379/1",
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+                "CONNECTION_POOL_KWARGS": {"ssl_cert_reqs": None}
+            }
+        }
+    }
+
+
 License
 -------
 
