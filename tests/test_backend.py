@@ -2,7 +2,8 @@ import datetime
 import threading
 import time
 from datetime import timedelta
-from typing import Generator, List, Union, cast
+from typing import Iterable, List, Union, cast
+from unittest.mock import patch
 
 import pytest
 from django.core.cache import cache as default_cache
@@ -20,7 +21,7 @@ herd.CACHE_HERD_TIMEOUT = 2
 
 
 @pytest.fixture
-def cache() -> Generator[RedisCache, None, None]:
+def cache() -> Iterable[RedisCache]:
     yield default_cache
     default_cache.clear()
 
@@ -247,11 +248,9 @@ class TestDjangoRedisCache:
         res = cache.delete("a")
         assert bool(res) is False
 
-    def test_delete_return_value_type_new31(
-        self, cache: RedisCache, mocker: MockerFixture
-    ):
+    @patch("django_redis.cache.DJANGO_VERSION", (3, 1, 0, "final", 0))
+    def test_delete_return_value_type_new31(self, cache: RedisCache):
         """delete() returns a boolean instead of int since django version 3.1"""
-        mocker.patch("django_redis.cache.DJANGO_VERSION", new=(3, 1, 0, "final", 0))
         cache.set("a", 1)
         res = cache.delete("a")
         assert isinstance(res, bool)
@@ -260,11 +259,9 @@ class TestDjangoRedisCache:
         assert isinstance(res, bool)
         assert res is False
 
-    def test_delete_return_value_type_before31(
-        self, cache: RedisCache, mocker: MockerFixture
-    ):
+    @patch("django_redis.cache.DJANGO_VERSION", new=(3, 0, 1, "final", 0))
+    def test_delete_return_value_type_before31(self, cache: RedisCache):
         """delete() returns a int before django version 3.1"""
-        mocker.patch("django_redis.cache.DJANGO_VERSION", new=(3, 0, 1, "final", 0))
         cache.set("a", 1)
         res = cache.delete("a")
         assert isinstance(res, int)
@@ -494,10 +491,8 @@ class TestDjangoRedisCache:
         res = cache.delete_pattern("*foo-a*")
         assert bool(res) is False
 
-    def test_delete_pattern_with_custom_count(
-        self, cache: RedisCache, mocker: MockerFixture
-    ):
-        client_mock = mocker.patch("django_redis.cache.RedisCache.client")
+    @patch("django_redis.cache.RedisCache.client")
+    def test_delete_pattern_with_custom_count(self, client_mock, cache: RedisCache):
         for key in ["foo-aa", "foo-ab", "foo-bb", "foo-bc"]:
             cache.set(key, "foo")
 
@@ -505,10 +500,10 @@ class TestDjangoRedisCache:
 
         client_mock.delete_pattern.assert_called_once_with("*foo-a*", itersize=2)
 
+    @patch("django_redis.cache.RedisCache.client")
     def test_delete_pattern_with_settings_default_scan_count(
-        self, cache: RedisCache, mocker: MockerFixture
+        self, client_mock, cache: RedisCache
     ):
-        client_mock = mocker.patch("django_redis.cache.RedisCache.client")
         for key in ["foo-aa", "foo-ab", "foo-bb", "foo-bc"]:
             cache.set(key, "foo")
         expected_count = django_redis.cache.DJANGO_REDIS_SCAN_ITERSIZE
