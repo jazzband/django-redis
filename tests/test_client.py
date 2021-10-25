@@ -1,8 +1,8 @@
-from typing import Iterable, cast
+from typing import Iterable
 from unittest.mock import Mock, patch
 
 import pytest
-from django.core.cache import DEFAULT_CACHE_ALIAS, caches
+from django.core.cache import DEFAULT_CACHE_ALIAS
 from pytest_django.fixtures import SettingsWrapper
 from pytest_mock import MockerFixture
 
@@ -11,12 +11,11 @@ from django_redis.client import DefaultClient, ShardClient
 
 
 @pytest.fixture
-def cache_client() -> Iterable[DefaultClient]:
-    client = cast(RedisCache, caches[DEFAULT_CACHE_ALIAS]).client
+def cache_client(cache: RedisCache) -> Iterable[DefaultClient]:
+    client = cache.client
     client.set("TestClientClose", 0)
     yield client
     client.delete("TestClientClose")
-    client.clear()
 
 
 class TestClientClose:
@@ -65,7 +64,7 @@ class TestDefaultClient:
     def test_delete_pattern_calls_get_client_given_no_client(
         self, init_mock, get_client_mock
     ):
-        client = DefaultClient()  # type: ignore
+        client = DefaultClient()
         client._backend = Mock()
         client._backend.key_prefix = ""
 
@@ -78,7 +77,7 @@ class TestDefaultClient:
     def test_delete_pattern_calls_make_pattern(
         self, init_mock, get_client_mock, make_pattern_mock
     ):
-        client = DefaultClient()  # type: ignore
+        client = DefaultClient()
         client._backend = Mock()
         client._backend.key_prefix = ""
         get_client_mock.return_value.scan_iter.return_value = []
@@ -86,9 +85,6 @@ class TestDefaultClient:
         client.delete_pattern(pattern="foo*")
 
         kwargs = {"version": None, "prefix": None}
-        # if not isinstance(caches['default'].client, ShardClient):
-        # kwargs['prefix'] = None
-
         make_pattern_mock.assert_called_once_with("foo*", **kwargs)
 
     @patch("test_client.DefaultClient.make_pattern")
@@ -97,7 +93,7 @@ class TestDefaultClient:
     def test_delete_pattern_calls_scan_iter_with_count_if_itersize_given(
         self, init_mock, get_client_mock, make_pattern_mock
     ):
-        client = DefaultClient()  # type: ignore
+        client = DefaultClient()
         client._backend = Mock()
         client._backend.key_prefix = ""
         get_client_mock.return_value.scan_iter.return_value = []

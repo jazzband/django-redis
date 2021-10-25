@@ -63,13 +63,13 @@ def test_get_django_omit_exceptions_priority_2(settings: SettingsWrapper):
 
 
 @pytest.fixture
-def key_prefix_cache(settings: SettingsWrapper) -> Iterable[RedisCache]:
+def key_prefix_cache(
+    cache: RedisCache, settings: SettingsWrapper
+) -> Iterable[RedisCache]:
     caches_setting = copy.deepcopy(settings.CACHES)
     caches_setting["default"]["KEY_PREFIX"] = "*"
     settings.CACHES = caches_setting
-    cache = cast(RedisCache, caches["default"])
     yield cache
-    cache.clear()
 
 
 @pytest.fixture
@@ -107,12 +107,11 @@ class TestDjangoRedisCacheEscapePrefix:
         assert "b" not in keys
 
 
-def test_custom_key_function(settings: SettingsWrapper):
+def test_custom_key_function(cache: RedisCache, settings: SettingsWrapper):
     caches_setting = copy.deepcopy(settings.CACHES)
     caches_setting["default"]["KEY_FUNCTION"] = "test_cache_options.make_key"
     caches_setting["default"]["REVERSE_KEY_FUNCTION"] = "test_cache_options.reverse_key"
     settings.CACHES = caches_setting
-    cache = cast(RedisCache, caches["default"])
 
     if isinstance(cache.client, ShardClient):
         pytest.skip("ShardClient doesn't support get_client")
@@ -129,4 +128,3 @@ def test_custom_key_function(settings: SettingsWrapper):
     assert {k.decode() for k in cache.client.get_client(write=False).keys("*")} == (
         {"#1#foo-bc", "#1#foo-bb"}
     )
-    cache.clear()

@@ -2,11 +2,10 @@ import datetime
 import threading
 import time
 from datetime import timedelta
-from typing import Iterable, List, Union, cast
+from typing import List, Union, cast
 from unittest.mock import patch
 
 import pytest
-from django.core.cache import cache as default_cache
 from django.core.cache import caches
 from pytest_django.fixtures import SettingsWrapper
 from pytest_mock import MockerFixture
@@ -18,12 +17,6 @@ from django_redis.serializers.json import JSONSerializer
 from django_redis.serializers.msgpack import MSGPackSerializer
 
 herd.CACHE_HERD_TIMEOUT = 2
-
-
-@pytest.fixture
-def cache() -> Iterable[RedisCache]:
-    yield default_cache
-    default_cache.clear()
 
 
 class TestDjangoRedisCache:
@@ -647,7 +640,6 @@ class TestDjangoRedisCache:
         assert not cache.has_key("foobar")
 
     def test_iter_keys(self, cache: RedisCache):
-        cache = cast(RedisCache, caches["default"])
         if isinstance(cache.client, ShardClient):
             pytest.skip("ShardClient doesn't support iter_keys")
 
@@ -660,7 +652,6 @@ class TestDjangoRedisCache:
         assert result == {"foo1", "foo2", "foo3"}
 
     def test_iter_keys_itersize(self, cache: RedisCache):
-        cache = cast(RedisCache, caches["default"])
         if isinstance(cache.client, ShardClient):
             pytest.skip("ShardClient doesn't support iter_keys")
 
@@ -673,7 +664,6 @@ class TestDjangoRedisCache:
         assert len(result) == 3
 
     def test_iter_keys_generator(self, cache: RedisCache):
-        cache = cast(RedisCache, caches["default"])
         if isinstance(cache.client, ShardClient):
             pytest.skip("ShardClient doesn't support iter_keys")
 
