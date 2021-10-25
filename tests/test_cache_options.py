@@ -1,5 +1,5 @@
 import copy
-from typing import Generator, cast
+from typing import Iterable, cast
 
 import pytest
 from django.core.cache import caches
@@ -63,7 +63,7 @@ def test_get_django_omit_exceptions_priority_2(settings: SettingsWrapper):
 
 
 @pytest.fixture
-def key_prefix_cache(settings: SettingsWrapper) -> Generator[RedisCache, None, None]:
+def key_prefix_cache(settings: SettingsWrapper) -> Iterable[RedisCache]:
     caches_setting = copy.deepcopy(settings.CACHES)
     caches_setting["default"]["KEY_PREFIX"] = "*"
     settings.CACHES = caches_setting
@@ -73,7 +73,7 @@ def key_prefix_cache(settings: SettingsWrapper) -> Generator[RedisCache, None, N
 
 
 @pytest.fixture
-def with_prefix_cache() -> Generator[RedisCache, None, None]:
+def with_prefix_cache() -> Iterable[RedisCache]:
     with_prefix = cast(RedisCache, caches["with_prefix"])
     yield with_prefix
     with_prefix.clear()
