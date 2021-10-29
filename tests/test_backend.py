@@ -624,7 +624,6 @@ class TestDjangoRedisCache:
         expiration_time = datetime.datetime.now() + timedelta(hours=2)
         assert cache.expire_at("not-existent-key", expiration_time) is False
 
-
     def test_lock(self, cache: RedisCache):
         lock = cache.lock("foobar")
         lock.acquire(blocking=True)
