@@ -266,14 +266,13 @@ class DefaultClient:
 
     def persist(
         self, key: Any, version: Optional[int] = None, client: Optional[Redis] = None
-    ) -> None:
+    ) -> bool:
         if client is None:
             client = self.get_client(write=True)
 
         key = self.make_key(key, version=version)
 
-        if client.exists(key):
-            client.persist(key)
+        return client.persist(key)
 
     def expire(
         self,
@@ -281,23 +280,21 @@ class DefaultClient:
         timeout,
         version: Optional[int] = None,
         client: Optional[Redis] = None,
-    ) -> None:
+    ) -> bool:
         if client is None:
             client = self.get_client(write=True)
 
         key = self.make_key(key, version=version)
 
-        if client.exists(key):
-            client.expire(key, timeout)
+        return client.expire(key, timeout)
 
-    def pexpire(self, key, timeout, version=None, client=None):
+    def pexpire(self, key, timeout, version=None, client=None) -> int:
         if client is None:
             client = self.get_client(write=True)
 
         key = self.make_key(key, version=version)
 
-        if client.exists(key):
-            client.pexpire(key, timeout)
+        return client.pexpire(key, timeout)
 
     def expire_at(
         self,
@@ -305,7 +302,7 @@ class DefaultClient:
         when: Union[datetime, int],
         version: Optional[int] = None,
         client: Optional[Redis] = None,
-    ) -> None:
+    ) -> bool:
         """
         Set an expire flag on a ``key`` to ``when``, which can be represented
         as an integer indicating unix time or a Python datetime object.
@@ -315,8 +312,7 @@ class DefaultClient:
 
         key = self.make_key(key, version=version)
 
-        if client.exists(key):
-            client.expireat(key, when)
+        return client.expireat(key, when)
 
     def lock(
         self,
