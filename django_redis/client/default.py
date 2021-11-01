@@ -288,13 +288,33 @@ class DefaultClient:
 
         return client.expire(key, timeout)
 
-    def pexpire(self, key, timeout, version=None, client=None) -> int:
+    def pexpire(self, key, timeout, version=None, client=None) -> bool:
         if client is None:
             client = self.get_client(write=True)
 
         key = self.make_key(key, version=version)
 
-        return client.pexpire(key, timeout)
+        # Temporary casting until https://github.com/redis/redis-py/issues/1664
+        # is fixed.
+        return bool(client.pexpire(key, timeout))
+
+    def pexpire_at(
+        self,
+        key: Any,
+        when: Union[datetime, int],
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
+    ) -> bool:
+        """
+        Set an expire flag on a ``key`` to ``when``, which can be represented
+        as an integer indicating unix time or a Python datetime object.
+        """
+        if client is None:
+            client = self.get_client(write=True)
+
+        key = self.make_key(key, version=version)
+
+        return bool(client.pexpireat(key, when))
 
     def expire_at(
         self,

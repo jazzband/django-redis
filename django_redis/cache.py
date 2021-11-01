@@ -169,6 +169,10 @@ class RedisCache(BaseCache):
         return self.client.pexpire(*args, **kwargs)
 
     @omit_exception
+    def pexpire_at(self, *args, **kwargs):
+        return self.client.pexpire_at(*args, **kwargs)
+
+    @omit_exception
     def lock(self, *args, **kwargs):
         return self.client.lock(*args, **kwargs)
 

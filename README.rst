@@ -405,15 +405,27 @@ specify a new expiration timeout using the ``persist`` and ``expire`` methods:
     >>> cache.ttl("foo")
     5
 
-The ``expireat`` method can be used to make the key expire at a specific moment in time.
+The ``expire_at`` method can be used to make the key expire at a specific moment in time.
 
 .. code-block:: pycon
 
     >>> cache.set("foo", "bar", timeout=22)
-    >>> cache.expireat("foo", datetime.now() + timedelta(hours=1))
+    >>> cache.expire_at("foo", datetime.now() + timedelta(hours=1))
     True
     >>> cache.ttl("foo")
     3600
+
+The ``pexpire_at`` method can be used to make the key expire at a specific moment in time with milliseconds precision:
+
+.. code-block:: pycon
+
+    >>> cache.set("foo", "bar", timeout=22)
+    >>> cache.pexpire_at("foo", datetime.now() + timedelta(milliseconds=900, hours=1))
+    True
+    >>> cache.ttl("foo")
+    3601
+    >>> cache.pttl("foo")
+    3600900
 
 The ``pexpire`` method can be used to provide millisecond precision:
 

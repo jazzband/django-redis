@@ -592,11 +592,37 @@ class TestDjangoRedisCache:
 
     def test_pexpire(self, cache: RedisCache):
         cache.set("foo", "bar", timeout=None)
-        assert cache.pexpire("foo", 20500) == 1
+        assert cache.pexpire("foo", 20500) is True
         ttl = cache.pttl("foo")
         # delta is set to 10 as precision error causes tests to fail
         assert pytest.approx(ttl, 10) == 20500
-        assert cache.pexpire("not-existent-key", 20500) == 0
+        assert cache.pexpire("not-existent-key", 20500) is False
+
+    def test_pexpire_at(self, cache: RedisCache):
+
+        # Test settings expiration time 1 hour ahead by datetime.
+        cache.set("foo", "bar", timeout=None)
+        expiration_time = datetime.datetime.now() + timedelta(hours=1)
+        assert cache.pexpire_at("foo", expiration_time) is True
+        ttl = cache.pttl("foo")
+        assert pytest.approx(ttl, 10) == timedelta(hours=1).total_seconds()
+
+        # Test settings expiration time 1 hour ahead by Unix timestamp.
+        cache.set("foo", "bar", timeout=None)
+        expiration_time = datetime.datetime.now() + timedelta(hours=2)
+        assert cache.pexpire_at("foo", int(expiration_time.timestamp() * 1000)) is True
+        ttl = cache.pttl("foo")
+        assert pytest.approx(ttl, 10) == timedelta(hours=2).total_seconds() * 1000
+
+        # Test settings expiration time 1 hour in past, which effectively
+        # deletes the key.
+        expiration_time = datetime.datetime.now() - timedelta(hours=2)
+        assert cache.pexpire_at("foo", expiration_time) is True
+        value = cache.get("foo")
+        assert value is None
+
+        expiration_time = datetime.datetime.now() + timedelta(hours=2)
+        assert cache.pexpire_at("not-existent-key", expiration_time) is False
 
     def test_expire_at(self, cache: RedisCache):
 
