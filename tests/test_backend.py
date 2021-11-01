@@ -581,7 +581,7 @@ class TestDjangoRedisCache:
 
         ttl = cache.ttl("foo")
         assert ttl is None
-        assert cache.persist("not-existent-key") is True
+        assert cache.persist("not-existent-key") is False
 
     def test_expire(self, cache: RedisCache):
         cache.set("foo", "bar", timeout=None)
@@ -596,7 +596,7 @@ class TestDjangoRedisCache:
         ttl = cache.pttl("foo")
         # delta is set to 10 as precision error causes tests to fail
         assert pytest.approx(ttl, 10) == 20500
-        assert cache.pexpire("not-existent-key", 20500) is False
+        assert cache.pexpire("not-existent-key", 20500) == 1
 
     def test_expire_at(self, cache: RedisCache):
 
