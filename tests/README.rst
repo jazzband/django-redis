@@ -15,6 +15,6 @@ Running the test suite
   tox
 
   # shut down redis
-for container in $PRIMARY $SENTINEL; do
-  docker stop $container && docker rm $container
-done
+  for container in $PRIMARY $SENTINEL; do
+    docker stop $container && docker rm $container
+  done
