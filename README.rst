@@ -433,7 +433,7 @@ The ``pexpire`` method can be used to provide millisecond precision:
 
     >>> cache.set("foo", "bar", timeout=22)
     >>> cache.pexpire("foo", timeout=5500)
-    1
+    True
     >>> cache.pttl("foo")
     5500
 
