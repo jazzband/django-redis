@@ -176,7 +176,9 @@ class ShardClient(DefaultClient):
             key = self.make_key(key, version=version)
             client = self.get_server(key)
 
-        return super().pexpireat(key=key, timeout=timeout, version=version, client=client)
+        return super().pexpireat(
+            key=key, timeout=timeout, version=version, client=client
+        )
 
     def expire_at(self, key, when: Union[datetime, int], version=None, client=None):
         """
