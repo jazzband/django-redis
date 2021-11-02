@@ -171,6 +171,18 @@ class ShardClient(DefaultClient):
 
         return super().pexpire(key=key, timeout=timeout, version=version, client=client)
 
+    def pexpire_at(self, key, when: Union[datetime, int], version=None, client=None):
+        """
+        Set an expire flag on a ``key`` to ``when`` on a shard client.
+        ``when`` which can be represented as an integer indicating unix
+        time or a Python datetime object.
+        """
+        if client is None:
+            key = self.make_key(key, version=version)
+            client = self.get_server(key)
+
+        return super().pexpire_at(key=key, when=when, version=version, client=client)
+
     def expire_at(self, key, when: Union[datetime, int], version=None, client=None):
         """
         Set an expire flag on a ``key`` to ``when`` on a shard client.
