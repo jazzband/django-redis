@@ -42,7 +42,7 @@ class DefaultClient:
         if not isinstance(self._server, (list, tuple, set)):
             self._server = self._server.split(",")
 
-        self._clients = [None] * len(self._server)  # type: List[Optional[Redis]]
+        self._clients: List[Optional[Redis]] = [None] * len(self._server)
         self._options = params.get("OPTIONS", {})
         self._replica_read_only = self._options.get("REPLICA_READ_ONLY", True)
 
@@ -146,7 +146,7 @@ class DefaultClient:
             timeout = self._backend.default_timeout
 
         original_client = client
-        tried = []  # type: List[int]
+        tried: List[int] = []
         while True:
             try:
                 if client is None:

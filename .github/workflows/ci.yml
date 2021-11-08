@@ -179,6 +179,6 @@ jobs:
         run: |
           if ! towncrier check; then
             echo ''
-            echo "Please add a description of your changes to 'changelog.d/{issue or PR number}.{feature,bugfix,removal}'"
+            echo "Please add a description of your changes to 'changelog.d/{issue or PR number}.{feature,bugfix,misc,doc,removal}'"
             exit 1
           fi
