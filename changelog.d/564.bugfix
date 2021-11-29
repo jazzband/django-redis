@@ -1,1 +1,0 @@
-Make expire, pexpire, expireat and persist return the redis client value
