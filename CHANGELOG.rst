@@ -3,7 +3,7 @@ Changelog
 
 .. towncrier release notes start
 
-Django_Redis 5.0.1 (2021-11-29)
+Django_Redis 5.1.0 (2021-11-29)
 ===============================
 
 Features
