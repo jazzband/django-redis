@@ -1,1 +1,0 @@
-Pin redis-py to 3.x until 4.x breaking changes can be addressed.

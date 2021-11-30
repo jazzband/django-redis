@@ -3,6 +3,41 @@ Changelog
 
 .. towncrier release notes start
 
+Django_Redis 5.1.0 (2021-11-29)
+===============================
+
+Features
+--------
+
+- Add Python 3.10 to CI (`#536 <https://github.com/jazzband/django-redis/issues/536>`_)
+- Configured ``towncrier`` to generate the changelog. (`#548 <https://github.com/jazzband/django-redis/issues/548>`_)
+- Added ``django_redis.compressors.zstd.ZStdCompressor`` to provide ``pyzstd`` cache value compression. (`#551 <https://github.com/jazzband/django-redis/issues/551>`_)
+- Change pickle default version to Python default instead of highest version. (`#555 <https://github.com/jazzband/django-redis/issues/555>`_)
+- Add ``hiredis`` extra dependency to request ``redis[hiredis]``. (`#556 <https://github.com/jazzband/django-redis/issues/556>`_)
+- Add pexpireat to allow setting 'expire at' with millisecond precision. (`#564 <https://github.com/jazzband/django-redis/issues/564>`_)
+
+
+Bug Fixes
+---------
+
+- Make expire, pexpire, expireat and persist return the redis client value (`#564 <https://github.com/jazzband/django-redis/issues/564>`_)
+
+
+Miscellaneous
+-------------
+
+- Convert most unittest class tests to pytest tests. (`#553 <https://github.com/jazzband/django-redis/issues/553>`_)
+- Update type comments to type annotations. (`#568 <https://github.com/jazzband/django-redis/issues/568>`_)
+- Pin redis-py to 3.x until 4.x breaking changes can be addressed. (`#570 <https://github.com/jazzband/django-redis/issues/570>`_)
+
+
+Documentation
+-------------
+
+- Clarify redis primary name in sentinel documentation. (`#529 <https://github.com/jazzband/django-redis/issues/529>`_)
+- Add documentation on configuring self signed SSL certificates. (`#559 <https://github.com/jazzband/django-redis/issues/559>`_)
+
+
 django-redis 5.0.0 (2021-05-30)
 ===============================
 
