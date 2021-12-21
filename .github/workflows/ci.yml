@@ -24,14 +24,14 @@ jobs:
           - '2.2'
           - '3.1'
           - '3.2'
+          - '4.0'
         redis-version:
           - 'latest'
 
         # only test pre-release dependencies for the latest Python
         include:
-          # TODO: re-enable with https://github.com/jazzband/django-redis/issues/569
           # latest Django with pre-release redis
-          - django-version: '3.2'
+          - django-version: '4.0'
             redis-version: 'master'
             python-version: '3.10'
 
@@ -40,11 +40,18 @@ jobs:
             redis-version: 'latest'
             python-version: '3.10'
 
-          # TODO: re-enable with https://github.com/jazzband/django-redis/issues/569
           # pre-release Django and redis
           - django-version: 'main'
             redis-version: 'master'
             python-version: '3.10'
+
+        # exclude python 3.6 and 3.7 for django 4.x as they are not supported see https://docs.djangoproject.com/en/dev/releases/4.0/#python-compatibility
+        exclude:
+          - django-version: '4.0'
+            python-version: '3.6'
+
+          - django-version: '4.0'
+            python-version: '3.7'
 
     steps:
       - uses: actions/checkout@v2
