@@ -3,6 +3,22 @@ Changelog
 
 .. towncrier release notes start
 
+django-redis 5.1.0 (2021-12-22)
+===============================
+
+Bug Fixes
+---------
+
+- Block use with broken redis-py 4.0.0 and 4.0.1 (`#542 <https://github.com/jazzband/django-redis/issues/542>`_)
+
+
+Miscellaneous
+-------------
+
+- Unblock redis-py >=4.0.2 (`#576 <https://github.com/jazzband/django-redis/issues/576>`_)
+- Add support for django 4 (`#579 <https://github.com/jazzband/django-redis/issues/579>`_)
+
+
 Django_Redis 5.1.0 (2021-11-29)
 ===============================
 
