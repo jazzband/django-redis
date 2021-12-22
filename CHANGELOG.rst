@@ -3,7 +3,7 @@ Changelog
 
 .. towncrier release notes start
 
-django-redis 5.1.0 (2021-12-22)
+django-redis 5.2.0 (2021-12-22)
 ===============================
 
 Bug Fixes
