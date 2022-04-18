@@ -24,6 +24,7 @@ class Values2(IntEnum):
     SOMETHING_1 = 1
     SOMETHING_2 = 2
 
+
 class TestDjangoRedisCache:
     def test_setnx(self, cache: RedisCache):
         # we should ensure there is no test_key_nx in redis
