@@ -2,6 +2,7 @@ import datetime
 import threading
 import time
 from datetime import timedelta
+from enum import IntEnum
 from typing import List, Union, cast
 from unittest.mock import patch
 
@@ -18,6 +19,10 @@ from django_redis.serializers.msgpack import MSGPackSerializer
 
 herd.CACHE_HERD_TIMEOUT = 2
 
+
+class Values2(IntEnum):
+    SOMETHING_1 = 1
+    SOMETHING_2 = 2
 
 class TestDjangoRedisCache:
     def test_setnx(self, cache: RedisCache):
@@ -649,6 +654,16 @@ class TestDjangoRedisCache:
 
         expiration_time = datetime.datetime.now() + timedelta(hours=2)
         assert cache.expire_at("not-existent-key", expiration_time) is False
+
+    def test_intenum(self, cache: RedisCache):
+
+        cache.set("hello", Values2.SOMETHING_1, enforce_encoding=True)
+
+        value = cache.get("hello")
+
+        assert value == Values2.SOMETHING_1
+
+        assert isinstance(value, Values2)
 
     def test_lock(self, cache: RedisCache):
         lock = cache.lock("foobar")
