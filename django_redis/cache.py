@@ -32,7 +32,7 @@ def omit_exception(
         except ConnectionInterrupted as e:
             if self._ignore_exceptions:
                 if self._log_ignored_exceptions:
-                    self.logger.exception(str(e))
+                    self.logger.exception("Exception ignored")
 
                 return return_value
             raise e.__cause__
