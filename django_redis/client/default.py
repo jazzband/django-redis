@@ -393,9 +393,13 @@ class DefaultClient:
 
         try:
             count = 0
+            pipeline = client.pipeline()
+
             for key in client.scan_iter(match=pattern, count=itersize):
-                client.delete(key)
+                pipeline.delete(key)
                 count += 1
+            pipeline.execute()
+
             return count
         except _main_exceptions as e:
             raise ConnectionInterrupted(connection=client) from e
