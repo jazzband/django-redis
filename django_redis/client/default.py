@@ -776,7 +776,7 @@ class DefaultClient:
     def hdel(
             self,
             name: Any,
-            *keys: List,
+            *keys: Union[str, bytes],
             client: Optional[Redis] = None,
     ) -> bool:
 
@@ -790,8 +790,8 @@ class DefaultClient:
     def hset(
             self,
             name: Any,
-            key: Optional[Any] = None,
-            value: Optional[Any] = None,
+            key: Union[str, bytes] = None,
+            value: Union[bytes, float, int, str] = None,
             mapping: Optional[dict] = None,
             client: Optional[Redis] = None,
     ) -> bool:
