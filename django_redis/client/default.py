@@ -778,11 +778,11 @@ class DefaultClient:
              *keys: List,
              client: Optional[Redis] = None,
              ) -> bool:
-        
+
         if client is None:
             client = self.get_client(write=True)
         try:
-            return client.hdel(name, *keys)
+            return bool(client.hdel(name, *keys))
         except _main_exceptions as e:
             raise ConnectionInterrupted(connection=client) from e
 
