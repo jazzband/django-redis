@@ -790,8 +790,8 @@ class DefaultClient:
     def hset(
             self,
             name: Any,
-            key: Union[str, bytes] = None,
-            value: Union[bytes, float, int, str] = None,
+            key: Union[str, bytes],
+            value: Union[bytes, float, int, str],
             mapping: Optional[dict] = None,
             client: Optional[Redis] = None,
     ) -> bool:
