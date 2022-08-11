@@ -773,11 +773,12 @@ class DefaultClient:
             timeout = int(timeout * 1000)
             return bool(client.pexpire(key, timeout))
 
-    def hdel(self,
-             name: Any,
-             *keys: List,
-             client: Optional[Redis] = None,
-             ) -> bool:
+    def hdel(
+            self,
+            name: Any,
+            *keys: List,
+            client: Optional[Redis] = None,
+    ) -> bool:
 
         if client is None:
             client = self.get_client(write=True)
@@ -785,7 +786,6 @@ class DefaultClient:
             return bool(client.hdel(name, *keys))
         except _main_exceptions as e:
             raise ConnectionInterrupted(connection=client) from e
-
 
     def hset(
             self,
