@@ -778,7 +778,7 @@ class DefaultClient:
              *keys: List,
              client: Optional[Redis] = None,
              ) -> bool:
-
+        
         if client is None:
             client = self.get_client(write=True)
         try:
