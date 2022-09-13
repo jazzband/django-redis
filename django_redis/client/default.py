@@ -776,12 +776,11 @@ class DefaultClient:
     def hdel(
             self,
             name: Any,
-            *keys: Union[str, bytes],
+            keys: List,
             client: Optional[Redis] = None,
             version: Optional[int] = None,
     ) -> bool:
         name = self.make_key(name, version=version)
-
         if client is None:
             client = self.get_client(write=True)
         try:
@@ -805,7 +804,6 @@ class DefaultClient:
         value = self.encode(value)
         while True:
             try:
-
                 if client is None:
                     client, index = self.get_client(
                         write=True, tried=tried, show_index=True
@@ -835,7 +833,7 @@ class DefaultClient:
             client = self.get_client(write=False)
 
         name = self.make_key(name, version=version)
-        print(name, key, "get")
+
         try:
             value = client.hget(name, key)
         except _main_exceptions as e:
