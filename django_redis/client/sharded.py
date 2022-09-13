@@ -325,7 +325,7 @@ class ShardClient(DefaultClient):
             connection.flushdb()
 
     def hset(
-            self, name, key, value, timeout=DEFAULT_TIMEOUT, version=None, client=None
+        self, name, key, value, timeout=DEFAULT_TIMEOUT, version=None, client=None
     ):
         """
         Persist a value to the cache, and set an optional expiration time.
@@ -338,9 +338,7 @@ class ShardClient(DefaultClient):
             name=name, key=key, value=value, version=version, client=client
         )
 
-    def hget(
-            self, name, key, version=None, client=None
-    ):
+    def hget(self, name, key, version=None, client=None):
         """
         Persist a value to the cache, and set an optional expiration time.
         """
@@ -348,9 +346,7 @@ class ShardClient(DefaultClient):
             name = self.make_key(name, version=version)
             client = self.get_server(name)
 
-        return super().hget(
-            name=name, key=key, version=version, client=client
-        )
+        return super().hget(name=name, key=key, version=version, client=client)
 
     def hdel(self, name, *keys, version=None, client=None):
         if client is None:
