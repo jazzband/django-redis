@@ -784,4 +784,4 @@ class TestDjangoRedisCache:
         cache.hset("foo", "bar", "baz")
         cache.hset("foo", "baz", "bar")
         cache.hdel("foo", "bar")
-        assert cache.hget("foo", "bar") == None
+        assert cache.hget("foo", "bar") is None
