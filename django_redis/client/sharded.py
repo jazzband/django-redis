@@ -352,8 +352,8 @@ class ShardClient(DefaultClient):
             name=name, key=key, version=version, client=client
         )
 
-    def hdel(self, name, *keys, version=None, client=None):
+    def hdel(self, name, keys, version=None, client=None):
         if client is None:
             name = self.make_key(name, version=version)
             client = self.get_server(name)
-        return super().hdel(name=name, keys=keys, version=version, client=client)
+        return super().hdel(name=name, keys=keys, version=version, client=client, )

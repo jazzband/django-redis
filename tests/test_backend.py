@@ -783,6 +783,6 @@ class TestDjangoRedisCache:
     def test_hdel(self, cache: RedisCache):
         cache.hset("foo", "bar", "baz")
         cache.hset("foo", "baz", "bar")
-        cache.hdel("foo", "bar", "baz")
+        cache.hdel("foo", ["bar", "baz"])
         assert cache.hget("foo", "bar") is None
         assert cache.hget("foo", "baz") is None
