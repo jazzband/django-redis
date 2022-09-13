@@ -191,3 +191,7 @@ class RedisCache(BaseCache):
     @omit_exception
     def hset(self, *args, **kwargs):
         return self.client.hset(*args, **kwargs)
+
+    @omit_exception
+    def hget(self, *args, **kwargs):
+        return self.client.hget(*args, **kwargs)
