@@ -811,8 +811,7 @@ class DefaultClient:
                     client, index = self.get_client(
                         write=True, tried=tried, show_index=True
                     )
-                print(bool(client.hset(name, key, value, mapping)))
-                print(name,key,value,'set')
+
                 return bool(client.hset(name, key, value, mapping))
             except _main_exceptions as e:
                 if (
