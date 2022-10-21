@@ -59,8 +59,12 @@ class DefaultClient:
         self._serializer = serializer_cls(options=self._options)
         self._compressor = compressor_cls(options=self._options)
 
+        # First check if local override provided, else fall back to settings
         connection_factory_path = self._options.get(
-            "CONNECTION_FACTORY", "django_redis.pool.ConnectionFactory"
+            "CONNECTION_FACTORY",
+            settings.get(
+                "DJANGO_REDIS_CONNECTION_FACTORY", "django_redis.pool.ConnectionFactory"
+            ),
         )
         self.connection_factory = pool.get_connection_factory(
             path=connection_factory_path, options=self._options

@@ -667,6 +667,9 @@ In order to enable this functionality you should add the following:
 
 .. code-block:: python
 
+    # Enable the alternate connection factory.
+    DJANGO_REDIS_CONNECTION_FACTORY = 'django_redis.pool.SentinelConnectionFactory'
+
     # These sentinels are shared between all the examples, and are passed
     # directly to redis Sentinel. These can also be defined inline.
     SENTINELS = [
@@ -690,9 +693,6 @@ In order to enable this functionality you should add the following:
                 # Sentinels which are passed directly to redis Sentinel.
                 "SENTINELS": SENTINELS,
 
-                # Enable the alternate connection factory.
-                "CONNECTION_FACTORY": 'django_redis.pool.SentinelConnectionFactory',
-
                 # kwargs for redis Sentinel (optional).
                 "SENTINEL_KWARGS": {},
 
@@ -711,7 +711,6 @@ In order to enable this functionality you should add the following:
 
             "OPTIONS": {
                 "CLIENT_CLASS": "django_redis.client.SentinelClient",
-                "CONNECTION_FACTORY": 'django_redis.pool.SentinelConnectionFactory',
                 "SENTINELS": SENTINELS,
             },
         },
@@ -727,7 +726,6 @@ In order to enable this functionality you should add the following:
             ],
             "OPTIONS": {
                 "SENTINELS": SENTINELS,
-                "CONNECTION_FACTORY": 'django_redis.pool.SentinelConnectionFactory'
             },
         },
 
@@ -738,7 +736,40 @@ In order to enable this functionality you should add the following:
             "LOCATION": "redis://readonly_service_name/db?is_master=0",
             "OPTIONS": {
                 "SENTINELS": SENTINELS,
+            },
+        },
+    }
+
+You could also setup some caches as sentinel and some as not. See the following example:
+
+.. code-block:: python
+
+    SENTINELS = [
+        ('sentinel-1', 26379),
+        ('sentinel-2', 26379),
+        ('sentinel-3', 26379),
+    ]
+
+    CACHES = {
+        "sentinel_cache": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": "redis://service_name/db",
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.SentinelClient",
+                "SENTINELS": SENTINELS,
+                # Enable the alternate connection factory.
                 "CONNECTION_FACTORY": 'django_redis.pool.SentinelConnectionFactory',
+                "CONNECTION_POOL_CLASS": "redis.sentinel.SentinelConnectionPool",
+            },
+        },
+
+        "non_sentinel_cache": {
+            "BACKEND": "django_redis.cache.RedisCache",
+
+            "LOCATION": "redis://minimal_service_name/db",
+
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
             },
         },
     }
