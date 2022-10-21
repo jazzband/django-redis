@@ -667,9 +667,6 @@ In order to enable this functionality you should add the following:
 
 .. code-block:: python
 
-    # Enable the alternate connection factory.
-    DJANGO_REDIS_CONNECTION_FACTORY = 'django_redis.pool.SentinelConnectionFactory'
-
     # These sentinels are shared between all the examples, and are passed
     # directly to redis Sentinel. These can also be defined inline.
     SENTINELS = [
@@ -693,6 +690,9 @@ In order to enable this functionality you should add the following:
                 # Sentinels which are passed directly to redis Sentinel.
                 "SENTINELS": SENTINELS,
 
+                # Enable the alternate connection factory.
+                "CONNECTION_FACTORY": 'django_redis.pool.SentinelConnectionFactory',
+
                 # kwargs for redis Sentinel (optional).
                 "SENTINEL_KWARGS": {},
 
@@ -711,6 +711,7 @@ In order to enable this functionality you should add the following:
 
             "OPTIONS": {
                 "CLIENT_CLASS": "django_redis.client.SentinelClient",
+                "CONNECTION_FACTORY": 'django_redis.pool.SentinelConnectionFactory',
                 "SENTINELS": SENTINELS,
             },
         },
@@ -724,7 +725,10 @@ In order to enable this functionality you should add the following:
                 "redis://other_service_name/db?is_master=1",
                 "redis://other_service_name/db?is_master=0",
             ],
-            "OPTIONS": {"SENTINELS": SENTINELS},
+            "OPTIONS": {
+                "SENTINELS": SENTINELS,
+                "CONNECTION_FACTORY": 'django_redis.pool.SentinelConnectionFactory'
+            },
         },
 
         # A minimal example only using only replicas in read only mode (and
@@ -732,7 +736,10 @@ In order to enable this functionality you should add the following:
         "readonly": {
             "BACKEND": "django_redis.cache.RedisCache",
             "LOCATION": "redis://readonly_service_name/db?is_master=0",
-            "OPTIONS": {"SENTINELS": SENTINELS},
+            "OPTIONS": {
+                "SENTINELS": SENTINELS,
+                "CONNECTION_FACTORY": 'django_redis.pool.SentinelConnectionFactory',
+            },
         },
     }
 
