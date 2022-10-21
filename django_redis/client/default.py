@@ -62,8 +62,10 @@ class DefaultClient:
         # First check if local override provided, else fall back to settings
         connection_factory_path = self._options.get(
             "CONNECTION_FACTORY",
-            settings.get(
-                "DJANGO_REDIS_CONNECTION_FACTORY", "django_redis.pool.ConnectionFactory"
+            getattr(
+                settings,
+                "DJANGO_REDIS_CONNECTION_FACTORY",
+                "django_redis.pool.ConnectionFactory",
             ),
         )
         self.connection_factory = pool.get_connection_factory(
