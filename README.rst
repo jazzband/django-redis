@@ -483,6 +483,15 @@ pattern syntax as the ``keys`` function and returns the number of deleted keys.
     >>> from django.core.cache import cache
     >>> cache.delete_pattern("foo_*")
 
+To achieve the best performance while deleting many keys, you should set ``DJANGO_REDIS_SCAN_ITERSIZE`` to a relatively
+high number (e.g., 100_000) by default in Django settings or pass it directly to the ``delete_pattern``.
+
+
+.. code-block:: pycon
+
+    >>> from django.core.cache import cache
+    >>> cache.delete_pattern("foo_*", itersize=100_000)
+
 Redis native commands
 ~~~~~~~~~~~~~~~~~~~~~
 
