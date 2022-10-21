@@ -724,9 +724,7 @@ In order to enable this functionality you should add the following:
                 "redis://other_service_name/db?is_master=1",
                 "redis://other_service_name/db?is_master=0",
             ],
-            "OPTIONS": {
-                "SENTINELS": SENTINELS,
-            },
+            "OPTIONS": {"SENTINELS": SENTINELS},
         },
 
         # A minimal example only using only replicas in read only mode (and
@@ -734,9 +732,7 @@ In order to enable this functionality you should add the following:
         "readonly": {
             "BACKEND": "django_redis.cache.RedisCache",
             "LOCATION": "redis://readonly_service_name/db?is_master=0",
-            "OPTIONS": {
-                "SENTINELS": SENTINELS,
-            },
+            "OPTIONS": {"SENTINELS": SENTINELS},
         },
     }
 
