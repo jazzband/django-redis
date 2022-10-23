@@ -811,7 +811,7 @@ Herd client
 ^^^^^^^^^^^
 
 This pluggable client helps dealing with the thundering herd problem. You can read more about it
-on link: `Wikipedia <http://en.wikipedia.org/wiki/Thundering_herd_problem>`_
+on link: `Wikipedia <https://en.wikipedia.org/wiki/Thundering_herd_problem>`_
 
 Like previous pluggable clients, it inherits all functionality from the default client, adding some
 additional methods for getting/setting keys.
@@ -871,7 +871,7 @@ msgpack library):
         }
     }
 
-.. _MsgPack: http://msgpack.org/
+.. _MsgPack: https://msgpack.org/
 
 Pluggable Redis client
 ~~~~~~~~~~~~~~~~~~~~~~
