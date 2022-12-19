@@ -520,7 +520,7 @@ class DefaultClient:
     def _incr(
         self,
         key: Any,
-        delta: int = 1,
+        delta: Union[int, float] = 1,
         version: Optional[int] = None,
         client: Optional[Redis] = None,
         ignore_key_check: bool = False,
@@ -535,18 +535,19 @@ class DefaultClient:
                 # if key expired after exists check, then we get
                 # key with wrong value and ttl -1.
                 # use lua script for atomicity
+                command = "INCRBYFLOAT" if isinstance(delta, float) else "INCRBY"
                 if not ignore_key_check:
                     lua = """
                     local exists = redis.call('EXISTS', KEYS[1])
                     if (exists == 1) then
-                        return redis.call('INCRBY', KEYS[1], ARGV[1])
+                        return redis.call('%s', KEYS[1], ARGV[1])
                     else return false end
                     """
                 else:
                     lua = """
-                    return redis.call('INCRBY', KEYS[1], ARGV[1])
+                    return redis.call('%s', KEYS[1], ARGV[1])
                     """
-                value = client.eval(lua, 1, key, delta)
+                value = client.eval(lua % command, 1, key, delta)
                 if value is None:
                     raise ValueError("Key '%s' not found" % key)
             except ResponseError:
