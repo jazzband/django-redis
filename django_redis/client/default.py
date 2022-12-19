@@ -442,15 +442,20 @@ class DefaultClient:
         Decode the given value.
         """
         try:
-            value = int(value)
+            return int(value)
         except (ValueError, TypeError):
-            try:
-                value = self._compressor.decompress(value)
-            except CompressorError:
-                # Handle little values, chosen to be not compressed
-                pass
-            value = self._serializer.loads(value)
-        return value
+            pass
+        try:
+            # Handle values set by INCRBYFLOAT
+            return float(value)
+        except (ValueError, TypeError):
+            pass
+        try:
+            value = self._compressor.decompress(value)
+        except CompressorError:
+            # Handle little values, chosen to be not compressed
+            pass
+        return self._serializer.loads(value)
 
     def encode(self, value: Any) -> Union[bytes, Any]:
         """
@@ -520,7 +525,7 @@ class DefaultClient:
     def _incr(
         self,
         key: Any,
-        delta: int = 1,
+        delta: Union[int, float] = 1,
         version: Optional[int] = None,
         client: Optional[Redis] = None,
         ignore_key_check: bool = False,
@@ -535,16 +540,17 @@ class DefaultClient:
                 # if key expired after exists check, then we get
                 # key with wrong value and ttl -1.
                 # use lua script for atomicity
+                command = "INCRBYFLOAT" if isinstance(delta, float) else "INCRBY"
                 if not ignore_key_check:
-                    lua = """
+                    lua = f"""
                     local exists = redis.call('EXISTS', KEYS[1])
                     if (exists == 1) then
-                        return redis.call('INCRBY', KEYS[1], ARGV[1])
+                        return redis.call('{command}', KEYS[1], ARGV[1])
                     else return false end
                     """
                 else:
-                    lua = """
-                    return redis.call('INCRBY', KEYS[1], ARGV[1])
+                    lua = f"""
+                    return redis.call('{command}', KEYS[1], ARGV[1])
                     """
                 value = client.eval(lua, 1, key, delta)
                 if value is None:

@@ -396,6 +396,49 @@ class TestDjangoRedisCache:
         res = cache.get("num")
         assert res == 5
 
+    def test_incr_by_float(self, cache: RedisCache):
+        if isinstance(cache.client, herd.HerdClient):
+            pytest.skip("HerdClient doesn't support incr")
+
+        cache.set("num", 1)
+        with patch.object(cache.client, "set") as cache_set_mock:
+            cache.incr("num", 1.5)
+            res = cache.get("num")
+            assert res == 2.5
+            cache_set_mock.assert_not_called()
+
+            cache.incr("num", 1.5)
+            res = cache.get("num")
+            assert res == 4
+            cache_set_mock.assert_not_called()
+
+            cache.incr("num", 1)
+            res = cache.get("num")
+            assert res == 5
+            cache_set_mock.assert_not_called()
+
+            cache.incr("num", 0.6)
+            res = cache.get("num")
+            assert res == 5.6
+            cache_set_mock.assert_not_called()
+
+        # When incrementing a float value by an int, incr uses fallback get/set.
+        # As soon as a float set is called, no atomic incr happens afterward.
+        cache.incr("num", 1)
+        res = cache.get("num")
+        assert res == 6.6
+
+        if isinstance(cache.client, ShardClient):
+            # ShardClient doesn't support argument ignore_key_check to incr
+            return
+
+        cache.delete("num")
+        with patch.object(cache, "set") as cache_set_mock:
+            cache.incr("num", 1.4, ignore_key_check=True)
+            res = cache.get("num")
+            assert res == 1.4
+            cache_set_mock.assert_not_called()
+
     def test_get_set_bool(self, cache: RedisCache):
         cache.set("bool", True)
         res = cache.get("bool")
