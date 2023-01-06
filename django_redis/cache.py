@@ -9,8 +9,6 @@ from django.utils.module_loading import import_string
 
 from .exceptions import ConnectionInterrupted
 
-DJANGO_REDIS_SCAN_ITERSIZE = getattr(settings, "DJANGO_REDIS_SCAN_ITERSIZE", 10)
-
 CONNECTION_INTERRUPTED = object()
 
 
@@ -105,7 +103,8 @@ class RedisCache(BaseCache):
 
     @omit_exception
     def delete_pattern(self, *args, **kwargs):
-        kwargs["itersize"] = kwargs.get("itersize", DJANGO_REDIS_SCAN_ITERSIZE)
+        if not kwargs.get("itersize"):
+            kwargs["itersize"] = getattr(settings, "DJANGO_REDIS_SCAN_ITERSIZE", 10)
         return self.client.delete_pattern(*args, **kwargs)
 
     @omit_exception
