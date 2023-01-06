@@ -6,12 +6,10 @@ from typing import List, Union, cast
 from unittest.mock import patch
 
 import pytest
-from django.conf import settings
 from django.core.cache import caches
 from pytest_django.fixtures import SettingsWrapper
 from pytest_mock import MockerFixture
 
-import django_redis.cache
 from django_redis.cache import RedisCache
 from django_redis.client import ShardClient, herd
 from django_redis.serializers.json import JSONSerializer
