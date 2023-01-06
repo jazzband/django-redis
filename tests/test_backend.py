@@ -6,6 +6,7 @@ from typing import List, Union, cast
 from unittest.mock import patch
 
 import pytest
+from django.conf import settings
 from django.core.cache import caches
 from pytest_django.fixtures import SettingsWrapper
 from pytest_mock import MockerFixture
@@ -15,8 +16,6 @@ from django_redis.cache import RedisCache
 from django_redis.client import ShardClient, herd
 from django_redis.serializers.json import JSONSerializer
 from django_redis.serializers.msgpack import MSGPackSerializer
-
-herd.CACHE_HERD_TIMEOUT = 2
 
 
 class TestDjangoRedisCache:
@@ -199,7 +198,9 @@ class TestDjangoRedisCache:
         res = cache.get_many(["a", "b", "c"])
         assert res == {"a": 1, "b": 2, "c": 3}
 
-    def test_set_call_empty_pipeline(self, cache: RedisCache, mocker: MockerFixture):
+    def test_set_call_empty_pipeline(self, cache: RedisCache, mocker: MockerFixture, settings: SettingsWrapper):
+        settings.CACHE_HERD_TIMEOUT = 2
+
         if isinstance(cache.client, ShardClient):
             pytest.skip("ShardClient doesn't support get_client")
 
@@ -212,7 +213,7 @@ class TestDjangoRedisCache:
 
         if isinstance(cache.client, herd.HerdClient):
             default_timeout = cache.client._backend.default_timeout
-            herd_timeout = (default_timeout + herd.CACHE_HERD_TIMEOUT) * 1000  # type: ignore # noqa
+            herd_timeout = (default_timeout + settings.CACHE_HERD_TIMEOUT) * 1000  # type: ignore # noqa
             herd_pack_value = cache.client._pack(value, default_timeout)
             mocked_set.assert_called_once_with(
                 cache.client.make_key(key, version=None),
@@ -495,11 +496,13 @@ class TestDjangoRedisCache:
 
     @patch("django_redis.cache.RedisCache.client")
     def test_delete_pattern_with_settings_default_scan_count(
-        self, client_mock, cache: RedisCache
+        self, client_mock, cache: RedisCache, settings: SettingsWrapper,
     ):
+        settings.DJANGO_REDIS_SCAN_ITERSIZE = 30
+
         for key in ["foo-aa", "foo-ab", "foo-bb", "foo-bc"]:
             cache.set(key, "foo")
-        expected_count = django_redis.cache.DJANGO_REDIS_SCAN_ITERSIZE
+        expected_count = settings.DJANGO_REDIS_SCAN_ITERSIZE
 
         cache.delete_pattern("*foo-a*")
 
