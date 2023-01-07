@@ -15,7 +15,6 @@ jobs:
       fail-fast: false
       matrix:
         python-version:
-          - '3.6'
           - '3.7'
           - '3.8'
           - '3.9'
@@ -46,16 +45,10 @@ jobs:
             redis-version: 'master'
             python-version: '3.10'
 
-        # exclude python 3.6 and 3.7 for django 4.x as they are not supported see https://docs.djangoproject.com/en/dev/releases/4.0/#python-compatibility
+        # exclude python 3.7 for django 4.x as they are not supported see https://docs.djangoproject.com/en/dev/releases/4.0/#python-compatibility
         exclude:
           - django-version: '4.1'
-            python-version: '3.6'
-
-          - django-version: '4.1'
             python-version: '3.7'
-
-          - django-version: '4.0'
-            python-version: '3.6'
 
           - django-version: '4.0'
             python-version: '3.7'

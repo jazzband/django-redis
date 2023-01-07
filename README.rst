@@ -46,7 +46,7 @@ Why use django-redis?
 Requirements
 ~~~~~~~~~~~~
 
-- `Python`_ 3.6+
+- `Python`_ 3.7+
 - `Django`_ 2.2+
 - `redis-py`_ 3.0+
 - `Redis server`_ 2.8+
