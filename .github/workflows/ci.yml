@@ -9,7 +9,7 @@ jobs:
       Django ${{ matrix.django-version }},
       Redis.py ${{ matrix.redis-version }}
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     strategy:
       fail-fast: false
@@ -86,7 +86,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install --upgrade tox tox-gh-actions
+          python -m pip install --upgrade "tox<4" tox-gh-actions
 
       - name: Tox tests
         run: |
@@ -149,7 +149,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install --upgrade tox
+          python -m pip install --upgrade "tox<4"
 
       - name: Run ${{ matrix.tool }}
         run: tox -e ${{ matrix.tool }}
