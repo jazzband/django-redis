@@ -9,7 +9,7 @@ jobs:
       Django ${{ matrix.django-version }},
       Redis.py ${{ matrix.redis-version }}
 
-    runs-on: ubuntu-22.10
+    runs-on: ubuntu-22.04
 
     strategy:
       fail-fast: false
