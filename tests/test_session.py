@@ -1,12 +1,10 @@
 import base64
-
-import django
-import pytest
-
 import unittest
 from datetime import timedelta
 from typing import Optional, Type
 
+import django
+import pytest
 from django.conf import settings
 from django.contrib.sessions.backends.base import SessionBase
 from django.contrib.sessions.backends.cache import SessionStore as CacheSession
@@ -304,6 +302,7 @@ class SessionTestsMixin:
             self.assertEqual({}, self.session.decode(bad_encode))
         # The failed decode is logged.
         self.assertIn("corrupted", cm.output[0])
+
     def test_actual_expiry(self):
         # this doesn't work with JSONSerializer (serializing timedelta)
         with override_settings(
@@ -370,7 +369,7 @@ class SessionTests(SessionTestsMixin, unittest.TestCase):
 
     @pytest.mark.skipif(
         django.VERSION > (4, 2),
-        reason="PickleSerializer is removed as of https://code.djangoproject.com/ticket/29708"
+        reason="PickleSerializer is removed as of https://code.djangoproject.com/ticket/29708",
     )
     def test_actual_expiry(self):
         if isinstance(
