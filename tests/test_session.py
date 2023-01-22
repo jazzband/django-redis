@@ -368,8 +368,8 @@ class SessionTests(SessionTestsMixin, unittest.TestCase):
     backend = CacheSession
 
     @pytest.mark.skipif(
-        django.VERSION > (4, 2),
-        reason="PickleSerializer is removed as of https://code.djangoproject.com/ticket/29708",
+        django.VERSION >= (4, 2),
+        reason="PickleSerializer is removed as of https://code.djangoproject.com/ticket/29708",  # noqa: E501
     )
     def test_actual_expiry(self):
         if isinstance(
