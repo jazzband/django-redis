@@ -205,7 +205,6 @@ class ShardClient(DefaultClient):
         client=None,
         thread_local=True,
     ):
-
         if client is None:
             key = self.make_key(key, version=version)
             client = self.get_server(key)

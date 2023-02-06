@@ -69,7 +69,6 @@ class HerdClient(DefaultClient):
         nx=False,
         xx=False,
     ):
-
         if timeout is DEFAULT_TIMEOUT:
             timeout = self._backend.default_timeout
 

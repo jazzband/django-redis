@@ -541,7 +541,6 @@ class TestDjangoRedisCache:
         assert ttl == 0
 
     def test_pttl(self, cache: RedisCache):
-
         # Test pttl
         cache.set("foo", "bar", 10)
         ttl = cache.pttl("foo")
@@ -599,7 +598,6 @@ class TestDjangoRedisCache:
         assert cache.pexpire("not-existent-key", 20500) is False
 
     def test_pexpire_at(self, cache: RedisCache):
-
         # Test settings expiration time 1 hour ahead by datetime.
         cache.set("foo", "bar", timeout=None)
         expiration_time = datetime.datetime.now() + timedelta(hours=1)
@@ -625,7 +623,6 @@ class TestDjangoRedisCache:
         assert cache.pexpire_at("not-existent-key", expiration_time) is False
 
     def test_expire_at(self, cache: RedisCache):
-
         # Test settings expiration time 1 hour ahead by datetime.
         cache.set("foo", "bar", timeout=None)
         expiration_time = datetime.datetime.now() + timedelta(hours=1)

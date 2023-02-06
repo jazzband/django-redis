@@ -10,7 +10,6 @@ from redis.sentinel import Sentinel
 
 
 class ConnectionFactory:
-
     # Store connection pool by cache backend options.
     #
     # _pools is a process-global, as otherwise _pools is cleared every time
