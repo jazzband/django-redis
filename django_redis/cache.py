@@ -183,3 +183,59 @@ class RedisCache(BaseCache):
     @omit_exception
     def touch(self, *args, **kwargs):
         return self.client.touch(*args, **kwargs)
+
+    @omit_exception
+    def sadd(self, *args, **kwargs):
+        return self.client.sadd(*args, **kwargs)
+
+    @omit_exception
+    def scard(self, *args, **kwargs):
+        return self.client.scard(*args, **kwargs)
+
+    @omit_exception
+    def sdiff(self, *args, **kwargs):
+        return self.client.sdiff(*args, **kwargs)
+
+    @omit_exception
+    def sdiffstore(self, *args, **kwargs):
+        return self.client.sdiffstore(*args, **kwargs)
+
+    @omit_exception
+    def sinter(self, *args, **kwargs):
+        return self.client.sinter(*args, **kwargs)
+
+    @omit_exception
+    def sinterstore(self, *args, **kwargs):
+        return self.client.sinterstore(*args, **kwargs)
+
+    @omit_exception
+    def sismember(self, *args, **kwargs):
+        return self.client.sismember(*args, **kwargs)
+
+    @omit_exception
+    def smembers(self, *args, **kwargs):
+        return self.client.smembers(*args, **kwargs)
+
+    @omit_exception
+    def smove(self, *args, **kwargs):
+        return self.client.smove(*args, **kwargs)
+
+    @omit_exception
+    def spop(self, *args, **kwargs):
+        return self.client.spop(*args, **kwargs)
+
+    @omit_exception
+    def srandmember(self, *args, **kwargs):
+        return self.client.srandmember(*args, **kwargs)
+
+    @omit_exception
+    def srem(self, *args, **kwargs):
+        return self.client.srem(*args, **kwargs)
+
+    @omit_exception
+    def sunion(self, *args, **kwargs):
+        return self.client.sunion(*args, **kwargs)
+
+    @omit_exception
+    def sunionstore(self, *args, **kwargs):
+        return self.client.sunionstore(*args, **kwargs)
