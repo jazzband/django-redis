@@ -106,8 +106,9 @@ There are several ways to specify a database number:
 - If using the ``redis://`` scheme, the path argument of the URL, e.g.
   ``redis://localhost/0``
 
-When using `Redis' ACLs <https://redis.io/topics/acl>`_, you will need to add the
-username to the URL (and provide the password with the Cache ``OPTIONS``).
+When using `Redis' ACLs <https://redis.io/topics/acl>`_, you can either pass the
+username and password in the Cache ``OPTIONS``, or in the URL.
+
 The login for the user ``django`` would look like this:
 
 .. code-block:: python
@@ -115,9 +116,10 @@ The login for the user ``django`` would look like this:
     CACHES = {
         "default": {
             "BACKEND": "django_redis.cache.RedisCache",
-            "LOCATION": "redis://django@localhost:6379/0",
+            "LOCATION": "redis://localhost:6379/0",
             "OPTIONS": {
                 "CLIENT_CLASS": "django_redis.client.DefaultClient",
+                "USERNAME": "django",
                 "PASSWORD": "mysecret"
             }
         }
@@ -693,8 +695,11 @@ In order to enable this functionality you should add the following:
                 # Sentinels which are passed directly to redis Sentinel.
                 "SENTINELS": SENTINELS,
 
-                # kwargs for redis Sentinel (optional).
-                "SENTINEL_KWARGS": {},
+                # kwargs for redis Sentinel (optional). Example with auth on sentinels
+                "SENTINEL_KWARGS": {
+                    "username": "sentinel-user",
+                    "password": "sentinel-pass",
+                },
 
                 # You can still override the connection pool (optional).
                 "CONNECTION_POOL_CLASS": "redis.sentinel.SentinelConnectionPool",

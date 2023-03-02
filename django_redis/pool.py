@@ -43,6 +43,10 @@ class ConnectionFactory:
             "parser_class": self.get_parser_cls(),
         }
 
+        username = self.options.get("USERNAME", None)
+        if username:
+            kwargs["username"] = username
+
         password = self.options.get("PASSWORD", None)
         if password:
             kwargs["password"] = password
