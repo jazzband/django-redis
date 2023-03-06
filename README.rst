@@ -107,7 +107,11 @@ There are several ways to specify a database number:
   ``redis://localhost/0``
 
 When using `Redis' ACLs <https://redis.io/topics/acl>`_, you can either pass the
-username and password in the Cache ``OPTIONS``, or in the URL.
+username and password in the Cache ``OPTIONS`` dict, in the URL, or the username 
+in the URL and the password in the ``OPTIONS``.
+
+Be aware that if the username/password are passed both in the URL and ``OPTIONS``
+dict, the ones passed in the URL prime.
 
 The login for the user ``django`` would look like this:
 
@@ -139,16 +143,14 @@ An alternative would be write both username and password into the URL:
         }
     }
 
-In some circumstances the password you should use to connect Redis
-is not URL-safe, in this case you can escape it or just use the
-convenience option in ``OPTIONS`` dict:
+The username can also be passed in the URL, and the password in the ``OPTIONS``:
 
 .. code-block:: python
 
     CACHES = {
         "default": {
             "BACKEND": "django_redis.cache.RedisCache",
-            "LOCATION": "redis://127.0.0.1:6379/1",
+            "LOCATION": "redis://django@localhost:6379/0",
             "OPTIONS": {
                 "CLIENT_CLASS": "django_redis.client.DefaultClient",
                 "PASSWORD": "mysecret"
@@ -156,8 +158,11 @@ convenience option in ``OPTIONS`` dict:
         }
     }
 
-Take care, that this option does not overwrites the password in the uri, so if
-you have set the password in the uri, this settings will be ignored.
+
+NOTE: In some circumstances the password you should use to connect Redis
+is not URL-safe, in this case you can escape it or just use the
+convenience option in ``OPTIONS`` dict.
+
 
 Configure as session backend
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
