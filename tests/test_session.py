@@ -3,6 +3,8 @@ import unittest
 from datetime import timedelta
 from typing import Optional, Type
 
+import django
+import pytest
 from django.conf import settings
 from django.contrib.sessions.backends.base import SessionBase
 from django.contrib.sessions.backends.cache import SessionStore as CacheSession
@@ -365,6 +367,10 @@ class SessionTestsMixin:
 class SessionTests(SessionTestsMixin, unittest.TestCase):
     backend = CacheSession
 
+    @pytest.mark.skipif(
+        django.VERSION >= (4, 2),
+        reason="PickleSerializer is removed as of https://code.djangoproject.com/ticket/29708",  # noqa: E501
+    )
     def test_actual_expiry(self):
         if isinstance(
             caches[DEFAULT_CACHE_ALIAS].client._serializer, MSGPackSerializer

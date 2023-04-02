@@ -3,6 +3,7 @@ from typing import Iterable, cast
 
 import pytest
 from django.core.cache import caches
+from pytest import LogCaptureFixture
 from pytest_django.fixtures import SettingsWrapper
 from redis.exceptions import ConnectionError
 
@@ -22,8 +23,10 @@ def reverse_key(key: str) -> str:
 def ignore_exceptions_cache(settings: SettingsWrapper) -> RedisCache:
     caches_setting = copy.deepcopy(settings.CACHES)
     caches_setting["doesnotexist"]["OPTIONS"]["IGNORE_EXCEPTIONS"] = True
+    caches_setting["doesnotexist"]["OPTIONS"]["LOG_IGNORED_EXCEPTIONS"] = True
     settings.CACHES = caches_setting
     settings.DJANGO_REDIS_IGNORE_EXCEPTIONS = True
+    settings.DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS = True
     return cast(RedisCache, caches["doesnotexist"])
 
 
@@ -34,11 +37,21 @@ def test_get_django_omit_exceptions_many_returns_default_arg(
     assert ignore_exceptions_cache.get_many(["key1", "key2", "key3"]) == {}
 
 
-def test_get_django_omit_exceptions(ignore_exceptions_cache: RedisCache):
+def test_get_django_omit_exceptions(
+    caplog: LogCaptureFixture, ignore_exceptions_cache: RedisCache
+):
     assert ignore_exceptions_cache._ignore_exceptions is True
+    assert ignore_exceptions_cache._log_ignored_exceptions is True
+
     assert ignore_exceptions_cache.get("key") is None
     assert ignore_exceptions_cache.get("key", "default") == "default"
     assert ignore_exceptions_cache.get("key", default="default") == "default"
+
+    assert len(caplog.records) == 3
+    assert all(
+        record.levelname == "ERROR" and record.msg == "Exception ignored"
+        for record in caplog.records
+    )
 
 
 def test_get_django_omit_exceptions_priority_1(settings: SettingsWrapper):

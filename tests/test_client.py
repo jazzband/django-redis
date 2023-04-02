@@ -1,5 +1,5 @@
 from typing import Iterable
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, call, patch
 
 import pytest
 from django.core.cache import DEFAULT_CACHE_ALIAS
@@ -103,6 +103,28 @@ class TestDefaultClient:
         get_client_mock.return_value.scan_iter.assert_called_once_with(
             count=90210, match=make_pattern_mock.return_value
         )
+
+    @patch("test_client.DefaultClient.make_pattern")
+    @patch("test_client.DefaultClient.get_client", return_value=Mock())
+    @patch("test_client.DefaultClient.__init__", return_value=None)
+    def test_delete_pattern_calls_pipeline_delete_and_execute(
+        self, init_mock, get_client_mock, make_pattern_mock
+    ):
+        client = DefaultClient()
+        client._backend = Mock()
+        client._backend.key_prefix = ""
+        get_client_mock.return_value.scan_iter.return_value = [":1:foo", ":1:foo-a"]
+        get_client_mock.return_value.pipeline.return_value = Mock()
+        get_client_mock.return_value.pipeline.return_value.delete = Mock()
+        get_client_mock.return_value.pipeline.return_value.execute = Mock()
+
+        client.delete_pattern(pattern="foo*")
+
+        assert get_client_mock.return_value.pipeline.return_value.delete.call_count == 2
+        get_client_mock.return_value.pipeline.return_value.delete.assert_has_calls(
+            [call(":1:foo"), call(":1:foo-a")]
+        )
+        get_client_mock.return_value.pipeline.return_value.execute.assert_called_once()
 
 
 class TestShardClient:
