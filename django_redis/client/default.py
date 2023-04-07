@@ -132,6 +132,7 @@ class DefaultClient:
         client: Optional[Redis] = None,
         nx: bool = False,
         xx: bool = False,
+        enforce_encoding: bool = False,
     ) -> bool:
         """
         Persist a value to the cache, and set an optional expiration time.
@@ -140,7 +141,7 @@ class DefaultClient:
         setnx instead of set.
         """
         nkey = self.make_key(key, version=version)
-        nvalue = self.encode(value)
+        nvalue = self.encode(value, enforce_encoding=enforce_encoding)
 
         if timeout is DEFAULT_TIMEOUT:
             timeout = self._backend.default_timeout
@@ -452,12 +453,16 @@ class DefaultClient:
             value = self._serializer.loads(value)
         return value
 
-    def encode(self, value: Any) -> Union[bytes, Any]:
+    def encode(self, value: Any, enforce_encoding: bool = False) -> Union[bytes, Any]:
         """
         Encode the given value.
         """
 
-        if isinstance(value, bool) or not isinstance(value, int):
+        if (
+            isinstance(value, bool)
+            or not isinstance(value, int)
+            or enforce_encoding is True
+        ):
             value = self._serializer.dumps(value)
             value = self._compressor.compress(value)
             return value
