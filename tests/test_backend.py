@@ -199,8 +199,6 @@ class TestDjangoRedisCache:
     def test_set_call_empty_pipeline(
         self, cache: RedisCache, mocker: MockerFixture, settings: SettingsWrapper
     ):
-        settings.CACHE_HERD_TIMEOUT = 2
-
         if isinstance(cache.client, ShardClient):
             pytest.skip("ShardClient doesn't support get_client")
 
