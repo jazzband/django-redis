@@ -211,7 +211,7 @@ class TestDjangoRedisCache:
 
         if isinstance(cache.client, herd.HerdClient):
             default_timeout = cache.client._backend.default_timeout
-            herd_timeout = (default_timeout + settings.CACHE_HERD_TIMEOUT) * 1000  # type: ignore # noqa
+            herd_timeout = (default_timeout + settings.CACHE_HERD_TIMEOUT) * 1000
             herd_pack_value = cache.client._pack(value, default_timeout)
             mocked_set.assert_called_once_with(
                 cache.client.make_key(key, version=None),
@@ -494,10 +494,7 @@ class TestDjangoRedisCache:
 
     @patch("django_redis.cache.RedisCache.client")
     def test_delete_pattern_with_settings_default_scan_count(
-        self,
-        client_mock,
-        cache: RedisCache,
-        settings: SettingsWrapper,
+        self, client_mock, cache: RedisCache, settings: SettingsWrapper,
     ):
         settings.DJANGO_REDIS_SCAN_ITERSIZE = 30
 
