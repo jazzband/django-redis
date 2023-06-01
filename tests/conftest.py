@@ -1,8 +1,8 @@
 from typing import Iterable
 
 import pytest
-from pytest_django.fixtures import SettingsWrapper
 from django.core.cache import cache as default_cache
+from pytest_django.fixtures import SettingsWrapper
 
 from django_redis.cache import BaseCache
 
