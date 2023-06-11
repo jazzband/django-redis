@@ -20,15 +20,15 @@ from django_redis.serializers.msgpack import MSGPackSerializer
 @pytest.fixture
 def patch_herd_settings():
     default_cache = caches["default"]
-    if not isinstance(default_cache.client, herd.HerdClient):
+    if isinstance(default_cache.client, herd.HerdClient):
+        # destroy cache to force recreation with updated settings
+        del caches["default"]
+        with override_settings(CACHE_HERD_TIMEOUT=2):
+            yield
+        # destroy cache force recreation with original settings
+        del caches["default"]
+    else:
         yield
-
-    # destroy cache to force recreation with updated settings
-    del caches["default"]
-    with override_settings(CACHE_HERD_TIMEOUT=2):
-        yield
-    # destroy cache force recreation with original settings
-    del caches["default"]
 
 
 class TestDjangoRedisCache:
