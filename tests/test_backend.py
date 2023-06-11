@@ -17,6 +17,16 @@ from django_redis.serializers.json import JSONSerializer
 from django_redis.serializers.msgpack import MSGPackSerializer
 
 
+@pytest.fixture
+def patch_itersize():
+    # destroy cache to force recreation with overriden settings
+    del caches["default"]
+    with override_settings(DJANGO_REDIS_SCAN_ITERSIZE=30):
+        yield
+    # destroy cache to force recreation with original settings
+    del caches["default"]
+
+
 class TestDjangoRedisCache:
     def test_setnx(self, cache: RedisCache):
         # we should ensure there is no test_key_nx in redis
@@ -497,12 +507,8 @@ class TestDjangoRedisCache:
         client_mock.delete_pattern.assert_called_once_with("*foo-a*", itersize=2)
 
     @patch("django_redis.cache.RedisCache.client")
-    @override_settings(DJANGO_REDIS_SCAN_ITERSIZE=30)
     def test_delete_pattern_with_settings_default_scan_count(
-        self,
-        client_mock,
-        cache: RedisCache,
-        settings: SettingsWrapper,
+        self, client_mock, patch_itersize, cache: RedisCache, settings: SettingsWrapper,
     ):
         for key in ["foo-aa", "foo-ab", "foo-bb", "foo-bc"]:
             cache.set(key, "foo")
