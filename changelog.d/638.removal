@@ -1,1 +1,0 @@
-Removed `django_redis.cache.DJANGO_REDIS_SCAN_ITERSIZE` and `django_redis.client.herd.CACHE_HERD_TIMEOUT` to not access Django settings in import time.
