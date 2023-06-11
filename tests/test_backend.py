@@ -7,6 +7,7 @@ from unittest.mock import patch
 
 import pytest
 from django.core.cache import caches
+from django.test import override_settings
 from pytest_django.fixtures import SettingsWrapper
 from pytest_mock import MockerFixture
 
@@ -493,14 +494,13 @@ class TestDjangoRedisCache:
         client_mock.delete_pattern.assert_called_once_with("*foo-a*", itersize=2)
 
     @patch("django_redis.cache.RedisCache.client")
+    @override_settings(DJANGO_REDIS_SCAN_ITERSIZE=30)
     def test_delete_pattern_with_settings_default_scan_count(
         self,
         client_mock,
         cache: RedisCache,
         settings: SettingsWrapper,
     ):
-        settings.DJANGO_REDIS_SCAN_ITERSIZE = 30
-
         for key in ["foo-aa", "foo-ab", "foo-bb", "foo-bc"]:
             cache.set(key, "foo")
         expected_count = settings.DJANGO_REDIS_SCAN_ITERSIZE
