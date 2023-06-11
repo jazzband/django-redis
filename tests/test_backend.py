@@ -17,20 +17,6 @@ from django_redis.serializers.json import JSONSerializer
 from django_redis.serializers.msgpack import MSGPackSerializer
 
 
-@pytest.fixture
-def patch_herd_settings():
-    default_cache = caches["default"]
-    if isinstance(default_cache.client, herd.HerdClient):
-        # destroy cache to force recreation with updated settings
-        del caches["default"]
-        with override_settings(CACHE_HERD_TIMEOUT=2):
-            yield
-        # destroy cache force recreation with original settings
-        del caches["default"]
-    else:
-        yield
-
-
 class TestDjangoRedisCache:
     def test_setnx(self, cache: RedisCache):
         # we should ensure there is no test_key_nx in redis
@@ -50,7 +36,7 @@ class TestDjangoRedisCache:
         res = cache.get("test_key_nx")
         assert res is None
 
-    def test_setnx_timeout(self, patch_herd_settings, cache: RedisCache):
+    def test_setnx_timeout(self, cache: RedisCache):
         # test that timeout still works for nx=True
         res = cache.set("test_key_nx", 1, timeout=2, nx=True)
         assert res is True
@@ -129,7 +115,7 @@ class TestDjangoRedisCache:
         assert isinstance(res, float)
         assert res == float_val
 
-    def test_timeout(self, patch_herd_settings, cache: RedisCache):
+    def test_timeout(self, cache: RedisCache):
         cache.set("test_key", 222, timeout=3)
         time.sleep(4)
 
@@ -141,9 +127,7 @@ class TestDjangoRedisCache:
         res = cache.get("test_key")
         assert res is None
 
-    def test_timeout_parameter_as_positional_argument(
-        self, patch_herd_settings, cache: RedisCache
-    ):
+    def test_timeout_parameter_as_positional_argument(self, cache: RedisCache):
         cache.set("test_key", 222, -1)
         res = cache.get("test_key")
         assert res is None
@@ -215,7 +199,6 @@ class TestDjangoRedisCache:
 
     def test_set_call_empty_pipeline(
         self,
-        patch_herd_settings,
         cache: RedisCache,
         mocker: MockerFixture,
         settings: SettingsWrapper,
@@ -516,11 +499,7 @@ class TestDjangoRedisCache:
     @patch("django_redis.cache.RedisCache.client")
     @override_settings(DJANGO_REDIS_SCAN_ITERSIZE=30)
     def test_delete_pattern_with_settings_default_scan_count(
-        self,
-        client_mock,
-        patch_herd_settings,
-        cache: RedisCache,
-        settings: SettingsWrapper,
+        self, client_mock, cache: RedisCache, settings: SettingsWrapper,
     ):
         for key in ["foo-aa", "foo-ab", "foo-bb", "foo-bc"]:
             cache.set(key, "foo")
@@ -542,7 +521,7 @@ class TestDjangoRedisCache:
         cache.close()
         assert mock.called
 
-    def test_ttl(self, patch_herd_settings, cache: RedisCache):
+    def test_ttl(self, cache: RedisCache):
         cache.set("foo", "bar", 10)
         ttl = cache.ttl("foo")
 
@@ -749,7 +728,7 @@ class TestDjangoRedisCache:
         res = cache.get("test_key")
         assert res is None
 
-    def test_touch_positive_timeout(self, patch_herd_settings, cache: RedisCache):
+    def test_touch_positive_timeout(self, cache: RedisCache):
         cache.set("test_key", 222, timeout=10)
 
         assert cache.touch("test_key", 2) is True
