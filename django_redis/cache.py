@@ -43,7 +43,9 @@ class RedisCache(BaseCache):
         super().__init__(params)
         self._server = server
         self._params = params
-        self._default_scan_itersize = getattr(settings, "DJANGO_REDIS_SCAN_ITERSIZE", 10)
+        self._default_scan_itersize = getattr(
+            settings, "DJANGO_REDIS_SCAN_ITERSIZE", 10
+        )
 
         options = params.get("OPTIONS", {})
         self._client_cls = options.get(
