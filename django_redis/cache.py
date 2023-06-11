@@ -43,6 +43,7 @@ class RedisCache(BaseCache):
         super().__init__(params)
         self._server = server
         self._params = params
+        self._default_scan_itersize = getattr(settings, "DJANGO_REDIS_SCAN_ITERSIZE", 10)
 
         options = params.get("OPTIONS", {})
         self._client_cls = options.get(
@@ -103,8 +104,7 @@ class RedisCache(BaseCache):
 
     @omit_exception
     def delete_pattern(self, *args, **kwargs):
-        if not kwargs.get("itersize"):
-            kwargs["itersize"] = getattr(settings, "DJANGO_REDIS_SCAN_ITERSIZE", 10)
+        kwargs.setdefault("itersize", self._default_scan_itersize)
         return self.client.delete_pattern(*args, **kwargs)
 
     @omit_exception
