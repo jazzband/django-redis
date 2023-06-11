@@ -2,7 +2,7 @@ import datetime
 import threading
 import time
 from datetime import timedelta
-from typing import List, Union, cast
+from typing import Iterable, List, Union, cast
 from unittest.mock import patch
 
 import pytest
