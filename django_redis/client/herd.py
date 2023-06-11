@@ -21,7 +21,7 @@ class Marker:
     pass
 
 
-def _is_expired(x, herd_timeout):
+def _is_expired(x, herd_timeout: int) -> bool:
     if x >= herd_timeout:
         return True
     val = x + random.randint(1, herd_timeout)

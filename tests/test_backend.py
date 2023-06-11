@@ -18,7 +18,7 @@ from django_redis.serializers.msgpack import MSGPackSerializer
 
 
 @pytest.fixture
-def patch_itersize():
+def patch_itersize_setting() -> Iterable[None]:
     # destroy cache to force recreation with overriden settings
     del caches["default"]
     with override_settings(DJANGO_REDIS_SCAN_ITERSIZE=30):
@@ -510,7 +510,7 @@ class TestDjangoRedisCache:
     def test_delete_pattern_with_settings_default_scan_count(
         self,
         client_mock,
-        patch_itersize,
+        patch_itersize_setting,
         cache: RedisCache,
         settings: SettingsWrapper,
     ):
