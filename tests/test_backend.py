@@ -508,7 +508,11 @@ class TestDjangoRedisCache:
 
     @patch("django_redis.cache.RedisCache.client")
     def test_delete_pattern_with_settings_default_scan_count(
-        self, client_mock, patch_itersize, cache: RedisCache, settings: SettingsWrapper,
+        self,
+        client_mock,
+        patch_itersize,
+        cache: RedisCache,
+        settings: SettingsWrapper,
     ):
         for key in ["foo-aa", "foo-ab", "foo-bb", "foo-bc"]:
             cache.set(key, "foo")
