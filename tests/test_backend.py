@@ -141,7 +141,9 @@ class TestDjangoRedisCache:
         res = cache.get("test_key")
         assert res is None
 
-    def test_timeout_parameter_as_positional_argument(self, patch_herd_settings, cache: RedisCache):
+    def test_timeout_parameter_as_positional_argument(
+        self, patch_herd_settings, cache: RedisCache
+    ):
         cache.set("test_key", 222, -1)
         res = cache.get("test_key")
         assert res is None
@@ -514,7 +516,11 @@ class TestDjangoRedisCache:
     @patch("django_redis.cache.RedisCache.client")
     @override_settings(DJANGO_REDIS_SCAN_ITERSIZE=30)
     def test_delete_pattern_with_settings_default_scan_count(
-        self, client_mock, patch_herd_settings, cache: RedisCache, settings: SettingsWrapper,
+        self,
+        client_mock,
+        patch_herd_settings,
+        cache: RedisCache,
+        settings: SettingsWrapper,
     ):
         for key in ["foo-aa", "foo-ab", "foo-bb", "foo-bc"]:
             cache.set(key, "foo")
