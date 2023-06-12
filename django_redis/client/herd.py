@@ -21,15 +21,12 @@ class Marker:
     pass
 
 
-CACHE_HERD_TIMEOUT = getattr(settings, "CACHE_HERD_TIMEOUT", 60)
-
-
-def _is_expired(x):
-    if x >= CACHE_HERD_TIMEOUT:
+def _is_expired(x, herd_timeout: int) -> bool:
+    if x >= herd_timeout:
         return True
-    val = x + random.randint(1, CACHE_HERD_TIMEOUT)
+    val = x + random.randint(1, herd_timeout)
 
-    if val >= CACHE_HERD_TIMEOUT:
+    if val >= herd_timeout:
         return True
     return False
 
@@ -37,6 +34,7 @@ def _is_expired(x):
 class HerdClient(DefaultClient):
     def __init__(self, *args, **kwargs):
         self._marker = Marker()
+        self._herd_timeout = getattr(settings, "CACHE_HERD_TIMEOUT", 60)
         super().__init__(*args, **kwargs)
 
     def _pack(self, value, timeout):
@@ -55,7 +53,7 @@ class HerdClient(DefaultClient):
         now = int(time.time())
         if herd_timeout < now:
             x = now - herd_timeout
-            return unpacked, _is_expired(x)
+            return unpacked, _is_expired(x, self._herd_timeout)
 
         return unpacked, False
 
@@ -84,7 +82,7 @@ class HerdClient(DefaultClient):
             )
 
         packed = self._pack(value, timeout)
-        real_timeout = timeout + CACHE_HERD_TIMEOUT
+        real_timeout = timeout + self._herd_timeout
 
         return super().set(
             key, packed, timeout=real_timeout, version=version, client=client, nx=nx
