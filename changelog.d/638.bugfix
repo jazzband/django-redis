@@ -1,1 +1,0 @@
-Access `django_redis.cache.DJANGO_REDIS_SCAN_ITERSIZE` and `django_redis.client.herd.CACHE_HERD_TIMEOUT` in runtime to not read Django settings in import time.
