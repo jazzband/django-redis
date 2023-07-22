@@ -206,12 +206,12 @@ class RedisCache(BaseCache):
         return self.client.zrangebyscore(*args, **kwargs)
 
     @omit_exception
-    def zremrangebyscore(self, *args, **kwargs):
-        return self.client.zremrangebyscore(*args, **kwargs)
-
-    @omit_exception
     def zrevrangebyscore(self, *args, **kwargs):
         return self.client.zrevrangebyscore(*args, **kwargs)
+
+    @omit_exception
+    def zremrangebyscore(self, *args, **kwargs):
+        return self.client.zremrangebyscore(*args, **kwargs)
 
     @omit_exception
     def zrangebylex(self, *args, **kwargs):
@@ -232,3 +232,23 @@ class RedisCache(BaseCache):
     @omit_exception
     def zrank(self, *args, **kwargs):
         return self.client.zrank(*args, **kwargs)
+
+    @omit_exception
+    def zrevrank(self, *args, **kwargs):
+        return self.client.zrevrank(*args, **kwargs)
+
+    @omit_exception
+    def zremrangebyrank(self, *args, **kwargs):
+        return self.client.zremrangebyrank(*args, **kwargs)
+
+    @omit_exception
+    def zscore(self, *args, **kwargs):
+        return self.client.zscore(*args, **kwargs)
+
+    @omit_exception
+    def zcard(self, *args, **kwargs):
+        return self.client.zcard(*args, **kwargs)
+
+    @omit_exception
+    def zcount(self, *args, **kwargs):
+        return self.client.zcount(*args, **kwargs)

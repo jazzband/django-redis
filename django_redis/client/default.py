@@ -65,7 +65,7 @@ class DefaultClient:
         return self.has_key(key)
 
     def get_next_client_index(
-        self, write: bool = True, tried: Optional[List[int]] = None
+            self, write: bool = True, tried: Optional[List[int]] = None
     ) -> int:
         """
         Return a next index for read client. This function implements a default
@@ -87,10 +87,10 @@ class DefaultClient:
         return random.randint(1, len(self._server) - 1)
 
     def get_client(
-        self,
-        write: bool = True,
-        tried: Optional[List[int]] = None,
-        show_index: bool = False,
+            self,
+            write: bool = True,
+            tried: Optional[List[int]] = None,
+            show_index: bool = False,
     ):
         """
         Method used for obtain a raw redis client.
@@ -124,14 +124,14 @@ class DefaultClient:
         return self.connection_factory.disconnect(client) if client else None
 
     def set(
-        self,
-        key: Any,
-        value: Any,
-        timeout: Optional[float] = DEFAULT_TIMEOUT,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
-        nx: bool = False,
-        xx: bool = False,
+            self,
+            key: Any,
+            value: Any,
+            timeout: Optional[float] = DEFAULT_TIMEOUT,
+            version: Optional[int] = None,
+            client: Optional[Redis] = None,
+            nx: bool = False,
+            xx: bool = False,
     ) -> bool:
         """
         Persist a value to the cache, and set an optional expiration time.
@@ -175,9 +175,9 @@ class DefaultClient:
                 return bool(client.set(nkey, nvalue, nx=nx, px=timeout, xx=xx))
             except _main_exceptions as e:
                 if (
-                    not original_client
-                    and not self._replica_read_only
-                    and len(tried) < len(self._server)
+                        not original_client
+                        and not self._replica_read_only
+                        and len(tried) < len(self._server)
                 ):
                     tried.append(index)
                     client = None
@@ -185,11 +185,11 @@ class DefaultClient:
                 raise ConnectionInterrupted(connection=client) from e
 
     def incr_version(
-        self,
-        key: Any,
-        delta: int = 1,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
+            self,
+            key: Any,
+            delta: int = 1,
+            version: Optional[int] = None,
+            client: Optional[Redis] = None,
     ) -> int:
         """
         Adds delta to the cache version for the supplied key. Returns the
@@ -223,12 +223,12 @@ class DefaultClient:
         return version + delta
 
     def add(
-        self,
-        key: Any,
-        value: Any,
-        timeout: Any = DEFAULT_TIMEOUT,
-        version: Optional[Any] = None,
-        client: Optional[Redis] = None,
+            self,
+            key: Any,
+            value: Any,
+            timeout: Any = DEFAULT_TIMEOUT,
+            version: Optional[Any] = None,
+            client: Optional[Redis] = None,
     ) -> bool:
         """
         Add a value to the cache, failing if the key already exists.
@@ -238,11 +238,11 @@ class DefaultClient:
         return self.set(key, value, timeout, version=version, client=client, nx=True)
 
     def get(
-        self,
-        key: Any,
-        default=None,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
+            self,
+            key: Any,
+            default=None,
+            version: Optional[int] = None,
+            client: Optional[Redis] = None,
     ) -> Any:
         """
         Retrieve a value from the cache.
@@ -265,7 +265,8 @@ class DefaultClient:
         return self.decode(value)
 
     def persist(
-        self, key: Any, version: Optional[int] = None, client: Optional[Redis] = None
+            self, key: Any, version: Optional[int] = None,
+            client: Optional[Redis] = None
     ) -> bool:
         if client is None:
             client = self.get_client(write=True)
@@ -275,11 +276,11 @@ class DefaultClient:
         return client.persist(key)
 
     def expire(
-        self,
-        key: Any,
-        timeout,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
+            self,
+            key: Any,
+            timeout,
+            version: Optional[int] = None,
+            client: Optional[Redis] = None,
     ) -> bool:
         if client is None:
             client = self.get_client(write=True)
@@ -299,11 +300,11 @@ class DefaultClient:
         return bool(client.pexpire(key, timeout))
 
     def pexpire_at(
-        self,
-        key: Any,
-        when: Union[datetime, int],
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
+            self,
+            key: Any,
+            when: Union[datetime, int],
+            version: Optional[int] = None,
+            client: Optional[Redis] = None,
     ) -> bool:
         """
         Set an expire flag on a ``key`` to ``when``, which can be represented
@@ -317,11 +318,11 @@ class DefaultClient:
         return bool(client.pexpireat(key, when))
 
     def expire_at(
-        self,
-        key: Any,
-        when: Union[datetime, int],
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
+            self,
+            key: Any,
+            when: Union[datetime, int],
+            version: Optional[int] = None,
+            client: Optional[Redis] = None,
     ) -> bool:
         """
         Set an expire flag on a ``key`` to ``when``, which can be represented
@@ -335,14 +336,14 @@ class DefaultClient:
         return client.expireat(key, when)
 
     def lock(
-        self,
-        key,
-        version: Optional[int] = None,
-        timeout=None,
-        sleep=0.1,
-        blocking_timeout=None,
-        client: Optional[Redis] = None,
-        thread_local=True,
+            self,
+            key,
+            version: Optional[int] = None,
+            timeout=None,
+            sleep=0.1,
+            blocking_timeout=None,
+            client: Optional[Redis] = None,
+            thread_local=True,
     ):
         if client is None:
             client = self.get_client(write=True)
@@ -357,11 +358,11 @@ class DefaultClient:
         )
 
     def delete(
-        self,
-        key: Any,
-        version: Optional[int] = None,
-        prefix: Optional[str] = None,
-        client: Optional[Redis] = None,
+            self,
+            key: Any,
+            version: Optional[int] = None,
+            prefix: Optional[str] = None,
+            client: Optional[Redis] = None,
     ) -> int:
         """
         Remove a key from the cache.
@@ -375,12 +376,12 @@ class DefaultClient:
             raise ConnectionInterrupted(connection=client) from e
 
     def delete_pattern(
-        self,
-        pattern: str,
-        version: Optional[int] = None,
-        prefix: Optional[str] = None,
-        client: Optional[Redis] = None,
-        itersize: Optional[int] = None,
+            self,
+            pattern: str,
+            version: Optional[int] = None,
+            prefix: Optional[str] = None,
+            client: Optional[Redis] = None,
+            itersize: Optional[int] = None,
     ) -> int:
         """
         Remove all keys matching pattern.
@@ -405,7 +406,7 @@ class DefaultClient:
             raise ConnectionInterrupted(connection=client) from e
 
     def delete_many(
-        self, keys, version: Optional[int] = None, client: Optional[Redis] = None
+            self, keys, version: Optional[int] = None, client: Optional[Redis] = None
     ):
         """
         Remove multiple keys at once.
@@ -465,7 +466,7 @@ class DefaultClient:
         return value
 
     def get_many(
-        self, keys, version: Optional[int] = None, client: Optional[Redis] = None
+            self, keys, version: Optional[int] = None, client: Optional[Redis] = None
     ) -> OrderedDict:
         """
         Retrieve many keys.
@@ -493,11 +494,11 @@ class DefaultClient:
         return recovered_data
 
     def set_many(
-        self,
-        data: Dict[Any, Any],
-        timeout: Optional[float] = DEFAULT_TIMEOUT,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
+            self,
+            data: Dict[Any, Any],
+            timeout: Optional[float] = DEFAULT_TIMEOUT,
+            version: Optional[int] = None,
+            client: Optional[Redis] = None,
     ) -> None:
         """
         Set a bunch of values in the cache at once from a dict of key/value
@@ -518,12 +519,12 @@ class DefaultClient:
             raise ConnectionInterrupted(connection=client) from e
 
     def _incr(
-        self,
-        key: Any,
-        delta: int = 1,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
-        ignore_key_check: bool = False,
+            self,
+            key: Any,
+            delta: int = 1,
+            version: Optional[int] = None,
+            client: Optional[Redis] = None,
+            ignore_key_check: bool = False,
     ) -> int:
         if client is None:
             client = self.get_client(write=True)
@@ -570,12 +571,12 @@ class DefaultClient:
         return value
 
     def incr(
-        self,
-        key: Any,
-        delta: int = 1,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
-        ignore_key_check: bool = False,
+            self,
+            key: Any,
+            delta: int = 1,
+            version: Optional[int] = None,
+            client: Optional[Redis] = None,
+            ignore_key_check: bool = False,
     ) -> int:
         """
         Add delta to value in the cache. If the key does not exist, raise a
@@ -591,11 +592,11 @@ class DefaultClient:
         )
 
     def decr(
-        self,
-        key: Any,
-        delta: int = 1,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
+            self,
+            key: Any,
+            delta: int = 1,
+            version: Optional[int] = None,
+            client: Optional[Redis] = None,
     ) -> int:
         """
         Decreace delta to value in the cache. If the key does not exist, raise a
@@ -604,7 +605,8 @@ class DefaultClient:
         return self._incr(key=key, delta=-delta, version=version, client=client)
 
     def ttl(
-        self, key: Any, version: Optional[int] = None, client: Optional[Redis] = None
+            self, key: Any, version: Optional[int] = None,
+            client: Optional[Redis] = None
     ) -> Optional[int]:
         """
         Executes TTL redis command and return the "time-to-live" of specified key.
@@ -654,7 +656,8 @@ class DefaultClient:
             return None
 
     def has_key(
-        self, key: Any, version: Optional[int] = None, client: Optional[Redis] = None
+            self, key: Any, version: Optional[int] = None,
+            client: Optional[Redis] = None
     ) -> bool:
         """
         Test if key exists.
@@ -670,11 +673,11 @@ class DefaultClient:
             raise ConnectionInterrupted(connection=client) from e
 
     def iter_keys(
-        self,
-        search: str,
-        itersize: Optional[int] = None,
-        client: Optional[Redis] = None,
-        version: Optional[int] = None,
+            self,
+            search: str,
+            itersize: Optional[int] = None,
+            client: Optional[Redis] = None,
+            version: Optional[int] = None,
     ) -> Iterator[str]:
         """
         Same as keys, but uses redis >= 2.8 cursors
@@ -689,7 +692,8 @@ class DefaultClient:
             yield self.reverse_key(item.decode())
 
     def keys(
-        self, search: str, version: Optional[int] = None, client: Optional[Redis] = None
+            self, search: str, version: Optional[int] = None,
+            client: Optional[Redis] = None
     ) -> List[Any]:
         """
         Execute KEYS command and return matched results.
@@ -708,7 +712,7 @@ class DefaultClient:
             raise ConnectionInterrupted(connection=client) from e
 
     def make_key(
-        self, key: Any, version: Optional[Any] = None, prefix: Optional[str] = None
+            self, key: Any, version: Optional[Any] = None, prefix: Optional[str] = None
     ) -> CacheKey:
         if isinstance(key, CacheKey):
             return key
@@ -722,7 +726,8 @@ class DefaultClient:
         return CacheKey(self._backend.key_func(key, prefix, version))
 
     def make_pattern(
-        self, pattern: str, version: Optional[int] = None, prefix: Optional[str] = None
+            self, pattern: str, version: Optional[int] = None,
+            prefix: Optional[str] = None
     ) -> CacheKey:
         if isinstance(pattern, CacheKey):
             return pattern
@@ -753,11 +758,11 @@ class DefaultClient:
         self._clients = [None] * num_clients
 
     def touch(
-        self,
-        key: Any,
-        timeout: Optional[float] = DEFAULT_TIMEOUT,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
+            self,
+            key: Any,
+            timeout: Optional[float] = DEFAULT_TIMEOUT,
+            version: Optional[int] = None,
+            client: Optional[Redis] = None,
     ) -> bool:
         """
         Sets a new expiration for a key.
@@ -776,3 +781,203 @@ class DefaultClient:
             # Convert to milliseconds
             timeout = int(timeout * 1000)
             return bool(client.pexpire(key, timeout))
+
+    def zadd(self, key: Any, value: Any, score: float, client: Optional[Redis] = None):
+        """
+        Add a new member to a sorted set.
+        """
+
+        if client is None:
+            client = self.get_client(write=True)
+
+        key = self.make_key(key)
+        return client.zadd(key, {value: score})
+
+    def zrem(self, key: Any, value: Any, client: Optional[Redis] = None):
+        """
+        Remove a member from a sorted set.
+        """
+
+        if client is None:
+            client = self.get_client(write=True)
+
+        key = self.make_key(key)
+        return client.zrem(key, value)
+
+    def zrange(self, key: Any, start: int, stop: int, client: Optional[Redis] = None):
+        """
+        Return a range of members in a sorted set, by index.
+        """
+
+        if client is None:
+            client = self.get_client(write=False)
+
+        key = self.make_key(key)
+        return client.zrange(key, start, stop)
+
+    def zrevrange(self, key: Any, start: int, stop: int,
+                  client: Optional[Redis] = None):
+        """
+        Return a range of members in a sorted set,
+        by index, with scores ordered from high to low.
+        """
+
+        if client is None:
+            client = self.get_client(write=False)
+
+        key = self.make_key(key)
+        return client.zrevrange(key, start, stop)
+
+    def zrangebyscore(self, key: Any, min: float, max: float, start: int, num: int,
+                      client: Optional[Redis] = None):
+        """
+        Return a range of members in a sorted set, by score.
+        """
+
+        if client is None:
+            client = self.get_client(write=False)
+
+        key = self.make_key(key)
+        return client.zrangebyscore(key, min, max, start, num)
+
+    def zrevrangebyscore(self, key: Any, max: float, min: float, start: int, num: int,
+                         client: Optional[Redis] = None):
+        """
+        Return a range of members in a sorted set,
+        by score, with scores ordered from high to low.
+        """
+
+        if client is None:
+            client = self.get_client(write=False)
+
+        key = self.make_key(key)
+        return client.zrevrangebyscore(key, max, min, start, num)
+
+    def zremrangebyscore(self, key: Any, min: float, max: float,
+                         client: Optional[Redis] = None):
+        """
+        Remove all members in a sorted set within the given scores.
+        """
+
+        if client is None:
+            client = self.get_client(write=True)
+
+        key = self.make_key(key)
+        return client.zremrangebyscore(key, min, max)
+
+    def zrangebylex(self, key: Any, min: str, max: str, start: int, num: int,
+                    client: Optional[Redis] = None):
+        """
+        Return a range of members in a sorted set, by lexicographical range.
+        """
+
+        if client is None:
+            client = self.get_client(write=False)
+
+        key = self.make_key(key)
+        return client.zrangebylex(key, min, max, start, num)
+
+    def zrevrangebylex(self, key: Any, max: str, min: str, start: int, num: int,
+                       client: Optional[Redis] = None):
+        """
+        Return a range of members in a sorted set,
+        by lexicographical range, ordered from higher to lower strings.
+        """
+
+        if client is None:
+            client = self.get_client(write=False)
+
+        key = self.make_key(key)
+        return client.zrevrangebylex(key, max, min, start, num)
+
+    def zremrangebylex(self, key: Any, min: str, max: str,
+                       client: Optional[Redis] = None):
+        """
+        Remove all members in a sorted set between the given lexicographical range.
+        """
+
+        if client is None:
+            client = self.get_client(write=True)
+
+        key = self.make_key(key)
+        return client.zremrangebylex(key, min, max)
+
+    def zlexcount(self, key: Any, min: str, max: str, client: Optional[Redis] = None):
+        """
+        Count the number of members in a sorted set
+        between a given lexicographical range.
+        """
+
+        if client is None:
+            client = self.get_client(write=False)
+
+        key = self.make_key(key)
+        return client.zlexcount(key, min, max)
+
+    def zrank(self, key: Any, value: Any, client: Optional[Redis] = None):
+        """
+        Determine the index of a member in a sorted set.
+        """
+
+        if client is None:
+            client = self.get_client(write=False)
+
+        key = self.make_key(key)
+        return client.zrank(key, value)
+
+    def zrevrank(self, key: Any, value: Any, client: Optional[Redis] = None):
+        """
+        Determine the index of a member in a sorted set,
+        with scores ordered from high to low.
+        """
+
+        if client is None:
+            client = self.get_client(write=False)
+
+        key = self.make_key(key)
+        return client.zrevrank(key, value)
+
+    def zremrangebyrank(self, key: Any, start: int, stop: int,
+                        client: Optional[Redis] = None):
+        """
+        Remove all members in a sorted set within the given indexes.
+        """
+
+        if client is None:
+            client = self.get_client(write=True)
+
+        key = self.make_key(key)
+        return client.zremrangebyrank(key, start, stop)
+
+    def zscore(self, key: Any, value: Any, client: Optional[Redis] = None):
+        """
+        Get the score associated with the given member in a sorted set.
+        """
+
+        if client is None:
+            client = self.get_client(write=False)
+
+        key = self.make_key(key)
+        return client.zscore(key, value)
+
+    def zcard(self, key: Any, client: Optional[Redis] = None):
+        """
+        Get the number of members in a sorted set.
+        """
+
+        if client is None:
+            client = self.get_client(write=False)
+
+        key = self.make_key(key)
+        return client.zcard(key)
+
+    def zcount(self, key: Any, min: float, max: float, client: Optional[Redis] = None):
+        """
+        Count the members in a sorted set with scores within the given values.
+        """
+
+        if client is None:
+            client = self.get_client(write=True)
+
+        key = self.make_kwey(key)
+        return client.zcount(key, min, max)
