@@ -1,1 +1,0 @@
-Added note in docs for correctly configuring hiredis parser when using redis-py version 5.
