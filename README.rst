@@ -754,6 +754,8 @@ used with django-redis.
         "PARSER_CLASS": "redis.connection.HiredisParser",
     }
 
+Note: if using version 5 of redis-py, use ``"redis.connection._HiredisParser"`` for the ``PARSER_CLASS`` due to an internal rename of classes within that package.
+
 Pluggable clients
 ~~~~~~~~~~~~~~~~~
 
