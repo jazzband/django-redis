@@ -1,7 +1,6 @@
 from typing import Dict
 from urllib.parse import parse_qs, urlparse
 
-from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.module_loading import import_string
 from redis import Redis
@@ -177,13 +176,6 @@ class SentinelConnectionFactory(ConnectionFactory):
         return pool
 
 
-def get_connection_factory(path=None, options=None):
-    if path is None:
-        path = getattr(
-            settings,
-            "DJANGO_REDIS_CONNECTION_FACTORY",
-            "django_redis.pool.ConnectionFactory",
-        )
-
+def get_connection_factory(path, options=None):
     cls = import_string(path)
     return cls(options or {})
