@@ -736,6 +736,35 @@ In order to enable this functionality you should add the following:
         },
     }
 
+It is also possible to set some caches as sentinels and some as not:
+
+.. code-block:: python
+
+    SENTINELS = [
+        ('sentinel-1', 26379),
+        ('sentinel-2', 26379),
+        ('sentinel-3', 26379),
+    ]
+    CACHES = {
+        "sentinel": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": "redis://service_name/db",
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.SentinelClient",
+                "SENTINELS": SENTINELS,
+                "CONNECTION_POOL_CLASS": "redis.sentinel.SentinelConnectionPool",
+                "CONNECTION_FACTORY": "django_redis.pool.SentinelConnectionFactory",
+            },
+        },
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": "redis://127.0.0.1:6379/1",
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            },
+        },
+    }
+
 .. _Redis Sentinels: https://redis.io/topics/sentinel
 
 Pluggable parsers

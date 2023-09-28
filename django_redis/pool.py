@@ -184,6 +184,9 @@ def get_connection_factory(path=None, options=None):
             "DJANGO_REDIS_CONNECTION_FACTORY",
             "django_redis.pool.ConnectionFactory",
         )
+    opt_conn_factory = options.get("CONNECTION_FACTORY")
+    if opt_conn_factory:
+        path = opt_conn_factory
 
     cls = import_string(path)
     return cls(options or {})
