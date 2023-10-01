@@ -3,6 +3,21 @@ Changelog
 
 .. towncrier release notes start
 
+django-redis 5.4.0 (2023-10-01)
+===============================
+
+Features
+--------
+
+- Connection factory goes to cache options (`#680 <https://github.com/jazzband/django-redis/issues/680>`_)
+
+
+Documentation
+-------------
+
+- Added note in docs for correctly configuring hiredis parser when using redis-py version 5. (`#677 <https://github.com/jazzband/django-redis/issues/677>`_)
+
+
 django-redis 5.3.0 (2023-06-16)
 ===============================
 
