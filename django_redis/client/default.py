@@ -776,3 +776,196 @@ class DefaultClient:
             # Convert to milliseconds
             timeout = int(timeout * 1000)
             return bool(client.pexpire(key, timeout))
+
+    def sadd(
+            self,
+            key: Any,
+            *values: Any,
+            version: Optional[int] = None,
+            client: Optional[Redis] = None,
+    ) -> int:
+        if client is None:
+            client = self.get_client(write=True)
+
+        key = self.make_key(key, version=version)
+        values = [self.encode(value) for value in values]
+        return int(client.sadd(key, *values))
+
+    def scard(
+            self,
+            key: Any,
+            version: Optional[int] = None,
+            client: Optional[Redis] = None,
+    ) -> int:
+        if client is None:
+            client = self.get_client(write=False)
+
+        key = self.make_key(key, version=version)
+        return int(client.scard(key))
+
+    def sdiff(
+            self,
+            *keys,
+            version: Optional[int] = None,
+            client: Optional[Redis] = None,
+    ) -> set:
+        if client is None:
+            client = self.get_client(write=False)
+
+        keys = [self.make_key(key, version=version) for key in keys]
+        return {self.decode(value) for value in client.sdiff(*keys)}
+
+    def sdiffstore(
+            self,
+            dest: Any,
+            *keys,
+            version: Optional[int] = None,
+            client: Optional[Redis] = None,
+    ) -> int:
+        if client is None:
+            client = self.get_client(write=True)
+
+        dest = self.make_key(dest, version=version)
+        keys = [self.make_key(key, version=version) for key in keys]
+        return int(client.sdiffstore(dest, *keys))
+
+
+    def sinter(
+            self,
+            *keys,
+            version: Optional[int] = None,
+            client: Optional[Redis] = None,
+    ) -> set:
+        if client is None:
+            client = self.get_client(write=False)
+
+        keys = [self.make_key(key, version=version) for key in keys]
+        return {self.decode(value) for value in client.sinter(*keys)}
+
+    def sinterstore(
+            self,
+            dest: Any,
+            *keys,
+            version: Optional[int] = None,
+            client: Optional[Redis] = None,
+    ) -> int:
+        if client is None:
+            client = self.get_client(write=True)
+
+        dest = self.make_key(dest, version=version)
+        keys = [self.make_key(key, version=version) for key in keys]
+        return int(client.sinterstore(dest, *keys))
+
+    def sismember(
+            self,
+            key: Any,
+            member: Any,
+            version: Optional[int] = None,
+            client: Optional[Redis] = None,
+    ) -> bool:
+        if client is None:
+            client = self.get_client(write=False)
+
+        key = self.make_key(key, version=version)
+        member = self.encode(member)
+        return bool(client.sismember(key, member))
+
+    def smembers(
+            self,
+            key: Any,
+            version: Optional[int] = None,
+            client: Optional[Redis] = None,
+    ) -> set:
+        if client is None:
+            client = self.get_client(write=False)
+
+        key = self.make_key(key, version=version)
+        return {self.decode(value) for value in client.smembers(key)}
+
+    def smove(
+            self,
+            source: Any,
+            destination: Any,
+            member: Any,
+            version: Optional[int] = None,
+            client: Optional[Redis] = None,
+    ) -> bool:
+        if client is None:
+            client = self.get_client(write=True)
+
+        source = self.make_key(source, version=version)
+        destination = self.make_key(destination)
+        member = self.encode(member)
+        return bool(client.smove(source, destination, member))
+
+    def spop(
+            self,
+            key: Any,
+            count: Optional[int] = None,
+            version: Optional[int] = None,
+            client: Optional[Redis] = None,
+    ) -> Union[set, Any]:
+        if client is None:
+            client = self.get_client(write=True)
+
+        key = self.make_key(key, version=version)
+        result = client.spop(key, count)
+        if type(result) == list:
+            return {self.decode(value) for value in result}
+        return self.decode(result)
+
+    def srandmember(
+            self,
+            key: Any,
+            count: Optional[int] = None,
+            version: Optional[int] = None,
+            client: Optional[Redis] = None,
+    ) -> Union[set, Any]:
+        if client is None:
+            client = self.get_client(write=False)
+
+        key = self.make_key(key, version=version)
+        result = client.srandmember(key, count)
+        if type(result) == list:
+            return {self.decode(value) for value in result}
+        return self.decode(result)
+
+    def srem(
+            self,
+            key: Any,
+            *members,
+            version: Optional[int] = None,
+            client: Optional[Redis] = None,
+    ) -> int:
+        if client is None:
+            client = self.get_client(write=True)
+
+        key = self.make_key(key, version=version)
+        members = [self.decode(member) for member in members]
+        return int(client.srem(key, *members))
+
+    def sunion(
+            self,
+            *keys,
+            version: Optional[int] = None,
+            client: Optional[Redis] = None,
+    ) -> set:
+        if client is None:
+            client = self.get_client(write=False)
+
+        keys = [self.make_key(key, version=version) for key in keys]
+        return {self.decode(value) for value in client.sunion(*keys)}
+
+    def sunionstore(
+            self,
+            destination: Any,
+            *keys,
+            version: Optional[int] = None,
+            client: Optional[Redis] = None,
+    ) -> int:
+        if client is None:
+            client = self.get_client(write=True)
+
+        destination = self.make_key(destination, version=version)
+        keys = [self.make_key(key, version=version) for key in keys]
+        return int(client.sunionstore(destination, *keys))
