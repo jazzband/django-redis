@@ -184,3 +184,71 @@ class RedisCache(BaseCache):
     @omit_exception
     def touch(self, *args, **kwargs):
         return self.client.touch(*args, **kwargs)
+
+    @omit_exception
+    def zaad(self, *args, **kwargs):
+        return self.client.zadd(*args, **kwargs)
+
+    @omit_exception
+    def zrem(self, *args, **kwargs):
+        return self.client.zrem(*args, **kwargs)
+
+    @omit_exception
+    def zrange(self, *args, **kwargs):
+        return self.client.zrange(*args, **kwargs)
+
+    @omit_exception
+    def zrevrange(self, *args, **kwargs):
+        return self.client.zrevrange(*args, **kwargs)
+
+    @omit_exception
+    def zrangebyscore(self, *args, **kwargs):
+        return self.client.zrangebyscore(*args, **kwargs)
+
+    @omit_exception
+    def zrevrangebyscore(self, *args, **kwargs):
+        return self.client.zrevrangebyscore(*args, **kwargs)
+
+    @omit_exception
+    def zremrangebyscore(self, *args, **kwargs):
+        return self.client.zremrangebyscore(*args, **kwargs)
+
+    @omit_exception
+    def zrangebylex(self, *args, **kwargs):
+        return self.client.zrangebylex(*args, **kwargs)
+
+    @omit_exception
+    def zrevrangebylex(self, *args, **kwargs):
+        return self.client.zrevrangebylex(*args, **kwargs)
+
+    @omit_exception
+    def zremrangebylex(self, *args, **kwargs):
+        return self.client.zremrangebylex(*args, **kwargs)
+
+    @omit_exception
+    def zlexcount(self, *args, **kwargs):
+        return self.client.zlexcount(*args, **kwargs)
+
+    @omit_exception
+    def zrank(self, *args, **kwargs):
+        return self.client.zrank(*args, **kwargs)
+
+    @omit_exception
+    def zrevrank(self, *args, **kwargs):
+        return self.client.zrevrank(*args, **kwargs)
+
+    @omit_exception
+    def zremrangebyrank(self, *args, **kwargs):
+        return self.client.zremrangebyrank(*args, **kwargs)
+
+    @omit_exception
+    def zscore(self, *args, **kwargs):
+        return self.client.zscore(*args, **kwargs)
+
+    @omit_exception
+    def zcard(self, *args, **kwargs):
+        return self.client.zcard(*args, **kwargs)
+
+    @omit_exception
+    def zcount(self, *args, **kwargs):
+        return self.client.zcount(*args, **kwargs)

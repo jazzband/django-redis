@@ -776,3 +776,235 @@ class DefaultClient:
             # Convert to milliseconds
             timeout = int(timeout * 1000)
             return bool(client.pexpire(key, timeout))
+
+    def zadd(self, key: Any, value: Any, score: float, client: Optional[Redis] = None):
+        """
+        Add a new member to a sorted set.
+        """
+
+        if client is None:
+            client = self.get_client(write=True)
+
+        key = self.make_key(key)
+        return client.zadd(key, {value: score})
+
+    def zrem(self, key: Any, value: Any, client: Optional[Redis] = None):
+        """
+        Remove a member from a sorted set.
+        """
+
+        if client is None:
+            client = self.get_client(write=True)
+
+        key = self.make_key(key)
+        return client.zrem(key, value)
+
+    def zrange(self, key: Any, start: int, stop: int, client: Optional[Redis] = None):
+        """
+        Return a range of members in a sorted set, by index.
+        """
+
+        if client is None:
+            client = self.get_client(write=False)
+
+        key = self.make_key(key)
+        return client.zrange(key, start, stop)
+
+    def zrevrange(
+        self, key: Any, start: int, stop: int, client: Optional[Redis] = None
+    ):
+        """
+        Return a range of members in a sorted set,
+        by index, with scores ordered from high to low.
+        """
+
+        if client is None:
+            client = self.get_client(write=False)
+
+        key = self.make_key(key)
+        return client.zrevrange(key, start, stop)
+
+    def zrangebyscore(
+        self,
+        key: Any,
+        min: float,
+        max: float,
+        start: int,
+        num: int,
+        client: Optional[Redis] = None,
+    ):
+        """
+        Return a range of members in a sorted set, by score.
+        """
+
+        if client is None:
+            client = self.get_client(write=False)
+
+        key = self.make_key(key)
+        return client.zrangebyscore(key, min, max, start, num)
+
+    def zrevrangebyscore(
+        self,
+        key: Any,
+        max: float,
+        min: float,
+        start: int,
+        num: int,
+        client: Optional[Redis] = None,
+    ):
+        """
+        Return a range of members in a sorted set,
+        by score, with scores ordered from high to low.
+        """
+
+        if client is None:
+            client = self.get_client(write=False)
+
+        key = self.make_key(key)
+        return client.zrevrangebyscore(key, max, min, start, num)
+
+    def zremrangebyscore(
+        self, key: Any, min: float, max: float, client: Optional[Redis] = None
+    ):
+        """
+        Remove all members in a sorted set within the given scores.
+        """
+
+        if client is None:
+            client = self.get_client(write=True)
+
+        key = self.make_key(key)
+        return client.zremrangebyscore(key, min, max)
+
+    def zrangebylex(
+        self,
+        key: Any,
+        min: str,
+        max: str,
+        start: int,
+        num: int,
+        client: Optional[Redis] = None,
+    ):
+        """
+        Return a range of members in a sorted set, by lexicographical range.
+        """
+
+        if client is None:
+            client = self.get_client(write=False)
+
+        key = self.make_key(key)
+        return client.zrangebylex(key, min, max, start, num)
+
+    def zrevrangebylex(
+        self,
+        key: Any,
+        max: str,
+        min: str,
+        start: int,
+        num: int,
+        client: Optional[Redis] = None,
+    ):
+        """
+        Return a range of members in a sorted set,
+        by lexicographical range, ordered from higher to lower strings.
+        """
+
+        if client is None:
+            client = self.get_client(write=False)
+
+        key = self.make_key(key)
+        return client.zrevrangebylex(key, max, min, start, num)
+
+    def zremrangebylex(
+        self, key: Any, min: str, max: str, client: Optional[Redis] = None
+    ):
+        """
+        Remove all members in a sorted set between the given lexicographical range.
+        """
+
+        if client is None:
+            client = self.get_client(write=True)
+
+        key = self.make_key(key)
+        return client.zremrangebylex(key, min, max)
+
+    def zlexcount(self, key: Any, min: str, max: str, client: Optional[Redis] = None):
+        """
+        Count the number of members in a sorted set
+        between a given lexicographical range.
+        """
+
+        if client is None:
+            client = self.get_client(write=False)
+
+        key = self.make_key(key)
+        return client.zlexcount(key, min, max)
+
+    def zrank(self, key: Any, value: Any, client: Optional[Redis] = None):
+        """
+        Determine the index of a member in a sorted set.
+        """
+
+        if client is None:
+            client = self.get_client(write=False)
+
+        key = self.make_key(key)
+        return client.zrank(key, value)
+
+    def zrevrank(self, key: Any, value: Any, client: Optional[Redis] = None):
+        """
+        Determine the index of a member in a sorted set,
+        with scores ordered from high to low.
+        """
+
+        if client is None:
+            client = self.get_client(write=False)
+
+        key = self.make_key(key)
+        return client.zrevrank(key, value)
+
+    def zremrangebyrank(
+        self, key: Any, start: int, stop: int, client: Optional[Redis] = None
+    ):
+        """
+        Remove all members in a sorted set within the given indexes.
+        """
+
+        if client is None:
+            client = self.get_client(write=True)
+
+        key = self.make_key(key)
+        return client.zremrangebyrank(key, start, stop)
+
+    def zscore(self, key: Any, value: Any, client: Optional[Redis] = None):
+        """
+        Get the score associated with the given member in a sorted set.
+        """
+
+        if client is None:
+            client = self.get_client(write=False)
+
+        key = self.make_key(key)
+        return client.zscore(key, value)
+
+    def zcard(self, key: Any, client: Optional[Redis] = None):
+        """
+        Get the number of members in a sorted set.
+        """
+
+        if client is None:
+            client = self.get_client(write=False)
+
+        key = self.make_key(key)
+        return client.zcard(key)
+
+    def zcount(self, key: Any, min: float, max: float, client: Optional[Redis] = None):
+        """
+        Count the members in a sorted set with scores within the given values.
+        """
+
+        if client is None:
+            client = self.get_client(write=True)
+
+        key = self.make_kwey(key)
+        return client.zcount(key, min, max)
