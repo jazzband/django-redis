@@ -785,3 +785,18 @@ class TestDjangoRedisCache:
         cache.clear()
         value_from_cache_after_clear = cache.get("foo")
         assert value_from_cache_after_clear is None
+
+    def test_hset_hget(self, cache: RedisCache):
+        cache.hset("foo", "bar", "baz")
+        cache.hset("foo", "baz", "bar")
+        value_from_cache = cache.hget("foo", "bar")
+        assert value_from_cache == "baz"
+        value_from_cache = cache.hget("foo", "baz")
+        assert value_from_cache == "bar"
+
+    def test_hdel(self, cache: RedisCache):
+        cache.hset("foo", "bar", "baz")
+        cache.hset("foo", "baz", "bar")
+        cache.hdel("foo", ["bar", "baz"])
+        assert cache.hget("foo", "bar") is None
+        assert cache.hget("foo", "baz") is None

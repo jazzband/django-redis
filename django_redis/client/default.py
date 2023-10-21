@@ -776,3 +776,74 @@ class DefaultClient:
             # Convert to milliseconds
             timeout = int(timeout * 1000)
             return bool(client.pexpire(key, timeout))
+
+    def hdel(
+        self,
+        name: Any,
+        keys: List,
+        client: Optional[Redis] = None,
+        version: Optional[int] = None,
+    ) -> bool:
+        name = self.make_key(name, version=version)
+        if client is None:
+            client = self.get_client(write=True)
+        try:
+            return bool(client.hdel(name, *keys))
+        except _main_exceptions as e:
+            raise ConnectionInterrupted(connection=client) from e
+
+    def hset(
+        self,
+        name: Any,
+        key: Union[str, bytes],
+        value: Union[bytes, float, int, str],
+        version: Optional[int] = None,
+        mapping: Optional[dict] = None,
+        client: Optional[Redis] = None,
+    ) -> bool:
+
+        original_client = client
+        tried = []  # type: List[int]
+        name = self.make_key(name, version=version)
+        value = self.encode(value)
+        while True:
+            try:
+                if client is None:
+                    client, index = self.get_client(
+                        write=True, tried=tried, show_index=True
+                    )
+
+                return bool(client.hset(name, key, value, mapping))
+            except _main_exceptions as e:
+                if (
+                    not original_client
+                    and not self._replica_read_only
+                    and len(tried) < len(self._server)
+                ):
+                    tried.append(index)
+                    client = None
+                    continue
+                raise ConnectionInterrupted(connection=client) from e
+
+    def hget(
+        self,
+        name: str,
+        key: str,
+        default=None,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
+    ) -> Any:
+        if client is None:
+            client = self.get_client(write=False)
+
+        name = self.make_key(name, version=version)
+
+        try:
+            value = client.hget(name, key)
+        except _main_exceptions as e:
+            raise ConnectionInterrupted(connection=client) from e
+
+        if value is None:
+            return default
+
+        return self.decode(value)
