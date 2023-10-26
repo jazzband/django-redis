@@ -49,6 +49,11 @@ jobs:
             redis-version: 'latest'
             python-version: '3.11'
 
+          # Django 4.2 and python 3.12 with latest redis
+          - django-version: '4.2'
+            redis-version: 'latest'
+            python-version: '3.12'
+
           # latest Django with pre-release redis
           - django-version: '4.2'
             redis-version: 'master'
