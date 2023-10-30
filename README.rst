@@ -291,6 +291,21 @@ Let see an example, of how make it work with *lzma* compression format:
         }
     }
 
+*Gzip* compression support:
+
+.. code-block:: python
+
+    import gzip
+
+    CACHES = {
+        "default": {
+            # ...
+            "OPTIONS": {
+                "COMPRESSOR": "django_redis.compressors.gzip.GzipCompressor",
+            }
+        }
+    }
+
 Memcached exceptions behavior
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
