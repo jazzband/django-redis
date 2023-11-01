@@ -147,10 +147,10 @@ class HerdClient(DefaultClient):
             raise ConnectionInterrupted(connection=client) from e
 
     def incr(self, *args, **kwargs):
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def decr(self, *args, **kwargs):
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def touch(self, key, timeout=DEFAULT_TIMEOUT, version=None, client=None):
         if client is None:

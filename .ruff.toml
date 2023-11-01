@@ -37,31 +37,31 @@ select = [
   # TODO: "A",
 
   # rules from flake8-commas
-#  "COM",
+  "COM",
 
   # rules from flake8-comprehensions
-#  "C4",
+  "C4",
 
   # rules from flake8-datetimez
   # TODO: "DTZ",
 
   # rules from flake8-debugger
-#  "T10",
+  "T10",
 
   # rules from flake8-django
   # TODO: "DJ",
 
   # rules from flake8-errmsg
-#   "EM",
+   "EM",
 
   # rules from flake8-executable
   # TODO: "EXE",
 
   # rules from flake8-implicit-str-concat
-#  "ISC",
+  "ISC",
 
   # rules from flake8-import-conventions
-#  "ICN",
+  "ICN",
 
   # rules from flake8-logging-format
   # TODO: "G",
@@ -73,16 +73,16 @@ select = [
   # TODO: "PIE",
 
   # rules from flake8-print
-#  "T20",
+  "T20",
 
   # rules from flake8-pyi
-#  "PYI",
+  "PYI",
 
   # rules from flake8-pytest-style
   # TODO: "PT",
 
   # rules from flake8-raise
-#  "RSE",
+  "RSE",
 
   # rules from flake8-return
   # TODO: "RET",
@@ -91,7 +91,7 @@ select = [
   # TODO: "SLF",
 
   # rules from flake8-simplify
-#  "SIM",
+  "SIM",
 
   # rules from flake8-tidy-imports
   "TID",

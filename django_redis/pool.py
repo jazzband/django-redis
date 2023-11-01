@@ -51,7 +51,8 @@ class ConnectionFactory:
             if not isinstance(
                 socket_timeout, (int, float)
             ):
-                raise ImproperlyConfigured("Socket timeout should be float or integer")
+                error_message = "Socket timeout should be float or integer"
+                raise ImproperlyConfigured(error_message)
             kwargs["socket_timeout"] = socket_timeout
 
         socket_connect_timeout = self.options.get("SOCKET_CONNECT_TIMEOUT", None)
@@ -59,8 +60,9 @@ class ConnectionFactory:
             if not isinstance(
                 socket_connect_timeout, (int, float)
             ):
+                error_message = "Socket connect timeout should be float or integer"
                 raise ImproperlyConfigured(
-                    "Socket connect timeout should be float or integer"
+                    error_message
                 )
             kwargs["socket_connect_timeout"] = socket_connect_timeout
 
@@ -144,8 +146,9 @@ class SentinelConnectionFactory(ConnectionFactory):
 
         sentinels = options.get("SENTINELS")
         if not sentinels:
+            error_message = "SENTINELS must be provided as a list of (host, port)."
             raise ImproperlyConfigured(
-                "SENTINELS must be provided as a list of (host, port)."
+                error_message
             )
 
         # provide the connection pool kwargs to the sentinel in case it

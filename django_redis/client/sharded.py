@@ -272,7 +272,8 @@ class ShardClient(DefaultClient):
         return super().decr(key=key, delta=delta, version=version, client=client)
 
     def iter_keys(self, key, version=None):
-        raise NotImplementedError("iter_keys not supported on sharded client")
+        error_message = "iter_keys not supported on sharded client"
+        raise NotImplementedError(error_message)
 
     def keys(self, search, version=None):
         pattern = self.make_pattern(search, version=version)

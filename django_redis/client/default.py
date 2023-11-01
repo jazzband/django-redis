@@ -2,6 +2,7 @@ import random
 import re
 import socket
 from collections import OrderedDict
+from contextlib import suppress
 from datetime import datetime
 from typing import Any, Dict, Iterator, List, Optional, Union
 
@@ -37,7 +38,8 @@ class DefaultClient:
         )
 
         if not self._server:
-            raise ImproperlyConfigured("Missing connections string")
+            error_message = "Missing connections string"
+            raise ImproperlyConfigured(error_message)
 
         if not isinstance(self._server, (list, tuple, set)):
             self._server = self._server.split(",")
@@ -75,7 +77,7 @@ class DefaultClient:
         behavior.
         """
         if tried is None:
-            tried = list()
+            tried = []
 
         if tried and len(tried) < len(self._server):
             not_tried = [i for i in range(0, len(self._server)) if i not in tried]
@@ -444,11 +446,9 @@ class DefaultClient:
         try:
             value = int(value)
         except (ValueError, TypeError):
-            try:
+            # Handle little values, chosen to be not compressed
+            with suppress(CompressorError):
                 value = self._compressor.decompress(value)
-            except CompressorError:
-                # Handle little values, chosen to be not compressed
-                pass
             value = self._serializer.loads(value)
         return value
 

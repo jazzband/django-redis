@@ -18,12 +18,16 @@ class PickleSerializer(BaseSerializer):
             try:
                 self._pickle_version = int(options["PICKLE_VERSION"])
                 if self._pickle_version > pickle.HIGHEST_PROTOCOL:
-                    raise ImproperlyConfigured(
+                    error_message = (
                         f"PICKLE_VERSION can't be higher than pickle.HIGHEST_PROTOCOL:"
                         f" {pickle.HIGHEST_PROTOCOL}"
                     )
+                    raise ImproperlyConfigured(
+                        error_message
+                    )
             except (ValueError, TypeError):
-                raise ImproperlyConfigured("PICKLE_VERSION value must be an integer")
+                error_message = "PICKLE_VERSION value must be an integer"
+                raise ImproperlyConfigured(error_message)
 
     def dumps(self, value: Any) -> bytes:
         return pickle.dumps(value, self._pickle_version)
