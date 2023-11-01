@@ -24,7 +24,7 @@ def test_hashring(hash_ring):
 
     for key in [f"test{x}" for x in range(10)]:
         node = hash_ring.get_node(key)
-        ids.append(node.id)
+        ids.append(node.identifier)
 
     assert ids == [0, 2, 1, 2, 2, 2, 2, 0, 1, 1]
 
