@@ -3,7 +3,7 @@ from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 from django.core.exceptions import ImproperlyConfigured
 from redis.sentinel import SentinelConnectionPool
 
-from .default import DefaultClient
+from django_redis.client.default import DefaultClient
 
 
 def replace_query(url, query):
@@ -33,9 +33,10 @@ class SentinelClient(DefaultClient):
     def connect(self, *args, **kwargs):
         connection = super().connect(*args, **kwargs)
         if not isinstance(connection.connection_pool, SentinelConnectionPool):
-            raise ImproperlyConfigured(
+            error_message = (
                 "Settings DJANGO_REDIS_CONNECTION_FACTORY or "
                 "CACHE[].OPTIONS.CONNECTION_POOL_CLASS is not configured correctly."
             )
+            raise ImproperlyConfigured(error_message)
 
         return connection

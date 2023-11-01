@@ -1,7 +1,7 @@
 import lzma
 
-from ..exceptions import CompressorError
-from .base import BaseCompressor
+from django_redis.compressors.base import BaseCompressor
+from django_redis.exceptions import CompressorError
 
 
 class LzmaCompressor(BaseCompressor):
@@ -17,4 +17,4 @@ class LzmaCompressor(BaseCompressor):
         try:
             return lzma.decompress(value)
         except lzma.LZMAError as e:
-            raise CompressorError(e)
+            raise CompressorError from e

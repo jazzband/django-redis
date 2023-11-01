@@ -2,6 +2,7 @@ import random
 import re
 import socket
 from collections import OrderedDict
+from contextlib import suppress
 from datetime import datetime
 from typing import Any, Dict, Iterator, List, Optional, Union
 
@@ -12,9 +13,9 @@ from django.utils.module_loading import import_string
 from redis import Redis
 from redis.exceptions import ConnectionError, ResponseError, TimeoutError
 
-from .. import pool
-from ..exceptions import CompressorError, ConnectionInterrupted
-from ..util import CacheKey
+from django_redis import pool
+from django_redis.exceptions import CompressorError, ConnectionInterrupted
+from django_redis.util import CacheKey
 
 _main_exceptions = (TimeoutError, ResponseError, ConnectionError, socket.timeout)
 
@@ -37,7 +38,8 @@ class DefaultClient:
         )
 
         if not self._server:
-            raise ImproperlyConfigured("Missing connections string")
+            error_message = "Missing connections string"
+            raise ImproperlyConfigured(error_message)
 
         if not isinstance(self._server, (list, tuple, set)):
             self._server = self._server.split(",")
@@ -75,7 +77,7 @@ class DefaultClient:
         behavior.
         """
         if tried is None:
-            tried = list()
+            tried = []
 
         if tried and len(tried) < len(self._server):
             not_tried = [i for i in range(0, len(self._server)) if i not in tried]
@@ -106,8 +108,8 @@ class DefaultClient:
 
         if show_index:
             return self._clients[index], index
-        else:
-            return self._clients[index]
+
+        return self._clients[index]
 
     def connect(self, index: int = 0) -> Redis:
         """
@@ -123,7 +125,7 @@ class DefaultClient:
             client = self._clients[index]
         return self.connection_factory.disconnect(client) if client else None
 
-    def set(
+    def set(  # noqa: A003
         self,
         key: Any,
         value: Any,
@@ -164,13 +166,11 @@ class DefaultClient:
                             # not expire (in our case delete) the value if it exists.
                             # Obviously expire not existent value is noop.
                             return not self.has_key(key, version=version, client=client)
-                        else:
-                            # redis doesn't support negative timeouts in ex flags
-                            # so it seems that it's better to just delete the key
-                            # than to set it and than expire in a pipeline
-                            return bool(
-                                self.delete(key, client=client, version=version)
-                            )
+
+                        # redis doesn't support negative timeouts in ex flags
+                        # so it seems that it's better to just delete the key
+                        # than to set it and than expire in a pipeline
+                        return bool(self.delete(key, client=client, version=version))
 
                 return bool(client.set(nkey, nvalue, nx=nx, px=timeout, xx=xx))
             except _main_exceptions as e:
@@ -417,7 +417,7 @@ class DefaultClient:
         keys = [self.make_key(k, version=version) for k in keys]
 
         if not keys:
-            return
+            return None
 
         try:
             return client.delete(*keys)
@@ -444,11 +444,9 @@ class DefaultClient:
         try:
             value = int(value)
         except (ValueError, TypeError):
-            try:
+            # Handle little values, chosen to be not compressed
+            with suppress(CompressorError):
                 value = self._compressor.decompress(value)
-            except CompressorError:
-                # Handle little values, chosen to be not compressed
-                pass
             value = self._serializer.loads(value)
         return value
 
@@ -459,8 +457,7 @@ class DefaultClient:
 
         if isinstance(value, bool) or not isinstance(value, int):
             value = self._serializer.dumps(value)
-            value = self._compressor.compress(value)
-            return value
+            return self._compressor.compress(value)
 
         return value
 
@@ -548,8 +545,9 @@ class DefaultClient:
                     """
                 value = client.eval(lua, 1, key, delta)
                 if value is None:
-                    raise ValueError("Key '%s' not found" % key)
-            except ResponseError:
+                    error_message = f"Key '{key}' not found"
+                    raise ValueError(error_message)
+            except ResponseError as e:
                 # if cached value or total value is greater than 64 bit signed
                 # integer.
                 # elif int is encoded. so redis sees the data as string.
@@ -561,7 +559,8 @@ class DefaultClient:
                 # returns -2 if the key does not exist
                 # means, that key have expired
                 if timeout == -2:
-                    raise ValueError("Key '%s' not found" % key)
+                    error_message = f"Key '{key}' not found"
+                    raise ValueError(error_message) from e
                 value = self.get(key, version=version, client=client) + delta
                 self.set(key, value, version=version, timeout=timeout, client=client)
         except _main_exceptions as e:
@@ -621,13 +620,13 @@ class DefaultClient:
 
         if t >= 0:
             return t
-        elif t == -1:
+        if t == -1:
             return None
-        elif t == -2:
+        if t == -2:
             return 0
-        else:
-            # Should never reach here
-            return None
+
+        # Should never reach here
+        return None
 
     def pttl(self, key, version=None, client=None):
         """
@@ -645,13 +644,13 @@ class DefaultClient:
 
         if t >= 0:
             return t
-        elif t == -1:
+        if t == -1:
             return None
-        elif t == -2:
+        if t == -2:
             return 0
-        else:
-            # Should never reach here
-            return None
+
+        # Should never reach here
+        return None
 
     def has_key(
         self, key: Any, version: Optional[int] = None, client: Optional[Redis] = None
@@ -737,7 +736,7 @@ class DefaultClient:
 
         return CacheKey(self._backend.key_func(pattern, prefix, version_str))
 
-    def close(self, **kwargs):
+    def close(self):
         close_flag = self._options.get(
             "CLOSE_CONNECTION",
             getattr(settings, "DJANGO_REDIS_CLOSE_CONNECTION", False),
@@ -772,7 +771,7 @@ class DefaultClient:
         key = self.make_key(key, version=version)
         if timeout is None:
             return bool(client.persist(key))
-        else:
-            # Convert to milliseconds
-            timeout = int(timeout * 1000)
-            return bool(client.pexpire(key, timeout))
+
+        # Convert to milliseconds
+        timeout = int(timeout * 1000)
+        return bool(client.pexpire(key, timeout))

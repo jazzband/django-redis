@@ -5,10 +5,10 @@ from typing import Union
 
 from redis.exceptions import ConnectionError
 
-from ..exceptions import ConnectionInterrupted
-from ..hash_ring import HashRing
-from ..util import CacheKey
-from .default import DEFAULT_TIMEOUT, DefaultClient
+from django_redis.client.default import DEFAULT_TIMEOUT, DefaultClient
+from django_redis.exceptions import ConnectionInterrupted
+from django_redis.hash_ring import HashRing
+from django_redis.util import CacheKey
 
 
 class ShardClient(DefaultClient):
@@ -37,8 +37,7 @@ class ShardClient(DefaultClient):
         g = self._findhash.match(key)
         if g is not None and len(g.groups()) > 0:
             key = g.groups()[0]
-        name = self._ring.get_node(key)
-        return name
+        return self._ring.get_node(key)
 
     def get_server(self, key):
         name = self.get_server_name(key)
@@ -79,7 +78,7 @@ class ShardClient(DefaultClient):
             recovered_data[map_keys[key]] = value
         return recovered_data
 
-    def set(
+    def set(  # noqa: A003
         self, key, value, timeout=DEFAULT_TIMEOUT, version=None, client=None, nx=False
     ):
         """
@@ -272,13 +271,14 @@ class ShardClient(DefaultClient):
         return super().decr(key=key, delta=delta, version=version, client=client)
 
     def iter_keys(self, key, version=None):
-        raise NotImplementedError("iter_keys not supported on sharded client")
+        error_message = "iter_keys not supported on sharded client"
+        raise NotImplementedError(error_message)
 
     def keys(self, search, version=None):
         pattern = self.make_pattern(search, version=version)
         keys = []
         try:
-            for server, connection in self._serverdict.items():
+            for connection in self._serverdict.values():
                 keys.extend(connection.keys(pattern))
         except ConnectionError as e:
             # FIXME: technically all clients should be passed as `connection`.
@@ -299,12 +299,12 @@ class ShardClient(DefaultClient):
             kwargs["count"] = itersize
 
         keys = []
-        for server, connection in self._serverdict.items():
+        for connection in self._serverdict.values():
             keys.extend(key for key in connection.scan_iter(**kwargs))
 
         res = 0
         if keys:
-            for server, connection in self._serverdict.items():
+            for connection in self._serverdict.values():
                 res += connection.delete(*keys)
         return res
 

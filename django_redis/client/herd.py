@@ -6,8 +6,8 @@ from collections import OrderedDict
 from django.conf import settings
 from redis.exceptions import ConnectionError, ResponseError, TimeoutError
 
-from ..exceptions import ConnectionInterrupted
-from .default import DEFAULT_TIMEOUT, DefaultClient
+from django_redis.client.default import DEFAULT_TIMEOUT, DefaultClient
+from django_redis.exceptions import ConnectionInterrupted
 
 _main_exceptions = (ConnectionError, ResponseError, TimeoutError, socket.timeout)
 
@@ -57,7 +57,7 @@ class HerdClient(DefaultClient):
 
         return unpacked, False
 
-    def set(
+    def set(  # noqa: A003
         self,
         key,
         value,
@@ -147,10 +147,10 @@ class HerdClient(DefaultClient):
             raise ConnectionInterrupted(connection=client) from e
 
     def incr(self, *args, **kwargs):
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def decr(self, *args, **kwargs):
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def touch(self, key, timeout=DEFAULT_TIMEOUT, version=None, client=None):
         if client is None:
