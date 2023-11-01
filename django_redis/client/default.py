@@ -3,7 +3,6 @@ import re
 import socket
 from collections import OrderedDict
 from contextlib import suppress
-from datetime import timedelta
 from typing import Any, Dict, Iterable, Iterator, List, Optional, Tuple, Union
 
 from django.conf import settings
