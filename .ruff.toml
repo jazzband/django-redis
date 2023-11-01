@@ -1,31 +1,31 @@
 # https://beta.ruff.rs/docs/rules/
 select = [
   # rules from pyflakes
-#  "F",
+  "F",
 
   # rules from pycodestyle
-#  "E", "W",
+  "E", "W",
 
   # rules from mccabe
 #  "C90",
 
   # rules from isort
-#  "I",
+  "I",
 
   # rules from pyupgrade
-#  "UP",
+  "UP",
 
   # rules from flake8-2020
-#  "YTT",
+  "YTT",
 
   # rules from flake8-annotations
 #  "ANN",
 
   # rules from flake8-bandit
-#  "S",
+  "S",
 
   # rules from flake8-blind-except
-#  "BLE",
+  "BLE",
 
   # rules from flake8-boolean-trap
   # TODO: "FBT",
@@ -116,6 +116,7 @@ select = [
 ignore = [
   "COM812", # missing trailing comma, covered by black
   "ANN101", # ignore missing type annotation in self parameter
+  "S311", # ignore Standard pseudo-random generators because they are not used for cryptographic purposes
 ]
 
 fix = true
@@ -127,3 +128,13 @@ fix = true
 #[flake8-tidy-imports]
 ## Disallow all relative imports.
 #ban-relative-imports = "all"
+
+[per-file-ignores]
+# ignore assert statements in tests
+"tests/*.py" = ["S101"]
+
+# ignore SECRET_KEY in settings files in tests
+"tests/settings/*.py" = ["S105"]
+
+# picle is used on purpose and its use is discouraged
+"django_redis/serializers/pickle.py" = ["S301"]

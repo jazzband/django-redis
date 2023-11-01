@@ -48,16 +48,20 @@ class ConnectionFactory:
 
         socket_timeout = self.options.get("SOCKET_TIMEOUT", None)
         if socket_timeout:
-            assert isinstance(
+            if not isinstance(
                 socket_timeout, (int, float)
-            ), "Socket timeout should be float or integer"
+            ):
+                raise ImproperlyConfigured("Socket timeout should be float or integer")
             kwargs["socket_timeout"] = socket_timeout
 
         socket_connect_timeout = self.options.get("SOCKET_CONNECT_TIMEOUT", None)
         if socket_connect_timeout:
-            assert isinstance(
+            if not isinstance(
                 socket_connect_timeout, (int, float)
-            ), "Socket connect timeout should be float or integer"
+            ):
+                raise ImproperlyConfigured(
+                    "Socket connect timeout should be float or integer"
+                )
             kwargs["socket_connect_timeout"] = socket_connect_timeout
 
         return kwargs

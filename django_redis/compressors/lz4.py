@@ -1,7 +1,6 @@
 from lz4.frame import compress as _compress
 from lz4.frame import decompress as _decompress
 
-from ..exceptions import CompressorError
 from .base import BaseCompressor
 
 
@@ -14,7 +13,4 @@ class Lz4Compressor(BaseCompressor):
         return value
 
     def decompress(self, value: bytes) -> bytes:
-        try:
-            return _decompress(value)
-        except Exception as e:
-            raise CompressorError(e)
+        return _decompress(value)
