@@ -3,8 +3,7 @@ import re
 import socket
 from collections import OrderedDict
 from contextlib import suppress
-from datetime import datetime
-from typing import Dict, Iterable, Iterator, List, Optional, Tuple, Union, Any
+from typing import Any, Dict, Iterable, Iterator, List, Optional, Tuple, Union
 
 from django.conf import settings
 from django.core.cache.backends.base import DEFAULT_TIMEOUT, BaseCache, get_key_func
@@ -12,7 +11,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.utils.module_loading import import_string
 from redis import Redis
 from redis.exceptions import ConnectionError, ResponseError, TimeoutError
-from redis.typing import EncodableT, KeyT, AbsExpiryT, ExpiryT
+from redis.typing import AbsExpiryT, EncodableT, ExpiryT, KeyT
 
 from django_redis import pool
 from django_redis.exceptions import CompressorError, ConnectionInterrupted
