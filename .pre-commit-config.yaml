@@ -18,6 +18,6 @@ repos:
     args: [ --fix, --exit-non-zero-on-fix , --show-fixes]
 
 - repo: https://github.com/psf/black
-  rev: 23.9.1
+  rev: 23.10.1
   hooks:
   - id: black
