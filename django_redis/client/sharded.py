@@ -5,10 +5,10 @@ from typing import Union
 
 from redis.exceptions import ConnectionError
 
-from ..exceptions import ConnectionInterrupted
-from ..hash_ring import HashRing
-from ..util import CacheKey
-from .default import DEFAULT_TIMEOUT, DefaultClient
+from django_redis.client.default import DEFAULT_TIMEOUT, DefaultClient
+from django_redis.exceptions import ConnectionInterrupted
+from django_redis.hash_ring import HashRing
+from django_redis.util import CacheKey
 
 
 class ShardClient(DefaultClient):

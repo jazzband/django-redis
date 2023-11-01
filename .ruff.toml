@@ -94,23 +94,23 @@ select = [
 #  "SIM",
 
   # rules from flake8-tidy-imports
-#  "TID",
+  "TID",
 
   # rules from flake8-type-checking
-#  "TCH",
+  "TCH",
 
   # rules from flake8-gettext
-#  "INT",
+  "INT",
 
   # rules from flake8-unused-arguments
   # TODO: "ARG",
 
   # rules from flake8-use-pathlib
   # could be enabled easily
-  # TODO: "PTH",
+#   TODO: "PTH",
 
   # removes unused noqa comments
-#  "RUF100",
+  "RUF100",
 ]
 
 ignore = [

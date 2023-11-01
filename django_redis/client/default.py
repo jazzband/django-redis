@@ -12,9 +12,9 @@ from django.utils.module_loading import import_string
 from redis import Redis
 from redis.exceptions import ConnectionError, ResponseError, TimeoutError
 
-from .. import pool
-from ..exceptions import CompressorError, ConnectionInterrupted
-from ..util import CacheKey
+from django_redis import pool
+from django_redis.exceptions import CompressorError, ConnectionInterrupted
+from django_redis.util import CacheKey
 
 _main_exceptions = (TimeoutError, ResponseError, ConnectionError, socket.timeout)
 
