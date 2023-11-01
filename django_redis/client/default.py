@@ -125,7 +125,7 @@ class DefaultClient:
             client = self._clients[index]
         return self.connection_factory.disconnect(client) if client else None
 
-    def set(
+    def set(  # noqa: A003
         self,
         key: Any,
         value: Any,
@@ -548,8 +548,9 @@ class DefaultClient:
                     """
                 value = client.eval(lua, 1, key, delta)
                 if value is None:
-                    raise ValueError("Key '%s' not found" % key)
-            except ResponseError:
+                    error_message = f"Key '{key}' not found"
+                    raise ValueError(error_message)
+            except ResponseError as e:
                 # if cached value or total value is greater than 64 bit signed
                 # integer.
                 # elif int is encoded. so redis sees the data as string.
@@ -561,7 +562,8 @@ class DefaultClient:
                 # returns -2 if the key does not exist
                 # means, that key have expired
                 if timeout == -2:
-                    raise ValueError("Key '%s' not found" % key)
+                    error_message = f"Key '{key}' not found"
+                    raise ValueError(error_message) from e
                 value = self.get(key, version=version, client=client) + delta
                 self.set(key, value, version=version, timeout=timeout, client=client)
         except _main_exceptions as e:

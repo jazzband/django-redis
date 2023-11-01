@@ -7,7 +7,7 @@ select = [
   "E", "W",
 
   # rules from mccabe
-#  "C90",
+  "C90",
 
   # rules from isort
   "I",
@@ -31,10 +31,10 @@ select = [
   # TODO: "FBT",
 
   # rules from flake8-bugbear
-  # TODO: "B",
+  "B",
 
   # rules from flake8-builtins
-  # TODO: "A",
+  "A",
 
   # rules from flake8-commas
   "COM",

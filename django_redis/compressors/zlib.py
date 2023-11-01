@@ -17,4 +17,4 @@ class ZlibCompressor(BaseCompressor):
         try:
             return zlib.decompress(value)
         except zlib.error as e:
-            raise CompressorError(e)
+            raise CompressorError from e

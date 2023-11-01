@@ -57,7 +57,7 @@ class HerdClient(DefaultClient):
 
         return unpacked, False
 
-    def set(
+    def set(  # noqa: A003
         self,
         key,
         value,

@@ -33,7 +33,7 @@ def omit_exception(
                     self.logger.exception("Exception ignored")
 
                 return return_value
-            raise e.__cause__
+            raise e.__cause__  # noqa: B904
 
     return _decorator
 
@@ -77,7 +77,7 @@ class RedisCache(BaseCache):
         return self._client
 
     @omit_exception
-    def set(self, *args, **kwargs):
+    def set(self, *args, **kwargs):  # noqa: A003
         return self.client.set(*args, **kwargs)
 
     @omit_exception

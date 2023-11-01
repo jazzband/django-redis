@@ -17,4 +17,4 @@ class LzmaCompressor(BaseCompressor):
         try:
             return lzma.decompress(value)
         except lzma.LZMAError as e:
-            raise CompressorError(e)
+            raise CompressorError from e

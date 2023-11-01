@@ -79,7 +79,7 @@ class ShardClient(DefaultClient):
             recovered_data[map_keys[key]] = value
         return recovered_data
 
-    def set(
+    def set(  # noqa: A003
         self, key, value, timeout=DEFAULT_TIMEOUT, version=None, client=None, nx=False
     ):
         """
@@ -279,7 +279,7 @@ class ShardClient(DefaultClient):
         pattern = self.make_pattern(search, version=version)
         keys = []
         try:
-            for server, connection in self._serverdict.items():
+            for connection in self._serverdict.values():
                 keys.extend(connection.keys(pattern))
         except ConnectionError as e:
             # FIXME: technically all clients should be passed as `connection`.
@@ -300,12 +300,12 @@ class ShardClient(DefaultClient):
             kwargs["count"] = itersize
 
         keys = []
-        for server, connection in self._serverdict.items():
+        for connection in self._serverdict.values():
             keys.extend(key for key in connection.scan_iter(**kwargs))
 
         res = 0
         if keys:
-            for server, connection in self._serverdict.items():
+            for connection in self._serverdict.values():
                 res += connection.delete(*keys)
         return res
 

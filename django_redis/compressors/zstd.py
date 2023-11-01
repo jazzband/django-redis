@@ -16,4 +16,4 @@ class ZStdCompressor(BaseCompressor):
         try:
             return pyzstd.decompress(value)
         except pyzstd.ZstdError as e:
-            raise CompressorError(e)
+            raise CompressorError from e
