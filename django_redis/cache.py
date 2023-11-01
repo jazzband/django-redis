@@ -7,7 +7,7 @@ from django.conf import settings
 from django.core.cache.backends.base import BaseCache
 from django.utils.module_loading import import_string
 
-from .exceptions import ConnectionInterrupted
+from django_redis.exceptions import ConnectionInterrupted
 
 CONNECTION_INTERRUPTED = object()
 

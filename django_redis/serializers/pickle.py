@@ -3,7 +3,7 @@ from typing import Any
 
 from django.core.exceptions import ImproperlyConfigured
 
-from .base import BaseSerializer
+from django_redis.serializers.base import BaseSerializer
 
 
 class PickleSerializer(BaseSerializer):

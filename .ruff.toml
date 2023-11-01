@@ -52,7 +52,7 @@ select = [
   "DJ",
 
   # rules from flake8-errmsg
-   "EM",
+  "EM",
 
   # rules from flake8-executable
   "EXE",
@@ -64,10 +64,10 @@ select = [
   "ICN",
 
   # rules from flake8-logging-format
-  # TODO: "G",
+  "G",
 
   # rules from flake8-no-pep420
-  # TODO: "INP",
+  "INP",
 
   # rules from flake8-pie
   # TODO: "PIE",
@@ -124,9 +124,9 @@ fix = true
 #  from april 2024 https://docs.djangoproject.com/en/4.2/releases/3.2/
 #target-version = "py36"
 
-#[flake8-tidy-imports]
+[flake8-tidy-imports]
 ## Disallow all relative imports.
-#ban-relative-imports = "all"
+ban-relative-imports = "all"
 
 [per-file-ignores]
 # ignore assert statements in tests
@@ -135,5 +135,5 @@ fix = true
 # ignore SECRET_KEY in settings files in tests
 "tests/settings/*.py" = ["S105"]
 
-# picle is used on purpose and its use is discouraged
+# pickle is used on purpose and its use is discouraged
 "django_redis/serializers/pickle.py" = ["S301"]
