@@ -3,7 +3,7 @@ from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 from django.core.exceptions import ImproperlyConfigured
 from redis.sentinel import SentinelConnectionPool
 
-from django_redis.default import DefaultClient
+from django_redis.client.default import DefaultClient
 
 
 def replace_query(url, query):
