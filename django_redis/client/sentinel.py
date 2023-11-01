@@ -37,8 +37,6 @@ class SentinelClient(DefaultClient):
                 "Settings DJANGO_REDIS_CONNECTION_FACTORY or "
                 "CACHE[].OPTIONS.CONNECTION_POOL_CLASS is not configured correctly."
             )
-            raise ImproperlyConfigured(
-                error_message
-            )
+            raise ImproperlyConfigured(error_message)
 
         return connection

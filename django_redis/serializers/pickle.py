@@ -22,9 +22,7 @@ class PickleSerializer(BaseSerializer):
                         f"PICKLE_VERSION can't be higher than pickle.HIGHEST_PROTOCOL:"
                         f" {pickle.HIGHEST_PROTOCOL}"
                     )
-                    raise ImproperlyConfigured(
-                        error_message
-                    )
+                    raise ImproperlyConfigured(error_message)
             except (ValueError, TypeError):
                 error_message = "PICKLE_VERSION value must be an integer"
                 raise ImproperlyConfigured(error_message)
