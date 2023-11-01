@@ -3,6 +3,7 @@ import re
 import socket
 from collections import OrderedDict
 from contextlib import suppress
+from datetime import timedelta
 from typing import Any, Dict, Iterable, Iterator, List, Optional, Tuple, Union
 
 from django.conf import settings
@@ -304,7 +305,9 @@ class DefaultClient:
 
         key = self.make_key(key, version=version)
 
-        return client.expire(key, timeout)
+        # for some strange reason mypy complains,
+        # saying that timeout type is float | timedelta
+        return client.expire(key, timeout)  # type: ignore
 
     def pexpire(
         self,
@@ -320,7 +323,9 @@ class DefaultClient:
 
         # Temporary casting until https://github.com/redis/redis-py/issues/1664
         # is fixed.
-        return bool(client.pexpire(key, timeout))
+        # for some strange reason mypy complains,
+        # saying that timeout type is float | timedelta
+        return bool(client.pexpire(key, timeout))  # type: ignore
 
     def pexpire_at(
         self,
