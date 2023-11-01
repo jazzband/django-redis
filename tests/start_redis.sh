@@ -47,7 +47,7 @@ docker run \
   --health-interval 10s \
   --health-retries 5 \
   --health-timeout 5s \
+  --network host \
   --user $(id -u):$(id -g) \
-  --publish $PORT:$PORT \
   --volume /tmp:/tmp \
   --detach redis:latest redis-server "${ARGS[@]}"
