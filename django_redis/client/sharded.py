@@ -79,7 +79,14 @@ class ShardClient(DefaultClient):
         return recovered_data
 
     def set(  # noqa: A003
-        self, key, value, timeout=DEFAULT_TIMEOUT, version=None, client=None, nx=False
+        self,
+        key,
+        value,
+        timeout=DEFAULT_TIMEOUT,
+        version=None,
+        client=None,
+        nx=False,
+        xx=False,
     ):
         """
         Persist a value to the cache, and set an optional expiration time.
@@ -89,10 +96,16 @@ class ShardClient(DefaultClient):
             client = self.get_server(key)
 
         return super().set(
-            key=key, value=value, timeout=timeout, version=version, client=client, nx=nx
+            key=key,
+            value=value,
+            timeout=timeout,
+            version=version,
+            client=client,
+            nx=nx,
+            xx=xx,
         )
 
-    def set_many(self, data, timeout=DEFAULT_TIMEOUT, version=None):
+    def set_many(self, data, timeout=DEFAULT_TIMEOUT, version=None, client=None):
         """
         Set a bunch of values in the cache at once from a dict of key/value
         pairs. This is much more efficient than calling set() multiple times.
@@ -101,7 +114,7 @@ class ShardClient(DefaultClient):
         the default cache timeout will be used.
         """
         for key, value in data.items():
-            self.set(key, value, timeout, version=version)
+            self.set(key, value, timeout, version=version, client=client)
 
     def has_key(self, key, version=None, client=None):
         """

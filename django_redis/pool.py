@@ -5,7 +5,7 @@ from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.module_loading import import_string
 from redis import Redis
-from redis.connection import DefaultParser, to_bool
+from redis.connection import ConnectionPool, DefaultParser, to_bool
 from redis.sentinel import Sentinel
 
 
@@ -16,7 +16,7 @@ class ConnectionFactory:
     # ConnectionFactory is instantiated, as Django creates new cache client
     # (DefaultClient) instance for every request.
 
-    _pools: Dict[str, Redis] = {}
+    _pools: Dict[str, ConnectionPool] = {}
 
     def __init__(self, options):
         pool_cls_path = options.get(
@@ -70,7 +70,7 @@ class ConnectionFactory:
         params = self.make_connection_params(url)
         return self.get_connection(params)
 
-    def disconnect(self, connection):
+    def disconnect(self, connection: Redis) -> None:
         """
         Given a not null client connection it disconnect from the Redis server.
 
