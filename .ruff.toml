@@ -49,13 +49,13 @@ select = [
   "T10",
 
   # rules from flake8-django
-  # TODO: "DJ",
+  "DJ",
 
   # rules from flake8-errmsg
    "EM",
 
   # rules from flake8-executable
-  # TODO: "EXE",
+  "EXE",
 
   # rules from flake8-implicit-str-concat
   "ISC",
@@ -85,7 +85,7 @@ select = [
   "RSE",
 
   # rules from flake8-return
-  # TODO: "RET",
+  "RET",
 
   # rules from flake8-self
   # TODO: "SLF",
@@ -106,8 +106,7 @@ select = [
   # TODO: "ARG",
 
   # rules from flake8-use-pathlib
-  # could be enabled easily
-#   TODO: "PTH",
+  "PTH",
 
   # removes unused noqa comments
   "RUF100",

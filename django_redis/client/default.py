@@ -108,8 +108,8 @@ class DefaultClient:
 
         if show_index:
             return self._clients[index], index
-        else:
-            return self._clients[index]
+
+        return self._clients[index]
 
     def connect(self, index: int = 0) -> Redis:
         """
@@ -166,13 +166,13 @@ class DefaultClient:
                             # not expire (in our case delete) the value if it exists.
                             # Obviously expire not existent value is noop.
                             return not self.has_key(key, version=version, client=client)
-                        else:
-                            # redis doesn't support negative timeouts in ex flags
-                            # so it seems that it's better to just delete the key
-                            # than to set it and than expire in a pipeline
-                            return bool(
-                                self.delete(key, client=client, version=version)
-                            )
+
+                        # redis doesn't support negative timeouts in ex flags
+                        # so it seems that it's better to just delete the key
+                        # than to set it and than expire in a pipeline
+                        return bool(
+                            self.delete(key, client=client, version=version)
+                        )
 
                 return bool(client.set(nkey, nvalue, nx=nx, px=timeout, xx=xx))
             except _main_exceptions as e:
@@ -419,7 +419,7 @@ class DefaultClient:
         keys = [self.make_key(k, version=version) for k in keys]
 
         if not keys:
-            return
+            return None
 
         try:
             return client.delete(*keys)
@@ -459,8 +459,7 @@ class DefaultClient:
 
         if isinstance(value, bool) or not isinstance(value, int):
             value = self._serializer.dumps(value)
-            value = self._compressor.compress(value)
-            return value
+            return self._compressor.compress(value)
 
         return value
 
@@ -623,13 +622,13 @@ class DefaultClient:
 
         if t >= 0:
             return t
-        elif t == -1:
+        if t == -1:
             return None
-        elif t == -2:
+        if t == -2:
             return 0
-        else:
-            # Should never reach here
-            return None
+
+        # Should never reach here
+        return None
 
     def pttl(self, key, version=None, client=None):
         """
@@ -647,13 +646,13 @@ class DefaultClient:
 
         if t >= 0:
             return t
-        elif t == -1:
+        if t == -1:
             return None
-        elif t == -2:
+        if t == -2:
             return 0
-        else:
-            # Should never reach here
-            return None
+
+        # Should never reach here
+        return None
 
     def has_key(
         self, key: Any, version: Optional[int] = None, client: Optional[Redis] = None
@@ -739,7 +738,7 @@ class DefaultClient:
 
         return CacheKey(self._backend.key_func(pattern, prefix, version_str))
 
-    def close(self, **kwargs):
+    def close(self):
         close_flag = self._options.get(
             "CLOSE_CONNECTION",
             getattr(settings, "DJANGO_REDIS_CLOSE_CONNECTION", False),
@@ -774,7 +773,7 @@ class DefaultClient:
         key = self.make_key(key, version=version)
         if timeout is None:
             return bool(client.persist(key))
-        else:
-            # Convert to milliseconds
-            timeout = int(timeout * 1000)
-            return bool(client.pexpire(key, timeout))
+
+        # Convert to milliseconds
+        timeout = int(timeout * 1000)
+        return bool(client.pexpire(key, timeout))

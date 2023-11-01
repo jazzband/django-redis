@@ -68,8 +68,7 @@ class ConnectionFactory:
         return a new connection.
         """
         params = self.make_connection_params(url)
-        connection = self.get_connection(params)
-        return connection
+        return self.get_connection(params)
 
     def disconnect(self, connection):
         """
