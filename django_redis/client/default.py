@@ -170,9 +170,7 @@ class DefaultClient:
                         # redis doesn't support negative timeouts in ex flags
                         # so it seems that it's better to just delete the key
                         # than to set it and than expire in a pipeline
-                        return bool(
-                            self.delete(key, client=client, version=version)
-                        )
+                        return bool(self.delete(key, client=client, version=version))
 
                 return bool(client.set(nkey, nvalue, nx=nx, px=timeout, xx=xx))
             except _main_exceptions as e:
