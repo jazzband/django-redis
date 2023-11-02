@@ -486,7 +486,7 @@ class DefaultClient:
         Encode the given value.
         """
 
-        if not isinstance(value, int):
+        if isinstance(value, bool) or not isinstance(value, int):
             value = self._serializer.dumps(value)
             return self._compressor.compress(value)
 
