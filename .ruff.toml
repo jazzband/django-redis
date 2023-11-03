@@ -120,9 +120,7 @@ ignore = [
 
 fix = true
 
-# TODO: enable this when python3.6 will stop being supported,
-#  from april 2024 https://docs.djangoproject.com/en/4.2/releases/3.2/
-#target-version = "py36"
+target-version = "py38"
 
 [flake8-tidy-imports]
 ## Disallow all relative imports.
