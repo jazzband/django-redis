@@ -19,25 +19,13 @@ jobs:
           - '3.9'
           - '3.10'
         django-version:
-          - '3.2'
           - '4.1'
           - '4.2'
         redis-version:
           - 'latest'
 
         # Only test pre-release dependencies for the latest Python.
-        # And keep testing Django 3.2 with python 3.6 and 3.7
         include:
-          # Django 3.2 and python 3.6 with latest redis
-          - django-version: '3.2'
-            redis-version: 'latest'
-            python-version: '3.6'
-
-          # Django 3.2 and python 3.7 with latest redis
-          - django-version: '3.2'
-            redis-version: 'latest'
-            python-version: '3.7'
-
           # Django 4.1 and python 3.11 with latest redis
           - django-version: '4.1'
             redis-version: 'latest'
