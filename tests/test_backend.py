@@ -734,6 +734,18 @@ class TestDjangoRedisCache:
         assert client.get_client(write=True) == "Foo"
         assert client.get_client(write=False) == "Bar"
 
+    def test_primary_replica_switching_with_index(self, cache: RedisCache):
+        if isinstance(cache.client, ShardClient):
+            pytest.skip("ShardClient doesn't support get_client")
+
+        cache = cast(RedisCache, caches["sample"])
+        client = cache.client
+        client._server = ["foo", "bar"]
+        client._clients = ["Foo", "Bar"]
+
+        assert client.get_client_with_index(write=True) == ("Foo", 0)
+        assert client.get_client_with_index(write=False) == ("Bar", 1)
+
     def test_touch_zero_timeout(self, cache: RedisCache):
         cache.set("test_key", 222, timeout=10)
 
