@@ -16,4 +16,4 @@ class GzipCompressor(BaseCompressor):
         try:
             return gzip.decompress(value)
         except gzip.BadGzipFile as e:
-            raise CompressorError(e)
+            raise CompressorError from e
