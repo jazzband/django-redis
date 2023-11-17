@@ -14,3 +14,4 @@ David Zderic / dzderic <https://github.com/dzderic>
 Kirill Zaitsev / teferi <https://github.com/teferi>
 Jon Dufresne <https://github.com/jdufresne>
 Anès Foufa <https://github.com/AnesFoufa>
+Segyo Myung <https://github.com/myungsegyo>
