@@ -144,7 +144,7 @@ class DefaultClient:
         if client is not None:
             self.connection_factory.disconnect(client)
 
-    def set(  # noqa: A003
+    def set(
         self,
         key: KeyT,
         value: EncodableT,
