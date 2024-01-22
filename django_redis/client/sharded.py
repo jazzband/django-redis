@@ -78,7 +78,7 @@ class ShardClient(DefaultClient):
             recovered_data[map_keys[key]] = value
         return recovered_data
 
-    def set(  # noqa: A003
+    def set(
         self,
         key,
         value,

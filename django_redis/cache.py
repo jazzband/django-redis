@@ -77,7 +77,7 @@ class RedisCache(BaseCache):
         return self._client
 
     @omit_exception
-    def set(self, *args, **kwargs):  # noqa: A003
+    def set(self, *args, **kwargs):
         return self.client.set(*args, **kwargs)
 
     @omit_exception
