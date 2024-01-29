@@ -184,3 +184,23 @@ class RedisCache(BaseCache):
     @omit_exception
     def touch(self, *args, **kwargs):
         return self.client.touch(*args, **kwargs)
+
+    @omit_exception
+    def hset(self, *args, **kwargs):
+        return self.client.hset(*args, **kwargs)
+
+    @omit_exception
+    def hdel(self, *args, **kwargs):
+        return self.client.hdel(*args, **kwargs)
+
+    @omit_exception
+    def hlen(self, *args, **kwargs):
+        return self.client.hlen(*args, **kwargs)
+
+    @omit_exception
+    def hkeys(self, *args, **kwargs):
+        return self.client.hkeys(*args, **kwargs)
+
+    @omit_exception
+    def hexists(self, *args, **kwargs):
+        return self.client.hexists(*args, **kwargs)
