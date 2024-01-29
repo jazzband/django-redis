@@ -864,7 +864,7 @@ class DefaultClient:
         self,
         name: str,
         client: Optional[Redis] = None,
-    ) -> List:
+    ) -> List[Any]:
         """
         Return a list of keys in hash name.
         """
