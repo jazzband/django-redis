@@ -845,3 +845,98 @@ class TestDjangoRedisCache:
         cache.hset("foo_hash5", "foo1", "bar1")
         assert cache.hexists("foo_hash5", "foo1")
         assert not cache.hexists("foo_hash5", "foo")
+
+    def test_sadd(self, cache: RedisCache):
+        assert cache.sadd("foo", "bar") == 1
+        assert cache.smembers("foo") == {"bar"}
+
+    def test_scard(self, cache: RedisCache):
+        cache.sadd("foo", "bar", "bar2")
+        assert cache.scard("foo") == 2
+
+    def test_sdiff(self, cache: RedisCache):
+        cache.sadd("foo1", "bar1", "bar2")
+        cache.sadd("foo2", "bar2", "bar3")
+        assert cache.sdiff("foo1", "foo2") == {"bar1"}
+
+    def test_sdiffstore(self, cache: RedisCache):
+        cache.sadd("foo1", "bar1", "bar2")
+        cache.sadd("foo2", "bar2", "bar3")
+        assert cache.sdiffstore("foo3", "foo1", "foo2") == 1
+        assert cache.smembers("foo3") == {"bar1"}
+
+    def test_sinter(self, cache: RedisCache):
+        cache.sadd("foo1", "bar1", "bar2")
+        cache.sadd("foo2", "bar2", "bar3")
+        assert cache.sinter("foo1", "foo2") == {"bar2"}
+
+    def test_interstore(self, cache: RedisCache):
+        cache.sadd("foo1", "bar1", "bar2")
+        cache.sadd("foo2", "bar2", "bar3")
+        assert cache.sinterstore("foo3", "foo1", "foo2") == 1
+        assert cache.smembers("foo3") == {"bar2"}
+
+    def test_sismember(self, cache: RedisCache):
+        cache.sadd("foo", "bar")
+        assert cache.sismember("foo", "bar") is True
+        assert cache.sismember("foo", "bar2") is False
+
+    def test_smove(self, cache: RedisCache):
+        cache.sadd("foo1", "bar1", "bar2")
+        cache.sadd("foo2", "bar2", "bar3")
+        assert cache.smove("foo1", "foo2", "bar1") is True
+        assert cache.smove("foo1", "foo2", "bar4") is False
+        assert cache.smembers("foo1") == {"bar2"}
+        assert cache.smembers("foo2") == {"bar1", "bar2", "bar3"}
+
+    def test_spop_default_count(self, cache: RedisCache):
+        cache.sadd("foo", "bar1", "bar2")
+        assert cache.spop("foo") in {"bar1", "bar2"}
+        assert cache.smembers("foo") in {{"bar1"}, {"bar2"}}
+
+    def test_spop(self, cache: RedisCache):
+        cache.sadd("foo", "bar1", "bar2")
+        assert cache.spop("foo", 1) in {{"bar1"}, {"bar2"}}
+        assert cache.smembers("foo") in {{"bar1"}, {"bar2"}}
+
+    def test_srandmember_default_count(self, cache: RedisCache):
+        cache.sadd("foo", "bar1", "bar2")
+        assert cache.srandmember("foo") in {"bar1", "bar2"}
+
+    def test_srandmember(self, cache: RedisCache):
+        cache.sadd("foo", "bar1", "bar2")
+        assert cache.srandmember("foo", 1) in {{"bar1"}, {"bar2"}}
+
+    def test_srem(self, cache: RedisCache):
+        cache.sadd("foo", "bar1", "bar2")
+        assert cache.srem("foo", "bar1") == 1
+        assert cache.srem("foo", "bar3") == 0
+
+    def test_sunion(self, cache: RedisCache):
+        cache.sadd("foo1", "bar1", "bar2")
+        cache.sadd("foo2", "bar2", "bar3")
+        assert cache.sunion("foo1", "foo2") == {"bar1", "bar2", "bar3"}
+
+    def test_sunionstore(self, cache: RedisCache):
+        cache.sadd("foo1", "bar1", "bar2")
+        cache.sadd("foo2", "bar2", "bar3")
+        assert cache.sunionstore("foo3", "foo1", "foo2") == 3
+        assert cache.smembers("foo3") == {"bar1", "bar2", "bar3"}
+
+    def test_sintercard(self, cache: RedisCache):
+        cache.sadd("foo1", "bar1", "bar2")
+        cache.sadd("foo2", "bar2", "bar3")
+        assert cache.sintercard("foo1", "foo2") == 1
+
+    def test_smismember(self, cache: RedisCache):
+        cache.sadd("foo", "bar")
+        assert cache.smismember("foo", "bar") is True
+        assert cache.smismember("foo", "bar2") is False
+
+    def test_sscan(self, cache: RedisCache):
+        cache.sadd("foo", "bar1", "bar2", "bar3", "bar4", "bar5")
+        cursor, members = cache.sscan("foo", match="bar*")
+        assert cursor == 0  # Assuming there is only one iteration for simplicity
+        assert set(members) == {"bar1", "bar2", "bar3", "bar4", "bar5"}
+
+
