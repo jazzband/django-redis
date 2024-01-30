@@ -889,7 +889,7 @@ class DefaultClient:
             client = self.get_client(write=False)
         nkey = self.make_key(key, version=version)
         return bool(client.hexists(name, nkey))
-    
+
     def sadd(
         self,
         key: Any,
@@ -905,10 +905,10 @@ class DefaultClient:
         return int(client.sadd(key, *values))
 
     def scard(
-            self,
-            key: Any,
-            version: Optional[int] = None,
-            client: Optional[Redis] = None,
+        self,
+        key: Any,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
     ) -> int:
         if client is None:
             client = self.get_client(write=False)
@@ -917,10 +917,10 @@ class DefaultClient:
         return int(client.scard(key))
 
     def sdiff(
-            self,
-            *keys,
-            version: Optional[int] = None,
-            client: Optional[Redis] = None,
+        self,
+        *keys,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
     ) -> set:
         if client is None:
             client = self.get_client(write=False)
@@ -929,11 +929,11 @@ class DefaultClient:
         return {self.decode(value) for value in client.sdiff(*keys)}
 
     def sdiffstore(
-            self,
-            dest: Any,
-            *keys,
-            version: Optional[int] = None,
-            client: Optional[Redis] = None,
+        self,
+        dest: Any,
+        *keys,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
     ) -> int:
         if client is None:
             client = self.get_client(write=True)
@@ -942,12 +942,11 @@ class DefaultClient:
         keys = [self.make_key(key, version=version) for key in keys]
         return int(client.sdiffstore(dest, *keys))
 
-
     def sinter(
-            self,
-            *keys,
-            version: Optional[int] = None,
-            client: Optional[Redis] = None,
+        self,
+        *keys,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
     ) -> set:
         if client is None:
             client = self.get_client(write=False)
@@ -956,11 +955,11 @@ class DefaultClient:
         return {self.decode(value) for value in client.sinter(*keys)}
 
     def sinterstore(
-            self,
-            dest: Any,
-            *keys,
-            version: Optional[int] = None,
-            client: Optional[Redis] = None,
+        self,
+        dest: Any,
+        *keys,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
     ) -> int:
         if client is None:
             client = self.get_client(write=True)
@@ -970,11 +969,11 @@ class DefaultClient:
         return int(client.sinterstore(dest, *keys))
 
     def sismember(
-            self,
-            key: Any,
-            member: Any,
-            version: Optional[int] = None,
-            client: Optional[Redis] = None,
+        self,
+        key: Any,
+        member: Any,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
     ) -> bool:
         if client is None:
             client = self.get_client(write=False)
@@ -984,10 +983,10 @@ class DefaultClient:
         return bool(client.sismember(key, member))
 
     def smembers(
-            self,
-            key: Any,
-            version: Optional[int] = None,
-            client: Optional[Redis] = None,
+        self,
+        key: Any,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
     ) -> set:
         if client is None:
             client = self.get_client(write=False)
@@ -996,12 +995,12 @@ class DefaultClient:
         return {self.decode(value) for value in client.smembers(key)}
 
     def smove(
-            self,
-            source: Any,
-            destination: Any,
-            member: Any,
-            version: Optional[int] = None,
-            client: Optional[Redis] = None,
+        self,
+        source: Any,
+        destination: Any,
+        member: Any,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
     ) -> bool:
         if client is None:
             client = self.get_client(write=True)
@@ -1012,11 +1011,11 @@ class DefaultClient:
         return bool(client.smove(source, destination, member))
 
     def spop(
-            self,
-            key: Any,
-            count: Optional[int] = None,
-            version: Optional[int] = None,
-            client: Optional[Redis] = None,
+        self,
+        key: Any,
+        count: Optional[int] = None,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
     ) -> Union[set, Any]:
         if client is None:
             client = self.get_client(write=True)
@@ -1028,11 +1027,11 @@ class DefaultClient:
         return self.decode(result)
 
     def srandmember(
-            self,
-            key: Any,
-            count: Optional[int] = None,
-            version: Optional[int] = None,
-            client: Optional[Redis] = None,
+        self,
+        key: Any,
+        count: Optional[int] = None,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
     ) -> Union[set, Any]:
         if client is None:
             client = self.get_client(write=False)
@@ -1044,11 +1043,11 @@ class DefaultClient:
         return self.decode(result)
 
     def srem(
-            self,
-            key: Any,
-            *members,
-            version: Optional[int] = None,
-            client: Optional[Redis] = None,
+        self,
+        key: Any,
+        *members,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
     ) -> int:
         if client is None:
             client = self.get_client(write=True)
@@ -1058,10 +1057,10 @@ class DefaultClient:
         return int(client.srem(key, *members))
 
     def sunion(
-            self,
-            *keys,
-            version: Optional[int] = None,
-            client: Optional[Redis] = None,
+        self,
+        *keys,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
     ) -> set:
         if client is None:
             client = self.get_client(write=False)
@@ -1070,11 +1069,11 @@ class DefaultClient:
         return {self.decode(value) for value in client.sunion(*keys)}
 
     def sunionstore(
-            self,
-            destination: Any,
-            *keys,
-            version: Optional[int] = None,
-            client: Optional[Redis] = None,
+        self,
+        destination: Any,
+        *keys,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
     ) -> int:
         if client is None:
             client = self.get_client(write=True)
@@ -1084,10 +1083,10 @@ class DefaultClient:
         return int(client.sunionstore(destination, *keys))
 
     def sintercard(
-            self,
-            *keys,
-            version: Optional[int] = None,
-            client: Optional[Redis] = None,
+        self,
+        *keys,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
     ) -> int:
         if client is None:
             client = self.get_client(write=True)
@@ -1098,15 +1097,15 @@ class DefaultClient:
         client.sinterstore(result_key, *keys)
         cardinality = client.scard(result_key)
         client.delete(result_key)
-        
+
         return cardinality
 
     def smismember(
-            self,
-            key: Any,
-            members: Any,
-            version: Optional[int] = None,
-            client: Optional[Redis] = None,
+        self,
+        key: Any,
+        members: Any,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
     ) -> bool:
         if client is None:
             client = self.get_client(write=False)
@@ -1121,15 +1120,15 @@ class DefaultClient:
             results = pipe.execute()
 
         return all(bool(result) for result in results)
-    
+
     def sscan(
-            self,
-            key: Any,
-            cursor: int = 0,
-            match: Optional[str] = None,
-            count: Optional[int] = None,
-            version: Optional[int] = None,
-            client: Optional[Redis] = None,
+        self,
+        key: Any,
+        cursor: int = 0,
+        match: Optional[str] = None,
+        count: Optional[int] = None,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
     ) -> set[Any]:
         if client is None:
             client = self.get_client(write=False)

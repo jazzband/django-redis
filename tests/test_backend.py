@@ -938,5 +938,3 @@ class TestDjangoRedisCache:
         cursor, members = cache.sscan("foo", match="bar*")
         assert cursor == 0  # Assuming there is only one iteration for simplicity
         assert set(members) == {"bar1", "bar2", "bar3", "bar4", "bar5"}
-
-

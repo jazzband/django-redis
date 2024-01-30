@@ -224,7 +224,7 @@ class RedisCache(BaseCache):
     @omit_exception
     def sinter(self, *args, **kwargs):
         return self.client.sinter(*args, **kwargs)
-    
+
     @omit_exception
     def sinterstore(self, *args, **kwargs):
         return self.client.sinterstore(*args, **kwargs)
@@ -232,7 +232,7 @@ class RedisCache(BaseCache):
     @omit_exception
     def sismember(self, *args, **kwargs):
         return self.client.sismember(*args, **kwargs)
-    
+
     @omit_exception
     def smismember(self, *args, **kwargs):
         return self.client.smismember(*args, **kwargs)
@@ -240,7 +240,7 @@ class RedisCache(BaseCache):
     @omit_exception
     def smembers(self, *args, **kwargs):
         return self.client.smembers(*args, **kwargs)
-    
+
     @omit_exception
     def smove(self, *args, **kwargs):
         return self.client.smove(*args, **kwargs)
@@ -256,7 +256,7 @@ class RedisCache(BaseCache):
     @omit_exception
     def srem(self, *args, **kwargs):
         return self.client.srem(*args, **kwargs)
-    
+
     @omit_exception
     def sunion(self, *args, **kwargs):
         return self.client.sunion(*args, **kwargs)
@@ -264,15 +264,15 @@ class RedisCache(BaseCache):
     @omit_exception
     def sunionstore(self, *args, **kwargs):
         return self.client.sunionstore(*args, **kwargs)
-    
+
     @omit_exception
     def sintercard(self, *args, **kwargs):
         return self.client.sintercard(*args, **kwargs)
-    
+
     @omit_exception
     def smismember(self, *args, **kwargs):
         return self.client.smismember(*args, **kwargs)
-    
+
     @omit_exception
     def sscan(self, *args, **kwargs):
         return self.client.sscan(*args, **kwargs)
