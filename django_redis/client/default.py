@@ -943,7 +943,9 @@ class DefaultClient:
 
         dest = self.make_key(dest, version=version_dest)
         minuend_key = self.make_key(key, version=version_minuend)
-        subtrahend_keys: Set[str] = {self.make_key(key_, version=version_subtrahend) for key_ in keys}
+        subtrahend_keys: Set[str] = {
+            self.make_key(key_, version=version_subtrahend) for key_ in keys
+        }
         return int(client.sdiffstore(dest, minuend_key, *subtrahend_keys))
 
     def sinter(
