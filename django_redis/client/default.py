@@ -937,7 +937,7 @@ class DefaultClient:
         version_minuend: Optional[int] = None,
         version_subtrahend: Optional[int] = None,
         client: Optional[Redis] = None,
-) -> int:
+    ) -> int:
         if client is None:
             client = self.get_client(write=True)
 
