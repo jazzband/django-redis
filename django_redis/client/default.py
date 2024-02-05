@@ -921,7 +921,7 @@ class DefaultClient:
         *keys,
         version: Optional[int] = None,
         client: Optional[Redis] = None,
-    ) -> set:
+    ) -> Set:
         if client is None:
             client = self.get_client(write=False)
 
@@ -951,7 +951,7 @@ class DefaultClient:
         *keys,
         version: Optional[int] = None,
         client: Optional[Redis] = None,
-    ) -> set:
+    ) -> Set:
         if client is None:
             client = self.get_client(write=False)
 
@@ -991,7 +991,7 @@ class DefaultClient:
         key: Any,
         version: Optional[int] = None,
         client: Optional[Redis] = None,
-    ) -> set:
+    ) -> Set:
         if client is None:
             client = self.get_client(write=False)
 
@@ -1065,7 +1065,7 @@ class DefaultClient:
         *keys,
         version: Optional[int] = None,
         client: Optional[Redis] = None,
-    ) -> set:
+    ) -> Set:
         if client is None:
             client = self.get_client(write=False)
 
@@ -1133,7 +1133,7 @@ class DefaultClient:
         count: Optional[int] = None,
         version: Optional[int] = None,
         client: Optional[Redis] = None,
-    ) -> set[Any]:
+    ) -> Set[Any]:
         if client is None:
             client = self.get_client(write=False)
 
