@@ -303,8 +303,10 @@ class DefaultClient:
         # if timeout is DEFAULT_TIMEOUT or None then
         # use self._backend.default_timeout(django default cache timeout)
 
+        # for some strange reason mypy complains,
+        # saying that timeout type is float | timedelta
         if (timeout is DEFAULT_TIMEOUT) or (timeout is None):
-            timeout = self._backend.default_timeout
+            timeout = self._backend.default_timeout  # type: ignore
 
         if client is None:
             client = self.get_client(write=True)
