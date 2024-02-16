@@ -1,3 +1,1 @@
-Fix for Issue 724(expire method fails when using DEFAULT_TIMEOUT)
-
-https://github.com/jazzband/django-redis/issues/724
+Hotfix for timeout=DEFAULT_TIMEOUT in expire and pexpire

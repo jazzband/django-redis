@@ -299,12 +299,6 @@ class DefaultClient:
         version: Optional[int] = None,
         client: Optional[Redis] = None,
     ) -> bool:
-        # timeout could be of type int|timedelta
-        # if timeout is DEFAULT_TIMEOUT or None then
-        # use self._backend.default_timeout(django default cache timeout)
-
-        # for some strange reason mypy complains,
-        # saying that timeout type is float | timedelta
         if (timeout is DEFAULT_TIMEOUT) or (timeout is None):
             timeout = self._backend.default_timeout  # type: ignore
 
@@ -324,6 +318,9 @@ class DefaultClient:
         version: Optional[int] = None,
         client: Optional[Redis] = None,
     ) -> bool:
+        if (timeout is DEFAULT_TIMEOUT) or (timeout is None):
+            timeout = self._backend.default_timeout  # type: ignore
+
         if client is None:
             client = self.get_client(write=True)
 

@@ -610,6 +610,7 @@ class TestDjangoRedisCache:
     def test_expire_with_default_timeout(self, cache: RedisCache):
         cache.set("foo", "bar", timeout=None)
         assert cache.expire("foo", DEFAULT_TIMEOUT) is True
+        assert cache.expire("not-existent-key", DEFAULT_TIMEOUT) is False
 
     def test_pexpire(self, cache: RedisCache):
         cache.set("foo", "bar", timeout=None)
@@ -618,6 +619,11 @@ class TestDjangoRedisCache:
         # delta is set to 10 as precision error causes tests to fail
         assert pytest.approx(ttl, 10) == 20500
         assert cache.pexpire("not-existent-key", 20500) is False
+
+    def test_pexpire_with_default_timeout(self, cache: RedisCache):
+        cache.set("foo", "bar", timeout=None)
+        assert cache.pexpire("foo", DEFAULT_TIMEOUT) is True
+        assert cache.pexpire("not-existent-key", DEFAULT_TIMEOUT) is False
 
     def test_pexpire_at(self, cache: RedisCache):
         # Test settings expiration time 1 hour ahead by datetime.
