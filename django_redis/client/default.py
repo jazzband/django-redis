@@ -299,7 +299,11 @@ class DefaultClient:
         version: Optional[int] = None,
         client: Optional[Redis] = None,
     ) -> bool:
-        if timeout is DEFAULT_TIMEOUT:
+        # timeout could be of type int|timedelta
+        # if timeout is DEFAULT_TIMEOUT or None then
+        # use self._backend.default_timeout(django default cache timeout)
+
+        if (timeout is DEFAULT_TIMEOUT) or (timeout is None):
             timeout = self._backend.default_timeout
 
         if client is None:

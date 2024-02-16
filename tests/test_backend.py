@@ -7,6 +7,7 @@ from unittest.mock import patch
 
 import pytest
 from django.core.cache import caches
+from django.core.cache.backends.base import DEFAULT_TIMEOUT
 from django.test import override_settings
 from pytest_django.fixtures import SettingsWrapper
 from pytest_mock import MockerFixture
@@ -605,6 +606,10 @@ class TestDjangoRedisCache:
         ttl = cache.ttl("foo")
         assert pytest.approx(ttl) == 20
         assert cache.expire("not-existent-key", 20) is False
+
+    def test_expire_with_default_timeout(self, cache: RedisCache):
+        cache.set("foo", "bar", timeout=None)
+        assert cache.expire("foo", DEFAULT_TIMEOUT) is True
 
     def test_pexpire(self, cache: RedisCache):
         cache.set("foo", "bar", timeout=None)
