@@ -15,29 +15,28 @@ jobs:
       fail-fast: false
       matrix:
         python-version:
-          - '3.8'
-          - '3.9'
           - '3.10'
+          - '3.11'
         django-version:
-          - '4.1'
           - '4.2'
+          - '5.0'
         redis-version:
           - 'latest'
 
         # Only test pre-release dependencies for the latest Python.
         include:
-          # Django 4.1 and python 3.11 with latest redis
-          - django-version: '4.1'
-            redis-version: 'latest'
-            python-version: '3.11'
-
-          # Django 4.2 and python 3.11 with latest redis
+          # Django 4.2 and python 3.8 with latest redis
           - django-version: '4.2'
             redis-version: 'latest'
-            python-version: '3.11'
+            python-version: '3.8'
+
+          # Django 4.2 and python 3.9 with latest redis
+          - django-version: '4.2'
+            redis-version: 'latest'
+            python-version: '3.9'
 
           # latest Django with pre-release redis
-          - django-version: '4.2'
+          - django-version: '5.0'
             redis-version: 'master'
             python-version: '3.11'
 
