@@ -299,7 +299,7 @@ class DefaultClient:
         version: Optional[int] = None,
         client: Optional[Redis] = None,
     ) -> bool:
-        if (timeout is DEFAULT_TIMEOUT) or (timeout is None):
+        if timeout is DEFAULT_TIMEOUT:
             timeout = self._backend.default_timeout  # type: ignore
 
         if client is None:
