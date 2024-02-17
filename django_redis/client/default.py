@@ -1022,13 +1022,13 @@ class DefaultClient:
         count: Optional[int] = None,
         version: Optional[int] = None,
         client: Optional[Redis] = None,
-    ) -> Union[set, Any]:
+    ) -> Union[Set, Any]:
         if client is None:
             client = self.get_client(write=True)
 
         key = self.make_key(key, version=version)
         result = client.spop(key, count)
-        if type(result) == list:
+        if isinstance(result, list):
             return {self.decode(value) for value in result}
         return self.decode(result)
 
@@ -1038,13 +1038,13 @@ class DefaultClient:
         count: Optional[int] = None,
         version: Optional[int] = None,
         client: Optional[Redis] = None,
-    ) -> Union[set, Any]:
+    ) -> Union[Set, Any]:
         if client is None:
             client = self.get_client(write=False)
 
         key = self.make_key(key, version=version)
         result = client.srandmember(key, count)
-        if type(result) == list:
+        if isinstance(result, list):
             return {self.decode(value) for value in result}
         return self.decode(result)
 
