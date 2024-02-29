@@ -1,0 +1,12 @@
+comment:
+  layout: "header, diff, flags, components"
+  
+flag_management:
+  individual_flags:
+    - name: tests
+      paths:
+        - django_redis/
+
+    - name: mypy
+      paths:
+        - django_redis/
