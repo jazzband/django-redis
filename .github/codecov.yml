@@ -3,6 +3,9 @@ coverage:
   precision: 1
   round: up
 
+  ignore:
+    - "tests/*"
+
   status:
     project:
       default:
