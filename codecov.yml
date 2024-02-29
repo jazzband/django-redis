@@ -6,7 +6,11 @@ flag_management:
     - name: tests
       paths:
         - django_redis/
+      statuses:
+        - type: project
 
     - name: mypy
       paths:
         - django_redis/
+      statuses:
+        - type: project
