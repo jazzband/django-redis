@@ -139,6 +139,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install --upgrade "tox<4"
+          python -m pip install --upgrade smokeshow
 
       - name: Run ${{ matrix.tool }}
         run: tox -e ${{ matrix.tool }}
@@ -148,6 +149,15 @@ jobs:
         uses: codecov/codecov-action@v4
         with:
           flags: mypy
+
+      - name: Upload mypy coverage
+        run: |
+          smokeshow upload mypy_report
+        env:
+          SMOKESHOW_GITHUB_STATUS_DESCRIPTION: MyPy Coverage {coverage-percentage}
+          # SMOKESHOW_GITHUB_COVERAGE_THRESHOLD: 90
+          SMOKESHOW_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SMOKESHOW_GITHUB_PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
 
   check-changelog:
     name: Check for news fragments in 'changelog.d/'
