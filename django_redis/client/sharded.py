@@ -1,9 +1,11 @@
 import re
 from collections import OrderedDict
 from datetime import datetime
-from typing import Union
+from typing import Any, Iterator, List, Optional, Set, Union
 
+from redis import Redis
 from redis.exceptions import ConnectionError
+from redis.typing import KeyT
 
 from django_redis.client.default import DEFAULT_TIMEOUT, DefaultClient
 from django_redis.exceptions import ConnectionInterrupted
@@ -336,3 +338,148 @@ class ShardClient(DefaultClient):
     def clear(self, client=None):
         for connection in self._serverdict.values():
             connection.flushdb()
+
+    def sadd(
+        self,
+        key: KeyT,
+        *values: Any,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
+    ) -> int:
+        if client is None:
+            key = self.make_key(key, version=version)
+            client = self.get_server(key)
+        return super().sadd(key, *values, version=version, client=client)
+
+    def scard(
+        self,
+        key: KeyT,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
+    ) -> int:
+        if client is None:
+            key = self.make_key(key, version=version)
+            client = self.get_server(key)
+        return super().scard(key=key, version=version, client=client)
+
+    def smembers(
+        self,
+        key: KeyT,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
+    ) -> Set:
+        if client is None:
+            key = self.make_key(key, version=version)
+            client = self.get_server(key)
+        return super().smembers(key=key, version=version, client=client)
+
+    def smove(
+        self,
+        source: KeyT,
+        destination: KeyT,
+        member: Any,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
+    ):
+        if client is None:
+            source = self.make_key(source, version=version)
+            client = self.get_server(source)
+            destination = self.make_key(destination, version=version)
+
+        return super().smove(
+            source=source,
+            destination=destination,
+            member=member,
+            version=version,
+            client=client,
+        )
+
+    def srem(
+        self,
+        key: KeyT,
+        *members,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
+    ) -> int:
+        if client is None:
+            key = self.make_key(key, version=version)
+            client = self.get_server(key)
+        return super().srem(key, *members, version=version, client=client)
+
+    def sscan(
+        self,
+        key: KeyT,
+        match: Optional[str] = None,
+        count: Optional[int] = 10,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
+    ) -> Set[Any]:
+        if client is None:
+            key = self.make_key(key, version=version)
+            client = self.get_server(key)
+        return super().sscan(
+            key=key, match=match, count=count, version=version, client=client
+        )
+
+    def sscan_iter(
+        self,
+        key: KeyT,
+        match: Optional[str] = None,
+        count: Optional[int] = 10,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
+    ) -> Iterator[Any]:
+        if client is None:
+            key = self.make_key(key, version=version)
+            client = self.get_server(key)
+        return super().sscan_iter(
+            key=key, match=match, count=count, version=version, client=client
+        )
+
+    def srandmember(
+        self,
+        key: KeyT,
+        count: Optional[int] = None,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
+    ) -> Union[Set, Any]:
+        if client is None:
+            key = self.make_key(key, version=version)
+            client = self.get_server(key)
+        return super().srandmember(key=key, count=count, version=version, client=client)
+
+    def sismember(
+        self,
+        key: KeyT,
+        member: Any,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
+    ) -> bool:
+        if client is None:
+            key = self.make_key(key, version=version)
+            client = self.get_server(key)
+        return super().sismember(key, member, version=version, client=client)
+
+    def spop(
+        self,
+        key: KeyT,
+        count: Optional[int] = None,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
+    ) -> Union[Set, Any]:
+        if client is None:
+            key = self.make_key(key, version=version)
+            client = self.get_server(key)
+        return super().spop(key=key, count=count, version=version, client=client)
+
+    def smismember(
+        self,
+        key: KeyT,
+        *members,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
+    ) -> List[bool]:
+        if client is None:
+            key = self.make_key(key, version=version)
+            client = self.get_server(key)
+        return super().smismember(key, *members, version=version, client=client)
