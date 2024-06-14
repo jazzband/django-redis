@@ -258,7 +258,8 @@ class ShardClient(DefaultClient):
             raise ConnectionInterrupted(connection=client) from e
 
         if value is None:
-            raise ValueError("Key '%s' not found" % key)
+            msg = f"Key '{key}' not found"
+            raise ValueError(msg)
 
         if isinstance(key, CacheKey):
             new_key = self.make_key(key.original_key(), version=version + delta)

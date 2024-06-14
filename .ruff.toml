@@ -1,5 +1,5 @@
 # https://beta.ruff.rs/docs/rules/
-select = [
+lint.select = [
   # rules from pyflakes
   "F",
 
@@ -112,7 +112,7 @@ select = [
   "RUF100",
 ]
 
-ignore = [
+lint.ignore = [
   "COM812", # missing trailing comma, covered by black
   "ANN101", # ignore missing type annotation in self parameter
   "S311", # ignore Standard pseudo-random generators because they are not used for cryptographic purposes
@@ -122,11 +122,11 @@ fix = true
 
 target-version = "py38"
 
-[flake8-tidy-imports]
+[lint.flake8-tidy-imports]
 ## Disallow all relative imports.
 ban-relative-imports = "all"
 
-[per-file-ignores]
+[lint.per-file-ignores]
 # ignore assert statements in tests
 "tests/*.py" = ["S101"]
 
