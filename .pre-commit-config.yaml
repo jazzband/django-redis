@@ -1,6 +1,6 @@
 repos:
 - repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: v4.5.0
+  rev: v4.6.0
   hooks:
   - id: check-ast
   - id: check-case-conflict
@@ -9,22 +9,15 @@ repos:
   - id: check-symlinks
   - id: debug-statements
 
-- repo: https://github.com/asottile/pyupgrade
-  rev: v3.15.0
+# from readme - ruff with autofix must run before
+# other formatters, such as black
+- repo: https://github.com/astral-sh/ruff-pre-commit
+  rev: v0.4.8
   hooks:
-  - id: pyupgrade
+  - id: ruff
+    args: [ --fix, --exit-non-zero-on-fix , --show-fixes]
 
 - repo: https://github.com/psf/black
-  rev: 23.10.1
+  rev: 24.4.2
   hooks:
   - id: black
-
-- repo: https://github.com/PyCQA/flake8
-  rev: 6.1.0
-  hooks:
-  - id: flake8
-
-- repo: https://github.com/PyCQA/isort
-  rev: 5.12.0
-  hooks:
-  - id: isort

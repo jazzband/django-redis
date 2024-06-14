@@ -1,8 +1,8 @@
 from lz4.frame import compress as _compress
 from lz4.frame import decompress as _decompress
 
-from ..exceptions import CompressorError
-from .base import BaseCompressor
+from django_redis.compressors.base import BaseCompressor
+from django_redis.exceptions import CompressorError
 
 
 class Lz4Compressor(BaseCompressor):
@@ -17,4 +17,4 @@ class Lz4Compressor(BaseCompressor):
         try:
             return _decompress(value)
         except Exception as e:
-            raise CompressorError(e)
+            raise CompressorError from e

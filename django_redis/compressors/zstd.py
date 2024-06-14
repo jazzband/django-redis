@@ -1,7 +1,7 @@
 import pyzstd
 
-from ..exceptions import CompressorError
-from .base import BaseCompressor
+from django_redis.compressors.base import BaseCompressor
+from django_redis.exceptions import CompressorError
 
 
 class ZStdCompressor(BaseCompressor):
@@ -16,4 +16,4 @@ class ZStdCompressor(BaseCompressor):
         try:
             return pyzstd.decompress(value)
         except pyzstd.ZstdError as e:
-            raise CompressorError(e)
+            raise CompressorError from e

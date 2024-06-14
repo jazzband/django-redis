@@ -2,7 +2,7 @@ from typing import Any
 
 import msgpack
 
-from .base import BaseSerializer
+from django_redis.serializers.base import BaseSerializer
 
 
 class MSGPackSerializer(BaseSerializer):

@@ -7,7 +7,7 @@ from django.conf import settings
 from django.core.cache.backends.base import BaseCache
 from django.utils.module_loading import import_string
 
-from .exceptions import ConnectionInterrupted
+from django_redis.exceptions import ConnectionInterrupted
 
 CONNECTION_INTERRUPTED = object()
 
@@ -33,7 +33,7 @@ def omit_exception(
                     self.logger.exception("Exception ignored")
 
                 return return_value
-            raise e.__cause__
+            raise e.__cause__  # noqa: B904
 
     return _decorator
 
@@ -184,3 +184,23 @@ class RedisCache(BaseCache):
     @omit_exception
     def touch(self, *args, **kwargs):
         return self.client.touch(*args, **kwargs)
+
+    @omit_exception
+    def hset(self, *args, **kwargs):
+        return self.client.hset(*args, **kwargs)
+
+    @omit_exception
+    def hdel(self, *args, **kwargs):
+        return self.client.hdel(*args, **kwargs)
+
+    @omit_exception
+    def hlen(self, *args, **kwargs):
+        return self.client.hlen(*args, **kwargs)
+
+    @omit_exception
+    def hkeys(self, *args, **kwargs):
+        return self.client.hkeys(*args, **kwargs)
+
+    @omit_exception
+    def hexists(self, *args, **kwargs):
+        return self.client.hexists(*args, **kwargs)
