@@ -367,7 +367,7 @@ class ShardClient(DefaultClient):
         key: KeyT,
         version: Optional[int] = None,
         client: Optional[Redis] = None,
-    ) -> Set:
+    ) -> Set[Any]:
         if client is None:
             key = self.make_key(key, version=version)
             client = self.get_server(key)

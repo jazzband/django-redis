@@ -517,6 +517,17 @@ class DefaultClient:
 
         return value
 
+    def _decode_iterable_result(
+        self, result: Any, covert_to_set: bool = True
+    ) -> Union[List[Any], None, Any]:
+        if result is None:
+            return None
+        if isinstance(result, list):
+            if covert_to_set:
+                return {self.decode(value) for value in result}
+            return [self.decode(value) for value in result]
+        return self.decode(result)
+
     def get_many(
         self,
         keys: Iterable[KeyT],
@@ -828,7 +839,7 @@ class DefaultClient:
         *keys: KeyT,
         version: Optional[int] = None,
         client: Optional[Redis] = None,
-    ) -> Set:
+    ) -> Set[Any]:
         if client is None:
             client = self.get_client(write=False)
 
@@ -855,7 +866,7 @@ class DefaultClient:
         *keys: KeyT,
         version: Optional[int] = None,
         client: Optional[Redis] = None,
-    ) -> Set:
+    ) -> Set[Any]:
         if client is None:
             client = self.get_client(write=False)
 
@@ -910,7 +921,7 @@ class DefaultClient:
         key: KeyT,
         version: Optional[int] = None,
         client: Optional[Redis] = None,
-    ) -> Set:
+    ) -> Set[Any]:
         if client is None:
             client = self.get_client(write=False)
 
@@ -945,11 +956,7 @@ class DefaultClient:
 
         nkey = self.make_key(key, version=version)
         result = client.spop(nkey, count)
-        if result is None:
-            return None
-        if isinstance(result, list):
-            return {self.decode(value) for value in result}
-        return self.decode(result)
+        return self._decode_iterable_result(result)
 
     def srandmember(
         self,
@@ -963,11 +970,7 @@ class DefaultClient:
 
         key = self.make_key(key, version=version)
         result = client.srandmember(key, count)
-        if result is None:
-            return None
-        if isinstance(result, list):
-            return [self.decode(value) for value in result]
-        return self.decode(result)
+        return self._decode_iterable_result(result, covert_to_set=False)
 
     def srem(
         self,
@@ -1035,7 +1038,7 @@ class DefaultClient:
         *keys: KeyT,
         version: Optional[int] = None,
         client: Optional[Redis] = None,
-    ) -> Set:
+    ) -> Set[Any]:
         if client is None:
             client = self.get_client(write=False)
 
