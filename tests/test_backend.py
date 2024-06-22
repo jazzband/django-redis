@@ -810,17 +810,61 @@ class TestDjangoRedisCache:
         assert value_from_cache_after_clear is None
 
     def test_hset(self, cache: RedisCache):
-        if isinstance(cache.client, ShardClient):
-            pytest.skip("ShardClient doesn't support get_client")
         cache.hset("foo_hash1", "foo1", "bar1")
         cache.hset("foo_hash1", "foo2", "bar2")
         assert cache.hlen("foo_hash1") == 2
         assert cache.hexists("foo_hash1", "foo1")
         assert cache.hexists("foo_hash1", "foo2")
 
+    def test_hsetnx(self, cache: RedisCache):
+        result_foo1 = cache.hsetnx("foo_hash1", "foo1", "bar1")
+        result_foo2 = cache.hsetnx("foo_hash1", "foo2", "bar2")
+        result_foo2_1 = cache.hsetnx("foo_hash1", "foo2", "bar2")
+        assert result_foo1 == 1
+        assert result_foo2 == 1
+        assert result_foo2_1 == 0
+        assert cache.hlen("foo_hash1") == 2
+        assert cache.hexists("foo_hash1", "foo1")
+        assert cache.hexists("foo_hash1", "foo2")
+
+    def test_hget(self, cache: RedisCache):
+        cache.hset("foo_hash1", "foo1", "bar1")
+        cache.hset("foo_hash1", "foo2", "bar2")
+        assert cache.hget("foo_hash1", "foo1") == "bar1"
+        assert cache.hget("foo_hash1", "foo2") == "bar2"
+
+    def test_hgetall(self, cache: RedisCache):
+        cache.hset("foo_hash1", "foo1", "bar1")
+        cache.hset("foo_hash1", "foo2", "bar2")
+        assert cache.hgetall("foo_hash1") == {
+            "foo1": "bar1",
+            "foo2": "bar2",
+        }
+
+    def test_hmget(self, cache: RedisCache):
+        cache.hset("foo_hash1", "foo1", "bar1")
+        cache.hset("foo_hash1", "foo2", "bar2")
+        cache.hset("foo_hash1", "foo3", "bar3")
+        assert cache.hmget("foo_hash1", "foo3", "foo1") == ["bar3", "bar1"]
+        assert cache.hmget("foo_hash1", "foo1", "foo2", "not-a-key") == [
+            "bar1",
+            "bar2",
+            None,
+        ]
+
+    def test_hincrby(self, cache: RedisCache):
+        cache.hset("foo_hash1", "foo1", 1)
+        assert cache.hincrby("foo_hash1", "foo1") == 2
+
+        assert cache.hincrby("foo_hash1", "foo2", 3) == 3
+        assert cache.hincrby("foo_hash1", "foo2", -3) == 0
+
+        cache.hset("foo_hash1", "foo3", "not_an_int")
+
+        with pytest.raises(ValueError):
+            cache.hincrby("foo_hash1", "foo3", -3)
+
     def test_hdel(self, cache: RedisCache):
-        if isinstance(cache.client, ShardClient):
-            pytest.skip("ShardClient doesn't support get_client")
         cache.hset("foo_hash2", "foo1", "bar1")
         cache.hset("foo_hash2", "foo2", "bar2")
         assert cache.hlen("foo_hash2") == 2
@@ -831,8 +875,6 @@ class TestDjangoRedisCache:
         assert cache.hexists("foo_hash2", "foo2")
 
     def test_hlen(self, cache: RedisCache):
-        if isinstance(cache.client, ShardClient):
-            pytest.skip("ShardClient doesn't support get_client")
         assert cache.hlen("foo_hash3") == 0
         cache.hset("foo_hash3", "foo1", "bar1")
         assert cache.hlen("foo_hash3") == 1
@@ -840,8 +882,6 @@ class TestDjangoRedisCache:
         assert cache.hlen("foo_hash3") == 2
 
     def test_hkeys(self, cache: RedisCache):
-        if isinstance(cache.client, ShardClient):
-            pytest.skip("ShardClient doesn't support get_client")
         cache.hset("foo_hash4", "foo1", "bar1")
         cache.hset("foo_hash4", "foo2", "bar2")
         cache.hset("foo_hash4", "foo3", "bar3")
@@ -851,8 +891,6 @@ class TestDjangoRedisCache:
             assert keys[i] == f"foo{i + 1}"
 
     def test_hexists(self, cache: RedisCache):
-        if isinstance(cache.client, ShardClient):
-            pytest.skip("ShardClient doesn't support get_client")
         cache.hset("foo_hash5", "foo1", "bar1")
         assert cache.hexists("foo_hash5", "foo1")
         assert not cache.hexists("foo_hash5", "foo")

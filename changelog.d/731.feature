@@ -1,0 +1,1 @@
+Support for the hashmaps functions hsetnx, hget, hgetall, hmget hincrby

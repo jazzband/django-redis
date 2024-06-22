@@ -621,7 +621,7 @@ class DefaultClient:
                 # if cached value or total value is greater than 64 bit signed
                 # integer.
                 # elif int is encoded. so redis sees the data as string.
-                # In this situations redis will throw ResponseError
+                # In these situations redis will throw ResponseError
 
                 # try to keep TTL of key
                 timeout = self.ttl(key, version=version, client=client)
@@ -1103,7 +1103,7 @@ class DefaultClient:
 
     def hset(
         self,
-        name: str,
+        name: KeyT,
         key: KeyT,
         value: EncodableT,
         version: Optional[int] = None,
@@ -1115,13 +1115,76 @@ class DefaultClient:
         """
         if client is None:
             client = self.get_client(write=True)
+        key_name = self.make_key(name, version=version)
         nkey = self.make_key(key, version=version)
         nvalue = self.encode(value)
-        return int(client.hset(name, nkey, nvalue))
+        return int(client.hset(key_name, nkey, nvalue))
+
+    def hsetnx(
+        self,
+        name: KeyT,
+        key: KeyT,
+        value: EncodableT,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
+    ) -> int:
+        if client is None:
+            client = self.get_client(write=True)
+        nkey = self.make_key(key, version=version)
+        key_name = self.make_key(name, version=version)
+        nvalue = self.encode(value)
+        return int(client.hsetnx(key_name, nkey, nvalue))
+
+    def hget(
+        self,
+        name: KeyT,
+        key: KeyT,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
+    ) -> Any:
+        """
+        Return the value of hash name at key.
+        """
+        if client is None:
+            client = self.get_client(write=False)
+        name = self.make_key(name, version=version)
+        nkey = self.make_key(key, version=version)
+        value = client.hget(name, nkey)
+        if value is None:
+            return None
+        return self.decode(value)
+
+    def hgetall(
+        self,
+        name: KeyT,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
+    ) -> Dict[str, Any]:
+
+        if client is None:
+            client = self.get_client(write=False)
+        name = self.make_key(name, version=version)
+        data = client.hgetall(name)
+        return {self.reverse_key(k.decode()): self.decode(v) for k, v in data.items()}
+
+    def hmget(
+        self,
+        name: KeyT,
+        *keys: KeyT,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
+    ) -> List[Any]:
+        if client is None:
+            client = self.get_client(write=False)
+        name = self.make_key(name, version=version)
+        nkeys = [self.make_key(k, version=version) for k in keys]
+        return [
+            self.decode(v) if v is not None else None for v in client.hmget(name, nkeys)
+        ]
 
     def hdel(
         self,
-        name: str,
+        name: KeyT,
         key: KeyT,
         version: Optional[int] = None,
         client: Optional[Redis] = None,
@@ -1132,12 +1195,14 @@ class DefaultClient:
         """
         if client is None:
             client = self.get_client(write=True)
+        name = self.make_key(name, version=version)
         nkey = self.make_key(key, version=version)
         return int(client.hdel(name, nkey))
 
     def hlen(
         self,
-        name: str,
+        name: KeyT,
+        version: Optional[int] = None,
         client: Optional[Redis] = None,
     ) -> int:
         """
@@ -1145,26 +1210,29 @@ class DefaultClient:
         """
         if client is None:
             client = self.get_client(write=False)
-        return int(client.hlen(name))
+        key_name = self.make_key(name, version=version)
+        return int(client.hlen(key_name))
 
     def hkeys(
         self,
-        name: str,
+        name: KeyT,
+        version: Optional[int] = None,
         client: Optional[Redis] = None,
     ) -> List[Any]:
         """
         Return a list of keys in hash name.
         """
+        key_name = self.make_key(name, version=version)
         if client is None:
             client = self.get_client(write=False)
         try:
-            return [self.reverse_key(k.decode()) for k in client.hkeys(name)]
+            return [self.reverse_key(k.decode()) for k in client.hkeys(key_name)]
         except _main_exceptions as e:
             raise ConnectionInterrupted(connection=client) from e
 
     def hexists(
         self,
-        name: str,
+        name: KeyT,
         key: KeyT,
         version: Optional[int] = None,
         client: Optional[Redis] = None,
@@ -1174,5 +1242,26 @@ class DefaultClient:
         """
         if client is None:
             client = self.get_client(write=False)
+        key_name = self.make_key(name, version=version)
         nkey = self.make_key(key, version=version)
-        return bool(client.hexists(name, nkey))
+        return bool(client.hexists(key_name, nkey))
+
+    def hincrby(
+        self,
+        name: KeyT,
+        key: KeyT,
+        increment: int = 1,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
+    ) -> int:
+        if client is None:
+            client = self.get_client(write=True)
+        key_name = self.make_key(name, version=version)
+        nkey = self.make_key(key, version=version)
+        try:
+            value = client.hincrby(key_name, nkey, increment)
+        except ResponseError as exc:
+            value = self.hget(key_name, nkey)
+            msg = f"Value: {value} is not an integer or out of range."
+            raise ValueError(msg) from exc
+        return int(value)

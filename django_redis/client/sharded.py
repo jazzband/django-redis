@@ -483,3 +483,125 @@ class ShardClient(DefaultClient):
             key = self.make_key(key, version=version)
             client = self.get_server(key)
         return super().smismember(key, *members, version=version, client=client)
+
+    def hset(
+        self,
+        name: KeyT,
+        key: KeyT,
+        value: Any,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
+    ) -> int:
+        if client is None:
+            key_name = self.make_key(name, version=version)
+            client = self.get_server(key_name)
+        return super().hset(key_name, key, value, version=version, client=client)
+
+    def hsetnx(
+        self,
+        name: KeyT,
+        key: KeyT,
+        value: Any,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
+    ) -> int:
+        if client is None:
+            key_name = self.make_key(name, version=version)
+            client = self.get_server(key_name)
+        return super().hsetnx(key_name, key, value, version=version, client=client)
+
+    def hlen(
+        self,
+        name: KeyT,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
+    ) -> int:
+        if client is None:
+            key_name = self.make_key(name, version=version)
+            client = self.get_server(key_name)
+        return super().hlen(key_name, version=version, client=client)
+
+    def hget(
+        self,
+        name: KeyT,
+        key: KeyT,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
+    ) -> Any:
+        if client is None:
+            key_name = self.make_key(name, version=version)
+            client = self.get_server(key_name)
+        return super().hget(key_name, key, version=version, client=client)
+
+    def hexists(
+        self,
+        name: KeyT,
+        key: KeyT,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
+    ) -> bool:
+        if client is None:
+            key_name = self.make_key(name, version=version)
+            client = self.get_server(key_name)
+        return super().hexists(key_name, key, version=version, client=client)
+
+    def hkeys(
+        self,
+        name: KeyT,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
+    ) -> List[Any]:
+        if client is None:
+            key_name = self.make_key(name, version=version)
+            client = self.get_server(key_name)
+        return super().hkeys(key_name, client=client)
+
+    def hgetall(
+        self,
+        name: KeyT,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
+    ) -> Any:
+        if client is None:
+            key_name = self.make_key(name, version=version)
+            client = self.get_server(key_name)
+        return super().hgetall(key_name, version=version, client=client)
+
+    def hincrby(
+        self,
+        name: KeyT,
+        key: KeyT,
+        increment: int = 1,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
+    ) -> int:
+        if client is None:
+            name = self.make_key(name, version=version)
+            client = self.get_server(name)
+        return super().hincrby(
+            name, key, increment=increment, version=version, client=client
+        )
+
+    def hmget(
+        self,
+        name: KeyT,
+        *keys: KeyT,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
+    ) -> List[Any]:
+        if client is None:
+            name = self.make_key(name, version=version)
+            client = self.get_server(name)
+        return super().hmget(name, *keys, version=version, client=client)
+
+    def hdel(
+        self,
+        name: KeyT,
+        key: KeyT,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
+    ) -> int:
+        if client is None:
+            name = self.make_key(name, version=version)
+            client = self.get_server(name)
+        return super().hdel(name, key, version=version, client=client)
