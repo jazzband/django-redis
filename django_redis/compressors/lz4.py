@@ -16,5 +16,5 @@ class Lz4Compressor(BaseCompressor):
     def decompress(self, value: bytes) -> bytes:
         try:
             return _decompress(value)
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             raise CompressorError from e

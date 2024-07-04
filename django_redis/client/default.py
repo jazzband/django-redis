@@ -3,7 +3,18 @@ import re
 import socket
 from collections import OrderedDict
 from contextlib import suppress
-from typing import Any, Dict, Iterable, Iterator, List, Optional, Tuple, Union
+from typing import (
+    Any,
+    Dict,
+    Iterable,
+    Iterator,
+    List,
+    Optional,
+    Set,
+    Tuple,
+    Union,
+    cast,
+)
 
 from django.conf import settings
 from django.core.cache.backends.base import DEFAULT_TIMEOUT, BaseCache, get_key_func
@@ -11,7 +22,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.utils.module_loading import import_string
 from redis import Redis
 from redis.exceptions import ConnectionError, ResponseError, TimeoutError
-from redis.typing import AbsExpiryT, EncodableT, ExpiryT, KeyT
+from redis.typing import AbsExpiryT, EncodableT, ExpiryT, KeyT, PatternT
 
 from django_redis import pool
 from django_redis.exceptions import CompressorError, ConnectionInterrupted
@@ -65,6 +76,14 @@ class DefaultClient:
 
     def __contains__(self, key: KeyT) -> bool:
         return self.has_key(key)
+
+    def _has_compression_enabled(self) -> bool:
+        return (
+            self._options.get(
+                "COMPRESSOR", "django_redis.compressors.identity.IdentityCompressor"
+            )
+            != "django_redis.compressors.identity.IdentityCompressor"
+        )
 
     def get_next_client_index(
         self, write: bool = True, tried: Optional[List[int]] = None
@@ -506,6 +525,17 @@ class DefaultClient:
 
         return value
 
+    def _decode_iterable_result(
+        self, result: Any, covert_to_set: bool = True
+    ) -> Union[List[Any], None, Any]:
+        if result is None:
+            return None
+        if isinstance(result, list):
+            if covert_to_set:
+                return {self.decode(value) for value in result}
+            return [self.decode(value) for value in result]
+        return self.decode(result)
+
     def get_many(
         self,
         keys: Iterable[KeyT],
@@ -785,6 +815,257 @@ class DefaultClient:
         version_str = glob_escape(str(version))
 
         return CacheKey(self._backend.key_func(pattern, prefix, version_str))
+
+    def sadd(
+        self,
+        key: KeyT,
+        *values: Any,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
+    ) -> int:
+        if client is None:
+            client = self.get_client(write=True)
+
+        key = self.make_key(key, version=version)
+        encoded_values = [self.encode(value) for value in values]
+        return int(client.sadd(key, *encoded_values))
+
+    def scard(
+        self,
+        key: KeyT,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
+    ) -> int:
+        if client is None:
+            client = self.get_client(write=False)
+
+        key = self.make_key(key, version=version)
+        return int(client.scard(key))
+
+    def sdiff(
+        self,
+        *keys: KeyT,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
+    ) -> Set[Any]:
+        if client is None:
+            client = self.get_client(write=False)
+
+        nkeys = [self.make_key(key, version=version) for key in keys]
+        return {self.decode(value) for value in client.sdiff(*nkeys)}
+
+    def sdiffstore(
+        self,
+        dest: KeyT,
+        *keys: KeyT,
+        version_dest: Optional[int] = None,
+        version_keys: Optional[int] = None,
+        client: Optional[Redis] = None,
+    ) -> int:
+        if client is None:
+            client = self.get_client(write=True)
+
+        dest = self.make_key(dest, version=version_dest)
+        nkeys = [self.make_key(key, version=version_keys) for key in keys]
+        return int(client.sdiffstore(dest, *nkeys))
+
+    def sinter(
+        self,
+        *keys: KeyT,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
+    ) -> Set[Any]:
+        if client is None:
+            client = self.get_client(write=False)
+
+        nkeys = [self.make_key(key, version=version) for key in keys]
+        return {self.decode(value) for value in client.sinter(*nkeys)}
+
+    def sinterstore(
+        self,
+        dest: KeyT,
+        *keys: KeyT,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
+    ) -> int:
+        if client is None:
+            client = self.get_client(write=True)
+
+        dest = self.make_key(dest, version=version)
+        nkeys = [self.make_key(key, version=version) for key in keys]
+        return int(client.sinterstore(dest, *nkeys))
+
+    def smismember(
+        self,
+        key: KeyT,
+        *members,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
+    ) -> List[bool]:
+        if client is None:
+            client = self.get_client(write=False)
+
+        key = self.make_key(key, version=version)
+        encoded_members = [self.encode(member) for member in members]
+
+        return [bool(value) for value in client.smismember(key, *encoded_members)]
+
+    def sismember(
+        self,
+        key: KeyT,
+        member: Any,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
+    ) -> bool:
+        if client is None:
+            client = self.get_client(write=False)
+
+        key = self.make_key(key, version=version)
+        member = self.encode(member)
+        return bool(client.sismember(key, member))
+
+    def smembers(
+        self,
+        key: KeyT,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
+    ) -> Set[Any]:
+        if client is None:
+            client = self.get_client(write=False)
+
+        key = self.make_key(key, version=version)
+        return {self.decode(value) for value in client.smembers(key)}
+
+    def smove(
+        self,
+        source: KeyT,
+        destination: KeyT,
+        member: Any,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
+    ) -> bool:
+        if client is None:
+            client = self.get_client(write=True)
+
+        source = self.make_key(source, version=version)
+        destination = self.make_key(destination)
+        member = self.encode(member)
+        return bool(client.smove(source, destination, member))
+
+    def spop(
+        self,
+        key: KeyT,
+        count: Optional[int] = None,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
+    ) -> Union[Set, Any]:
+        if client is None:
+            client = self.get_client(write=True)
+
+        nkey = self.make_key(key, version=version)
+        result = client.spop(nkey, count)
+        return self._decode_iterable_result(result)
+
+    def srandmember(
+        self,
+        key: KeyT,
+        count: Optional[int] = None,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
+    ) -> Union[List, Any]:
+        if client is None:
+            client = self.get_client(write=False)
+
+        key = self.make_key(key, version=version)
+        result = client.srandmember(key, count)
+        return self._decode_iterable_result(result, covert_to_set=False)
+
+    def srem(
+        self,
+        key: KeyT,
+        *members: EncodableT,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
+    ) -> int:
+        if client is None:
+            client = self.get_client(write=True)
+
+        key = self.make_key(key, version=version)
+        nmembers = [self.encode(member) for member in members]
+        return int(client.srem(key, *nmembers))
+
+    def sscan(
+        self,
+        key: KeyT,
+        match: Optional[str] = None,
+        count: Optional[int] = 10,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
+    ) -> Set[Any]:
+        if self._has_compression_enabled() and match:
+            err_msg = "Using match with compression is not supported."
+            raise ValueError(err_msg)
+
+        if client is None:
+            client = self.get_client(write=False)
+
+        key = self.make_key(key, version=version)
+
+        cursor, result = client.sscan(
+            key,
+            match=cast(PatternT, self.encode(match)) if match else None,
+            count=count,
+        )
+        return {self.decode(value) for value in result}
+
+    def sscan_iter(
+        self,
+        key: KeyT,
+        match: Optional[str] = None,
+        count: Optional[int] = 10,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
+    ) -> Iterator[Any]:
+        if self._has_compression_enabled() and match:
+            err_msg = "Using match with compression is not supported."
+            raise ValueError(err_msg)
+
+        if client is None:
+            client = self.get_client(write=False)
+
+        key = self.make_key(key, version=version)
+        for value in client.sscan_iter(
+            key,
+            match=cast(PatternT, self.encode(match)) if match else None,
+            count=count,
+        ):
+            yield self.decode(value)
+
+    def sunion(
+        self,
+        *keys: KeyT,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
+    ) -> Set[Any]:
+        if client is None:
+            client = self.get_client(write=False)
+
+        nkeys = [self.make_key(key, version=version) for key in keys]
+        return {self.decode(value) for value in client.sunion(*nkeys)}
+
+    def sunionstore(
+        self,
+        destination: Any,
+        *keys: KeyT,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
+    ) -> int:
+        if client is None:
+            client = self.get_client(write=True)
+
+        destination = self.make_key(destination, version=version)
+        encoded_keys = [self.make_key(key, version=version) for key in keys]
+        return int(client.sunionstore(destination, *encoded_keys))
 
     def close(self) -> None:
         close_flag = self._options.get(
