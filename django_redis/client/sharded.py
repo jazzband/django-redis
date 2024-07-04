@@ -171,19 +171,57 @@ class ShardClient(DefaultClient):
 
         return super().persist(key=key, version=version, client=client)
 
-    def expire(self, key, timeout, version=None, client=None):
+    def expire(
+        self,
+        key,
+        timeout,
+        version=None,
+        client=None,
+        nx=False,
+        xx=False,
+        gt=False,
+        lt=False,
+    ):
         if client is None:
             key = self.make_key(key, version=version)
             client = self.get_server(key)
 
-        return super().expire(key=key, timeout=timeout, version=version, client=client)
+        return super().expire(
+            key=key,
+            timeout=timeout,
+            version=version,
+            client=client,
+            nx=nx,
+            xx=xx,
+            gt=gt,
+            lt=lt,
+        )
 
-    def pexpire(self, key, timeout, version=None, client=None):
+    def pexpire(
+        self,
+        key,
+        timeout,
+        version=None,
+        client=None,
+        nx=False,
+        xx=False,
+        gt=False,
+        lt=False,
+    ):
         if client is None:
             key = self.make_key(key, version=version)
             client = self.get_server(key)
 
-        return super().pexpire(key=key, timeout=timeout, version=version, client=client)
+        return super().pexpire(
+            key=key,
+            timeout=timeout,
+            version=version,
+            client=client,
+            nx=nx,
+            xx=xx,
+            gt=gt,
+            lt=lt,
+        )
 
     def pexpire_at(self, key, when: Union[datetime, int], version=None, client=None):
         """
