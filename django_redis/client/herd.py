@@ -26,9 +26,7 @@ def _is_expired(x, herd_timeout: int) -> bool:
         return True
     val = x + random.randint(1, herd_timeout)
 
-    if val >= herd_timeout:
-        return True
-    return False
+    return val >= herd_timeout
 
 
 class HerdClient(DefaultClient):
