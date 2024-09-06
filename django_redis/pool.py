@@ -176,11 +176,11 @@ class SentinelConnectionFactory(ConnectionFactory):
         new_query = urlencode(query_params, doseq=True)
 
         new_url = urlunparse(
-            (url.scheme,url.netloc,url.path,url.params,new_query,url.fragment)
+            (url.scheme, url.netloc, url.path, url.params, new_query, url.fragment)
         )
 
         cp_params.update(
-            service_name=url.hostname, sentinel_manager=self._sentinel,url=new_url
+            service_name=url.hostname, sentinel_manager=self._sentinel, url=new_url
         )
 
         return super().get_connection_pool(cp_params)
