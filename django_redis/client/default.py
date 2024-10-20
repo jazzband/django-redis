@@ -393,6 +393,7 @@ class DefaultClient:
         version: Optional[int] = None,
         timeout: Optional[float] = None,
         sleep: float = 0.1,
+        blocking: bool = True,
         blocking_timeout: Optional[float] = None,
         client: Optional[Redis] = None,
         thread_local: bool = True,
@@ -405,6 +406,7 @@ class DefaultClient:
             key,
             timeout=timeout,
             sleep=sleep,
+            blocking=blocking,
             blocking_timeout=blocking_timeout,
             thread_local=thread_local,
         )
