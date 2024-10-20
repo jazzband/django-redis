@@ -326,9 +326,7 @@ class DefaultClient:
 
         key = self.make_key(key, version=version)
 
-        # for some strange reason mypy complains,
-        # saying that timeout type is float | timedelta
-        return client.expire(key, timeout)  # type: ignore
+        return client.expire(key, timeout)
 
     def pexpire(
         self,
@@ -345,11 +343,7 @@ class DefaultClient:
 
         key = self.make_key(key, version=version)
 
-        # Temporary casting until https://github.com/redis/redis-py/issues/1664
-        # is fixed.
-        # for some strange reason mypy complains,
-        # saying that timeout type is float | timedelta
-        return bool(client.pexpire(key, timeout))  # type: ignore
+        return bool(client.pexpire(key, timeout))
 
     def pexpire_at(
         self,
@@ -393,6 +387,7 @@ class DefaultClient:
         version: Optional[int] = None,
         timeout: Optional[float] = None,
         sleep: float = 0.1,
+        blocking: bool = True,
         blocking_timeout: Optional[float] = None,
         client: Optional[Redis] = None,
         thread_local: bool = True,
@@ -405,6 +400,7 @@ class DefaultClient:
             key,
             timeout=timeout,
             sleep=sleep,
+            blocking=blocking,
             blocking_timeout=blocking_timeout,
             thread_local=thread_local,
         )
