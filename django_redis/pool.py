@@ -1,5 +1,5 @@
 from typing import Dict
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
@@ -163,16 +163,27 @@ class SentinelConnectionFactory(ConnectionFactory):
         # explicitly set service_name and sentinel_manager for the
         # SentinelConnectionPool constructor since will be called by from_url
         cp_params = dict(params)
-        cp_params.update(service_name=url.hostname, sentinel_manager=self._sentinel)
-        pool = super().get_connection_pool(cp_params)
-
         # convert "is_master" to a boolean if set on the URL, otherwise if not
         # provided it defaults to True.
-        is_master = parse_qs(url.query).get("is_master")
+        query_params = parse_qs(url.query)
+        is_master = query_params.get("is_master")
         if is_master:
-            pool.is_master = to_bool(is_master[0])
+            cp_params["is_master"] = to_bool(is_master[0])
+        # then remove the "is_master" query string from the URL
+        # so it doesn't interfere with the SentinelConnectionPool constructor
+        if "is_master" in query_params:
+            del query_params["is_master"]
+        new_query = urlencode(query_params, doseq=True)
 
-        return pool
+        new_url = urlunparse(
+            (url.scheme, url.netloc, url.path, url.params, new_query, url.fragment)
+        )
+
+        cp_params.update(
+            service_name=url.hostname, sentinel_manager=self._sentinel, url=new_url
+        )
+
+        return super().get_connection_pool(cp_params)
 
 
 def get_connection_factory(path=None, options=None):

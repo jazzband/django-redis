@@ -8,6 +8,8 @@ from django_redis import pool
     [
         "unix://tmp/foo.bar?db=1",
         "redis://localhost/2",
+        "redis://redis-master/0?is_master=0",
+        "redis://redis-master/2?is_master=False",
         "rediss://localhost:3333?db=2",
     ],
 )
