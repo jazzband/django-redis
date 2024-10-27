@@ -1,0 +1,30 @@
+services:
+
+  redis:
+    image: redis:latest
+    container_name: redis-primary
+    command: redis-server --enable-debug-command yes --protected-mode no
+    ports:
+      - 6379:6379
+    healthcheck:
+      test: redis-cli ping
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  sentinel:
+    image: redis:latest
+    container_name: redis-sentinel
+    depends_on:
+      redis:
+        condition: service_healthy
+    entrypoint: "redis-sentinel /redis.conf --port 26379"
+    ports:
+      - 26379:26379
+    volumes:
+      - "./sentinel.conf:/redis.conf"
+    healthcheck:
+      test: redis-cli -p 26379 ping
+      interval: 5s
+      timeout: 5s
+      retries: 5

@@ -80,16 +80,11 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install --upgrade tox tox-gh-actions
 
-      - name: Tox tests
-        run: |
-          REDIS_PRIMARY=$(tests/start_redis.sh)
-          REDIS_SENTINEL=$(tests/start_redis.sh --sentinel)
-          CONTAINERS="$REDIS_PRIMARY $REDIS_SENTINEL"
-          trap "docker stop $CONTAINERS && docker rm $CONTAINERS" EXIT
-          tests/wait_for_redis.sh $REDIS_PRIMARY 6379
-          tests/wait_for_redis.sh $REDIS_SENTINEL 26379
+      - name: Docker compose up
+        run: docker compose up -d --wait
 
-          tox
+      - name: Tox tests
+        run: tox
         env:
           DJANGO: ${{ matrix.django-version }}
           REDIS: ${{ matrix.redis-version }}

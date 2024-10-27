@@ -7,7 +7,7 @@ conn_factory = "django_redis.pool.SentinelConnectionFactory"
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": ["redis://default_service?db=5"],
+        "LOCATION": ["redis://default_service?db=8"],
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
             "SENTINELS": SENTINELS,
@@ -16,7 +16,7 @@ CACHES = {
     },
     "doesnotexist": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://missing_service?db=1",
+        "LOCATION": "redis://missing_service?db=8",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
             "SENTINELS": SENTINELS,
@@ -25,7 +25,7 @@ CACHES = {
     },
     "sample": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://default_service?db=1",
+        "LOCATION": "redis://default_service?db=8",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.SentinelClient",
             "SENTINELS": SENTINELS,
@@ -34,7 +34,7 @@ CACHES = {
     },
     "with_prefix": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://default_service?db=1",
+        "LOCATION": "redis://default_service?db=8",
         "KEY_PREFIX": "test-prefix",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",

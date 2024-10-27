@@ -3,11 +3,11 @@ from unittest.mock import Mock, call, patch
 
 import pytest
 from django.core.cache import DEFAULT_CACHE_ALIAS
-from pytest_django.fixtures import SettingsWrapper
 from pytest_mock import MockerFixture
 
 from django_redis.cache import RedisCache
 from django_redis.client import DefaultClient, ShardClient
+from tests.settings_wrapper import SettingsWrapper
 
 
 @pytest.fixture
