@@ -3,15 +3,16 @@ from collections import Counter
 from datetime import timedelta
 from typing import Iterable
 
+import django
 import pytest
-from django.contrib.sessions.backends.cache import SessionStore as CacheSession
+from django.contrib.sessions.backends.cache import SessionStore
 from django.test import override_settings
 from django.utils import timezone
 
 
 @pytest.fixture
-def session(cache) -> Iterable[CacheSession]:
-    s = CacheSession()
+def session(cache) -> Iterable[SessionStore]:
+    s = SessionStore()
 
     yield s
 
@@ -163,7 +164,7 @@ def test_cycle_with_no_session_cache(session):
     session["a"], session["b"] = "c", "d"
     session.save()
     prev_data = session.items()
-    session = CacheSession(session.session_key)
+    session = SessionStore(session.session_key)
     assert hasattr(session, "_session_cache") is False
     session.cycle_key()
     assert Counter(session.items()) == Counter(prev_data)
@@ -179,7 +180,7 @@ def test_invalid_key(session):
     # Submitting an invalid session key (either by guessing, or if the db has
     # removed the key) results in a new key being generated.
     try:
-        session = CacheSession("1")
+        session = SessionStore("1")
         session.save()
         assert session.session_key != "1"
         assert session.get("cat") is None
@@ -318,12 +319,16 @@ def test_decode_failure_logged_to_security(session, caplog):
     ) in caplog.record_tuples
 
 
+@pytest.mark.skipif(
+    django.VERSION >= (4, 2),
+    reason="PickleSerializer is removed as of https://code.djangoproject.com/ticket/29708",
+)
 def test_actual_expiry(session):
     # this doesn't work with JSONSerializer (serializing timedelta)
     with override_settings(
         SESSION_SERIALIZER="django.contrib.sessions.serializers.PickleSerializer"
     ):
-        session = CacheSession()  # reinitialize after overriding settings
+        session = SessionStore()  # reinitialize after overriding settings
 
         # Regression test for #19200
         old_session_key = None
@@ -334,7 +339,7 @@ def test_actual_expiry(session):
             session.save()
             old_session_key = session.session_key
             # With an expiry date in the past, the session expires instantly.
-            new_session = CacheSession(session.session_key)
+            new_session = SessionStore(session.session_key)
             new_session_key = new_session.session_key
             assert "foo" not in new_session
         finally:
@@ -347,7 +352,7 @@ def test_session_load_does_not_create_record(session):
     Loading an unknown session key does not create a session record.
     Creating session records on load is a DOS vulnerability.
     """
-    session = CacheSession("someunknownkey")
+    session = SessionStore("someunknownkey")
     session.load()
 
     assert session.session_key is None
@@ -363,12 +368,12 @@ def test_session_save_does_not_resurrect_session_logged_out_in_other_context(ses
     from django.contrib.sessions.backends.base import UpdateError
 
     # Create new session.
-    s1 = CacheSession()
+    s1 = SessionStore()
     s1["test_data"] = "value1"
     s1.save(must_create=True)
 
     # Logout in another context.
-    s2 = CacheSession(s1.session_key)
+    s2 = SessionStore(s1.session_key)
     s2.delete()
 
     # Modify session in first context.

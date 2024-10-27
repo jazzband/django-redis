@@ -1,4 +1,6 @@
+import sys
 from os import environ
+from pathlib import Path
 from typing import Iterable
 
 import pytest
@@ -21,6 +23,10 @@ def pytest_xdist_make_scheduler(log, config):
     return FixtureScheduling(config, log)
 
 
+def pytest_configure():
+    sys.path.insert(0, str(Path(__file__).absolute().parent))
+
+
 @pytest.fixture()
 def settings():
     """A Django settings object which restores changes after the testrun"""
@@ -33,7 +39,7 @@ def settings():
 def cache(cache_settings: str) -> Iterable[BaseCache]:
     from django import setup
 
-    environ["DJANGO_SETTINGS_MODULE"] = f"tests.settings.{cache_settings}"
+    environ["DJANGO_SETTINGS_MODULE"] = f"settings.{cache_settings}"
     setup()
 
     from django.core.cache import cache as default_cache

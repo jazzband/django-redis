@@ -1005,9 +1005,9 @@ class TestDjangoRedisCache:
         items = cache.sscan_iter("foo", match="bar*")
         assert set(items) == {"bar1", "bar2"}
 
-    # def test_smismember(self, cache: RedisCache):
-    #     cache.sadd("foo", "bar1", "bar2", "bar3")
-    #     assert cache.smismember("foo", "bar1", "bar2", "xyz") == [True, True, False]
+    def test_smismember(self, cache: RedisCache):
+        cache.sadd("foo", "bar1", "bar2", "bar3")
+        assert cache.smismember("foo", "bar1", "bar2", "xyz") == [True, True, False]
 
     def test_sunion(self, cache: RedisCache):
         if isinstance(cache.client, ShardClient):
