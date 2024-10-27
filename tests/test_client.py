@@ -19,13 +19,12 @@ def cache_client(cache: RedisCache) -> Iterable[DefaultClient]:
 
 
 class TestClientClose:
-    # TODO: fix me
-    # def test_close_client_disconnect_default(
-    #     self, cache_client: DefaultClient, mocker: MockerFixture
-    # ):
-    #     mock = mocker.patch.object(cache_client.connection_factory, "disconnect")
-    #     cache_client.close()
-    #     assert not mock.called
+    def test_close_client_disconnect_default(
+        self, cache_client: DefaultClient, mocker: MockerFixture
+    ):
+        mock = mocker.patch.object(cache_client.connection_factory, "disconnect")
+        cache_client.close()
+        assert not mock.called
 
     def test_close_disconnect_settings(
         self,
