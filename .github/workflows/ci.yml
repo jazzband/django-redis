@@ -81,7 +81,7 @@ jobs:
           python -m pip install --upgrade tox tox-gh-actions
 
       - name: Docker compose up
-        run: docker compose up -d --wait
+        run: docker compose -f docker/docker-compose.yml up -d --wait
 
       - name: Tox tests
         run: tox
