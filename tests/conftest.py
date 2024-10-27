@@ -23,7 +23,7 @@ def pytest_xdist_make_scheduler(log, config):
     return FixtureScheduling(config, log)
 
 
-def pytest_configure():
+def pytest_configure(config):
     sys.path.insert(0, str(Path(__file__).absolute().parent))
 
 
