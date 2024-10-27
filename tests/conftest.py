@@ -2,7 +2,6 @@ from os import environ
 from typing import Iterable
 
 import pytest
-from pytest import Metafunc
 from xdist.scheduler import LoadScopeScheduling
 
 from django_redis.cache import BaseCache
@@ -34,7 +33,7 @@ def settings():
 def cache(cache_settings: str) -> Iterable[BaseCache]:
     from django import setup
 
-    environ["DJANGO_SETTINGS_MODULE"] = f"settings.{cache_settings}"
+    environ["DJANGO_SETTINGS_MODULE"] = f"tests.settings.{cache_settings}"
     setup()
 
     from django.core.cache import cache as default_cache
@@ -43,7 +42,7 @@ def cache(cache_settings: str) -> Iterable[BaseCache]:
     default_cache.clear()
 
 
-def pytest_generate_tests(metafunc: Metafunc):
+def pytest_generate_tests(metafunc):
     if "cache" in metafunc.fixturenames or "session" in metafunc.fixturenames:
         # Mark
         settings = [

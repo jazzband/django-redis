@@ -59,8 +59,8 @@ class TestClientClose:
 
 
 class TestDefaultClient:
-    @patch("test_client.DefaultClient.get_client")
-    @patch("test_client.DefaultClient.__init__", return_value=None)
+    @patch("tests.test_client.DefaultClient.get_client")
+    @patch("tests.test_client.DefaultClient.__init__", return_value=None)
     def test_delete_pattern_calls_get_client_given_no_client(
         self, init_mock, get_client_mock
     ):
@@ -71,9 +71,9 @@ class TestDefaultClient:
         client.delete_pattern(pattern="foo*")
         get_client_mock.assert_called_once_with(write=True)
 
-    @patch("test_client.DefaultClient.make_pattern")
-    @patch("test_client.DefaultClient.get_client", return_value=Mock())
-    @patch("test_client.DefaultClient.__init__", return_value=None)
+    @patch("tests.test_client.DefaultClient.make_pattern")
+    @patch("tests.test_client.DefaultClient.get_client", return_value=Mock())
+    @patch("tests.test_client.DefaultClient.__init__", return_value=None)
     def test_delete_pattern_calls_make_pattern(
         self, init_mock, get_client_mock, make_pattern_mock
     ):
@@ -87,9 +87,9 @@ class TestDefaultClient:
         kwargs = {"version": None, "prefix": None}
         make_pattern_mock.assert_called_once_with("foo*", **kwargs)
 
-    @patch("test_client.DefaultClient.make_pattern")
-    @patch("test_client.DefaultClient.get_client", return_value=Mock())
-    @patch("test_client.DefaultClient.__init__", return_value=None)
+    @patch("tests.test_client.DefaultClient.make_pattern")
+    @patch("tests.test_client.DefaultClient.get_client", return_value=Mock())
+    @patch("tests.test_client.DefaultClient.__init__", return_value=None)
     def test_delete_pattern_calls_scan_iter_with_count_if_itersize_given(
         self, init_mock, get_client_mock, make_pattern_mock
     ):
@@ -104,9 +104,9 @@ class TestDefaultClient:
             count=90210, match=make_pattern_mock.return_value
         )
 
-    @patch("test_client.DefaultClient.make_pattern")
-    @patch("test_client.DefaultClient.get_client", return_value=Mock())
-    @patch("test_client.DefaultClient.__init__", return_value=None)
+    @patch("tests.test_client.DefaultClient.make_pattern")
+    @patch("tests.test_client.DefaultClient.get_client", return_value=Mock())
+    @patch("tests.test_client.DefaultClient.__init__", return_value=None)
     def test_delete_pattern_calls_pipeline_delete_and_execute(
         self, init_mock, get_client_mock, make_pattern_mock
     ):
@@ -128,8 +128,8 @@ class TestDefaultClient:
 
 
 class TestShardClient:
-    @patch("test_client.DefaultClient.make_pattern")
-    @patch("test_client.ShardClient.__init__", return_value=None)
+    @patch("tests.test_client.DefaultClient.make_pattern")
+    @patch("tests.test_client.ShardClient.__init__", return_value=None)
     def test_delete_pattern_calls_scan_iter_with_count_if_itersize_given(
         self, init_mock, make_pattern_mock
     ):
@@ -147,8 +147,8 @@ class TestShardClient:
             count=10, match=make_pattern_mock.return_value
         )
 
-    @patch("test_client.DefaultClient.make_pattern")
-    @patch("test_client.ShardClient.__init__", return_value=None)
+    @patch("tests.test_client.DefaultClient.make_pattern")
+    @patch("tests.test_client.ShardClient.__init__", return_value=None)
     def test_delete_pattern_calls_scan_iter(self, init_mock, make_pattern_mock):
         client = ShardClient()
         client._backend = Mock()
@@ -163,8 +163,8 @@ class TestShardClient:
             match=make_pattern_mock.return_value
         )
 
-    @patch("test_client.DefaultClient.make_pattern")
-    @patch("test_client.ShardClient.__init__", return_value=None)
+    @patch("tests.test_client.DefaultClient.make_pattern")
+    @patch("tests.test_client.ShardClient.__init__", return_value=None)
     def test_delete_pattern_calls_delete_for_given_keys(
         self, init_mock, make_pattern_mock
     ):
