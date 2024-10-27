@@ -78,7 +78,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install --upgrade tox tox-gh-actions
+          python -m pip install --upgrade tox-uv tox-gh-actions
 
       - name: Docker compose up
         run: docker compose -f docker/docker-compose.yml up -d --wait
