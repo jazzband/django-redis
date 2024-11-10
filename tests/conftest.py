@@ -35,7 +35,7 @@ def settings():
     wrapper.finalize()
 
 
-@pytest.fixture
+@pytest.fixture()
 def cache(cache_settings: str) -> Iterable[BaseCache]:
     from django import setup
 
