@@ -1,0 +1,4 @@
+Speed up tests by using `pytest-xdist` and separating settings on different redis databases.
+Dropped `pytest-django`
+Using `docker-compose` for setting up redis containers for testing
+Use `tox-uv`

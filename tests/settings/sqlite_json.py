@@ -3,7 +3,7 @@ SECRET_KEY = "django_tests_secret_key"
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": ["redis://127.0.0.1:6379?db=1", "redis://127.0.0.1:6379?db=1"],
+        "LOCATION": ["redis://127.0.0.1:6379?db=4", "redis://127.0.0.1:6379?db=4"],
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
             "SERIALIZER": "django_redis.serializers.json.JSONSerializer",
@@ -11,7 +11,7 @@ CACHES = {
     },
     "doesnotexist": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://127.0.0.1:56379?db=1",
+        "LOCATION": "redis://127.0.0.1:56379?db=4",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
             "SERIALIZER": "django_redis.serializers.json.JSONSerializer",
@@ -19,7 +19,7 @@ CACHES = {
     },
     "sample": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://127.0.0.1:6379?db=1,redis://127.0.0.1:6379?db=1",
+        "LOCATION": "redis://127.0.0.1:6379?db=4,redis://127.0.0.1:6379?db=4",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
             "SERIALIZER": "django_redis.serializers.json.JSONSerializer",
@@ -27,7 +27,7 @@ CACHES = {
     },
     "with_prefix": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://127.0.0.1:6379?db=1",
+        "LOCATION": "redis://127.0.0.1:6379?db=4",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
             "SERIALIZER": "django_redis.serializers.json.JSONSerializer",

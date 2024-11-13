@@ -4,7 +4,6 @@ from typing import Iterable, cast
 import pytest
 from django.core.cache import caches
 from pytest import LogCaptureFixture
-from pytest_django.fixtures import SettingsWrapper
 from redis.exceptions import ConnectionError
 
 from django_redis.cache import RedisCache
@@ -20,7 +19,7 @@ def reverse_key(key: str) -> str:
 
 
 @pytest.fixture
-def ignore_exceptions_cache(settings: SettingsWrapper) -> RedisCache:
+def ignore_exceptions_cache(settings) -> RedisCache:
     caches_setting = copy.deepcopy(settings.CACHES)
     caches_setting["doesnotexist"]["OPTIONS"]["IGNORE_EXCEPTIONS"] = True
     caches_setting["doesnotexist"]["OPTIONS"]["LOG_IGNORED_EXCEPTIONS"] = True
@@ -54,7 +53,7 @@ def test_get_django_omit_exceptions(
     )
 
 
-def test_get_django_omit_exceptions_priority_1(settings: SettingsWrapper):
+def test_get_django_omit_exceptions_priority_1(settings):
     caches_setting = copy.deepcopy(settings.CACHES)
     caches_setting["doesnotexist"]["OPTIONS"]["IGNORE_EXCEPTIONS"] = True
     settings.CACHES = caches_setting
@@ -64,7 +63,7 @@ def test_get_django_omit_exceptions_priority_1(settings: SettingsWrapper):
     assert cache.get("key") is None
 
 
-def test_get_django_omit_exceptions_priority_2(settings: SettingsWrapper):
+def test_get_django_omit_exceptions_priority_2(settings):
     caches_setting = copy.deepcopy(settings.CACHES)
     caches_setting["doesnotexist"]["OPTIONS"]["IGNORE_EXCEPTIONS"] = False
     settings.CACHES = caches_setting
@@ -76,9 +75,7 @@ def test_get_django_omit_exceptions_priority_2(settings: SettingsWrapper):
 
 
 @pytest.fixture
-def key_prefix_cache(
-    cache: RedisCache, settings: SettingsWrapper
-) -> Iterable[RedisCache]:
+def key_prefix_cache(cache: RedisCache, settings) -> Iterable[RedisCache]:
     caches_setting = copy.deepcopy(settings.CACHES)
     caches_setting["default"]["KEY_PREFIX"] = "*"
     settings.CACHES = caches_setting
@@ -120,7 +117,7 @@ class TestDjangoRedisCacheEscapePrefix:
         assert "b" not in keys
 
 
-def test_custom_key_function(cache: RedisCache, settings: SettingsWrapper):
+def test_custom_key_function(cache: RedisCache, settings):
     caches_setting = copy.deepcopy(settings.CACHES)
     caches_setting["default"]["KEY_FUNCTION"] = "test_cache_options.make_key"
     caches_setting["default"]["REVERSE_KEY_FUNCTION"] = "test_cache_options.reverse_key"

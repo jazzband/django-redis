@@ -3,7 +3,7 @@ SECRET_KEY = "django_tests_secret_key"
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": ["redis://127.0.0.1:6379?db=1", "redis://127.0.0.1:6379?db=1"],
+        "LOCATION": ["redis://127.0.0.1:6379?db=5", "redis://127.0.0.1:6379?db=5"],
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
             "COMPRESSOR": "django_redis.compressors.lz4.Lz4Compressor",
@@ -11,7 +11,7 @@ CACHES = {
     },
     "doesnotexist": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://127.0.0.1:56379?db=1",
+        "LOCATION": "redis://127.0.0.1:56379?db=5",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
             "COMPRESSOR": "django_redis.compressors.lz4.Lz4Compressor",
@@ -19,7 +19,7 @@ CACHES = {
     },
     "sample": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "127.0.0.1:6379?db=1,127.0.0.1:6379?db=1",
+        "LOCATION": "127.0.0.1:6379?db=5,127.0.0.1:6379?db=5",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
             "COMPRESSOR": "django_redis.compressors.lz4.Lz4Compressor",
@@ -27,7 +27,7 @@ CACHES = {
     },
     "with_prefix": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://127.0.0.1:6379?db=1",
+        "LOCATION": "redis://127.0.0.1:6379?db=5",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
             "COMPRESSOR": "django_redis.compressors.lz4.Lz4Compressor",
