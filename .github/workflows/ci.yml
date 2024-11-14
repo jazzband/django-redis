@@ -95,7 +95,7 @@ jobs:
           REDIS: ${{ matrix.redis-version }}
 
       - name: Upload coverage
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           env_vars: DJANGO,REDIS,PYTHON
           flags: tests
@@ -147,7 +147,7 @@ jobs:
 
       - name: Upload coverage
         if: ${{ matrix.tool == 'mypy' }}
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           flags: mypy
 
