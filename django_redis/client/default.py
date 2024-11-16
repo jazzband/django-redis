@@ -317,6 +317,10 @@ class DefaultClient:
         timeout: ExpiryT,
         version: Optional[int] = None,
         client: Optional[Redis] = None,
+        nx: bool = False,
+        xx: bool = False,
+        gt: bool = False,
+        lt: bool = False,
     ) -> bool:
         if timeout is DEFAULT_TIMEOUT:
             timeout = self._backend.default_timeout  # type: ignore
@@ -326,7 +330,7 @@ class DefaultClient:
 
         key = self.make_key(key, version=version)
 
-        return client.expire(key, timeout)
+        return client.expire(key, timeout, nx, xx, gt, lt)
 
     def pexpire(
         self,
@@ -334,6 +338,10 @@ class DefaultClient:
         timeout: ExpiryT,
         version: Optional[int] = None,
         client: Optional[Redis] = None,
+        nx: bool = False,
+        xx: bool = False,
+        gt: bool = False,
+        lt: bool = False,
     ) -> bool:
         if timeout is DEFAULT_TIMEOUT:
             timeout = self._backend.default_timeout  # type: ignore
@@ -343,7 +351,7 @@ class DefaultClient:
 
         key = self.make_key(key, version=version)
 
-        return bool(client.pexpire(key, timeout))
+        return bool(client.pexpire(key, timeout, nx, xx, gt, lt))
 
     def pexpire_at(
         self,
