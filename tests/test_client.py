@@ -3,14 +3,15 @@ from unittest.mock import Mock, call, patch
 
 import pytest
 from django.core.cache import DEFAULT_CACHE_ALIAS
-from pytest_django.fixtures import SettingsWrapper
+from django.test import override_settings
 from pytest_mock import MockerFixture
 
 from django_redis.cache import RedisCache
 from django_redis.client import DefaultClient, ShardClient
+from tests.settings_wrapper import SettingsWrapper
 
 
-@pytest.fixture
+@pytest.fixture()
 def cache_client(cache: RedisCache) -> Iterable[DefaultClient]:
     client = cache.client
     client.set("TestClientClose", 0)
@@ -22,6 +23,7 @@ class TestClientClose:
     def test_close_client_disconnect_default(
         self, cache_client: DefaultClient, mocker: MockerFixture
     ):
+        cache_client._options.clear()
         mock = mocker.patch.object(cache_client.connection_factory, "disconnect")
         cache_client.close()
         assert not mock.called
@@ -32,10 +34,10 @@ class TestClientClose:
         settings: SettingsWrapper,
         mocker: MockerFixture,
     ):
-        settings.DJANGO_REDIS_CLOSE_CONNECTION = True
-        mock = mocker.patch.object(cache_client.connection_factory, "disconnect")
-        cache_client.close()
-        assert mock.called
+        with override_settings(DJANGO_REDIS_CLOSE_CONNECTION=True):
+            mock = mocker.patch.object(cache_client.connection_factory, "disconnect")
+            cache_client.close()
+            assert mock.called
 
     def test_close_disconnect_settings_cache(
         self,
@@ -43,11 +45,13 @@ class TestClientClose:
         mocker: MockerFixture,
         settings: SettingsWrapper,
     ):
-        settings.CACHES[DEFAULT_CACHE_ALIAS]["OPTIONS"]["CLOSE_CONNECTION"] = True
-        cache_client.set("TestClientClose", 0)
-        mock = mocker.patch.object(cache_client.connection_factory, "disconnect")
-        cache_client.close()
-        assert mock.called
+        caches = settings.CACHES
+        caches[DEFAULT_CACHE_ALIAS]["OPTIONS"]["CLOSE_CONNECTION"] = True
+        with override_settings(CACHES=caches):
+            cache_client.set("TestClientClose", 0)
+            mock = mocker.patch.object(cache_client.connection_factory, "disconnect")
+            cache_client.close()
+            assert mock.called
 
     def test_close_disconnect_client_options(
         self, cache_client: DefaultClient, mocker: MockerFixture
