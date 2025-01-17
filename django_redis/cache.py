@@ -7,9 +7,7 @@ from django.conf import settings
 from django.core.cache.backends.base import BaseCache
 from django.utils.module_loading import import_string
 
-from .exceptions import ConnectionInterrupted
-
-DJANGO_REDIS_SCAN_ITERSIZE = getattr(settings, "DJANGO_REDIS_SCAN_ITERSIZE", 10)
+from django_redis.exceptions import ConnectionInterrupted
 
 CONNECTION_INTERRUPTED = object()
 
@@ -35,7 +33,7 @@ def omit_exception(
                     self.logger.exception("Exception ignored")
 
                 return return_value
-            raise e.__cause__
+            raise e.__cause__  # noqa: B904
 
     return _decorator
 
@@ -45,6 +43,9 @@ class RedisCache(BaseCache):
         super().__init__(params)
         self._server = server
         self._params = params
+        self._default_scan_itersize = getattr(
+            settings, "DJANGO_REDIS_SCAN_ITERSIZE", 10
+        )
 
         options = params.get("OPTIONS", {})
         self._client_cls = options.get(
@@ -105,7 +106,7 @@ class RedisCache(BaseCache):
 
     @omit_exception
     def delete_pattern(self, *args, **kwargs):
-        kwargs["itersize"] = kwargs.get("itersize", DJANGO_REDIS_SCAN_ITERSIZE)
+        kwargs.setdefault("itersize", self._default_scan_itersize)
         return self.client.delete_pattern(*args, **kwargs)
 
     @omit_exception
@@ -183,3 +184,91 @@ class RedisCache(BaseCache):
     @omit_exception
     def touch(self, *args, **kwargs):
         return self.client.touch(*args, **kwargs)
+
+    @omit_exception
+    def sadd(self, *args, **kwargs):
+        return self.client.sadd(*args, **kwargs)
+
+    @omit_exception
+    def scard(self, *args, **kwargs):
+        return self.client.scard(*args, **kwargs)
+
+    @omit_exception
+    def sdiff(self, *args, **kwargs):
+        return self.client.sdiff(*args, **kwargs)
+
+    @omit_exception
+    def sdiffstore(self, *args, **kwargs):
+        return self.client.sdiffstore(*args, **kwargs)
+
+    @omit_exception
+    def sinter(self, *args, **kwargs):
+        return self.client.sinter(*args, **kwargs)
+
+    @omit_exception
+    def sinterstore(self, *args, **kwargs):
+        return self.client.sinterstore(*args, **kwargs)
+
+    @omit_exception
+    def sismember(self, *args, **kwargs):
+        return self.client.sismember(*args, **kwargs)
+
+    @omit_exception
+    def smembers(self, *args, **kwargs):
+        return self.client.smembers(*args, **kwargs)
+
+    @omit_exception
+    def smove(self, *args, **kwargs):
+        return self.client.smove(*args, **kwargs)
+
+    @omit_exception
+    def spop(self, *args, **kwargs):
+        return self.client.spop(*args, **kwargs)
+
+    @omit_exception
+    def srandmember(self, *args, **kwargs):
+        return self.client.srandmember(*args, **kwargs)
+
+    @omit_exception
+    def srem(self, *args, **kwargs):
+        return self.client.srem(*args, **kwargs)
+
+    @omit_exception
+    def sscan(self, *args, **kwargs):
+        return self.client.sscan(*args, **kwargs)
+
+    @omit_exception
+    def sscan_iter(self, *args, **kwargs):
+        return self.client.sscan_iter(*args, **kwargs)
+
+    @omit_exception
+    def smismember(self, *args, **kwargs):
+        return self.client.smismember(*args, **kwargs)
+
+    @omit_exception
+    def sunion(self, *args, **kwargs):
+        return self.client.sunion(*args, **kwargs)
+
+    @omit_exception
+    def sunionstore(self, *args, **kwargs):
+        return self.client.sunionstore(*args, **kwargs)
+
+    @omit_exception
+    def hset(self, *args, **kwargs):
+        return self.client.hset(*args, **kwargs)
+
+    @omit_exception
+    def hdel(self, *args, **kwargs):
+        return self.client.hdel(*args, **kwargs)
+
+    @omit_exception
+    def hlen(self, *args, **kwargs):
+        return self.client.hlen(*args, **kwargs)
+
+    @omit_exception
+    def hkeys(self, *args, **kwargs):
+        return self.client.hkeys(*args, **kwargs)
+
+    @omit_exception
+    def hexists(self, *args, **kwargs):
+        return self.client.hexists(*args, **kwargs)

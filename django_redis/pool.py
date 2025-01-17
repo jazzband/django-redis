@@ -1,23 +1,22 @@
 from typing import Dict
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.module_loading import import_string
 from redis import Redis
-from redis.connection import DefaultParser, to_bool
+from redis.connection import ConnectionPool, DefaultParser, to_bool
 from redis.sentinel import Sentinel
 
 
 class ConnectionFactory:
-
     # Store connection pool by cache backend options.
     #
     # _pools is a process-global, as otherwise _pools is cleared every time
     # ConnectionFactory is instantiated, as Django creates new cache client
     # (DefaultClient) instance for every request.
 
-    _pools: Dict[str, Redis] = {}
+    _pools: Dict[str, ConnectionPool] = {}
 
     def __init__(self, options):
         pool_cls_path = options.get(
@@ -53,16 +52,16 @@ class ConnectionFactory:
 
         socket_timeout = self.options.get("SOCKET_TIMEOUT", None)
         if socket_timeout:
-            assert isinstance(
-                socket_timeout, (int, float)
-            ), "Socket timeout should be float or integer"
+            if not isinstance(socket_timeout, (int, float)):
+                error_message = "Socket timeout should be float or integer"
+                raise ImproperlyConfigured(error_message)
             kwargs["socket_timeout"] = socket_timeout
 
         socket_connect_timeout = self.options.get("SOCKET_CONNECT_TIMEOUT", None)
         if socket_connect_timeout:
-            assert isinstance(
-                socket_connect_timeout, (int, float)
-            ), "Socket connect timeout should be float or integer"
+            if not isinstance(socket_connect_timeout, (int, float)):
+                error_message = "Socket connect timeout should be float or integer"
+                raise ImproperlyConfigured(error_message)
             kwargs["socket_connect_timeout"] = socket_connect_timeout
 
         return kwargs
@@ -73,10 +72,9 @@ class ConnectionFactory:
         return a new connection.
         """
         params = self.make_connection_params(url)
-        connection = self.get_connection(params)
-        return connection
+        return self.get_connection(params)
 
-    def disconnect(self, connection):
+    def disconnect(self, connection: Redis) -> None:
         """
         Given a not null client connection it disconnect from the Redis server.
 
@@ -145,9 +143,8 @@ class SentinelConnectionFactory(ConnectionFactory):
 
         sentinels = options.get("SENTINELS")
         if not sentinels:
-            raise ImproperlyConfigured(
-                "SENTINELS must be provided as a list of (host, port)."
-            )
+            error_message = "SENTINELS must be provided as a list of (host, port)."
+            raise ImproperlyConfigured(error_message)
 
         # provide the connection pool kwargs to the sentinel in case it
         # needs to use the socket options for the sentinels themselves
@@ -170,16 +167,27 @@ class SentinelConnectionFactory(ConnectionFactory):
         # explicitly set service_name and sentinel_manager for the
         # SentinelConnectionPool constructor since will be called by from_url
         cp_params = dict(params)
-        cp_params.update(service_name=url.hostname, sentinel_manager=self._sentinel)
-        pool = super().get_connection_pool(cp_params)
-
         # convert "is_master" to a boolean if set on the URL, otherwise if not
         # provided it defaults to True.
-        is_master = parse_qs(url.query).get("is_master")
+        query_params = parse_qs(url.query)
+        is_master = query_params.get("is_master")
         if is_master:
-            pool.is_master = to_bool(is_master[0])
+            cp_params["is_master"] = to_bool(is_master[0])
+        # then remove the "is_master" query string from the URL
+        # so it doesn't interfere with the SentinelConnectionPool constructor
+        if "is_master" in query_params:
+            del query_params["is_master"]
+        new_query = urlencode(query_params, doseq=True)
 
-        return pool
+        new_url = urlunparse(
+            (url.scheme, url.netloc, url.path, url.params, new_query, url.fragment)
+        )
+
+        cp_params.update(
+            service_name=url.hostname, sentinel_manager=self._sentinel, url=new_url
+        )
+
+        return super().get_connection_pool(cp_params)
 
 
 def get_connection_factory(path=None, options=None):
@@ -189,6 +197,9 @@ def get_connection_factory(path=None, options=None):
             "DJANGO_REDIS_CONNECTION_FACTORY",
             "django_redis.pool.ConnectionFactory",
         )
+    opt_conn_factory = options.get("CONNECTION_FACTORY")
+    if opt_conn_factory:
+        path = opt_conn_factory
 
     cls = import_string(path)
     return cls(options or {})

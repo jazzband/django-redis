@@ -9,60 +9,54 @@ jobs:
       Django ${{ matrix.django-version }},
       Redis.py ${{ matrix.redis-version }}
 
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     strategy:
       fail-fast: false
       matrix:
         python-version:
-          - '3.8'
-          - '3.9'
           - '3.10'
+          - '3.11'
+          - '3.12'
         django-version:
-          - '3.2'
-          - '4.0'
-          - '4.1'
+          - '4.2'
+          - '5.0'
+          - '5.1'
         redis-version:
           - 'latest'
 
         # Only test pre-release dependencies for the latest Python.
-        # And keep testing Django 3.2 with python 3.6 and 3.7
         include:
-          # Django 3.2 and python 3.6 with latest redis
-          - django-version: '3.2'
+          # Django 4.2 and python 3.8 with latest redis
+          - django-version: '4.2'
             redis-version: 'latest'
-            python-version: '3.6'
+            python-version: '3.8'
 
-          # Django 3.2 and python 3.7 with latest redis
-          - django-version: '3.2'
+          # Django 4.2 and python 3.9 with latest redis
+          - django-version: '4.2'
             redis-version: 'latest'
-            python-version: '3.7'
-
-          # Django 4.1 and python 3.11 with latest redis
-          - django-version: '4.1'
-            redis-version: 'latest'
-            python-version: '3.11'
+            python-version: '3.9'
 
           # latest Django with pre-release redis
-          - django-version: '4.1'
+          - django-version: '5.1'
             redis-version: 'master'
-            python-version: '3.11'
+            python-version: '3.12'
 
           # latest redis with pre-release Django
           - django-version: 'main'
             redis-version: 'latest'
-            python-version: '3.11'
+            python-version: '3.12'
 
           # pre-release Django and redis
           - django-version: 'main'
             redis-version: 'master'
-            python-version: '3.11'
+            python-version: '3.12'
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -72,7 +66,7 @@ jobs:
           echo "::set-output name=dir::$(pip cache dir)"
 
       - name: Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: ${{ steps.pip-cache.outputs.dir }}
           key: pip-test-python-${{ matrix.python-version }}-django-${{ matrix.django-version }}-redis-${{ matrix.redis-version }}-${{ hashFiles('**/setup.*') }}
@@ -84,24 +78,19 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install --upgrade "tox<4" tox-gh-actions
+          python -m pip install --upgrade tox-uv tox-gh-actions
+
+      - name: Docker compose up
+        run: docker compose -f docker/docker-compose.yml up -d --wait
 
       - name: Tox tests
-        run: |
-          REDIS_PRIMARY=$(tests/start_redis.sh)
-          REDIS_SENTINEL=$(tests/start_redis.sh --sentinel)
-          CONTAINERS="$REDIS_PRIMARY $REDIS_SENTINEL"
-          trap "docker stop $CONTAINERS && docker rm $CONTAINERS" EXIT
-          tests/wait_for_redis.sh $REDIS_PRIMARY 6379
-          tests/wait_for_redis.sh $REDIS_SENTINEL 26379
-
-          tox
+        run: tox
         env:
           DJANGO: ${{ matrix.django-version }}
           REDIS: ${{ matrix.redis-version }}
 
       - name: Upload coverage
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@v5
         with:
           env_vars: DJANGO,REDIS,PYTHON
           flags: tests
@@ -119,15 +108,14 @@ jobs:
       matrix:
         tool:
           - 'black'
-          - 'flake8'
-          - 'isort'
+          - 'ruff'
           - 'mypy'
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
         with:
           python-version: '3.x'
 
@@ -137,7 +125,7 @@ jobs:
           echo "::set-output name=dir::$(pip cache dir)"
 
       - name: Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: ${{ steps.pip-cache.outputs.dir }}
           key: pip-lint-${{ hashFiles('**/setup.*') }}
@@ -154,7 +142,7 @@ jobs:
 
       - name: Upload coverage
         if: ${{ matrix.tool == 'mypy' }}
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@v5
         with:
           flags: mypy
 
@@ -163,12 +151,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
         with:
           python-version: '3.x'
 
@@ -178,7 +166,7 @@ jobs:
           echo "::set-output name=dir::$(pip cache dir)"
 
       - name: Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: ${{ steps.pip-cache.outputs.dir }}
           key: pip-check-changelog-${{ hashFiles('**/setup.*') }}

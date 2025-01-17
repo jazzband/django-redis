@@ -46,9 +46,9 @@ Why use django-redis?
 Requirements
 ~~~~~~~~~~~~
 
-- `Python`_ 3.6+
-- `Django`_ 2.2+
-- `redis-py`_ 3.0+
+- `Python`_ 3.8+
+- `Django`_ 4.2+
+- `redis-py`_ 4.0.2+
 - `Redis server`_ 2.8+
 
 .. _Python: https://www.python.org/downloads/
@@ -294,6 +294,21 @@ Let see an example, of how make it work with *lzma* compression format:
             # ...
             "OPTIONS": {
                 "COMPRESSOR": "django_redis.compressors.zstd.ZStdCompressor",
+            }
+        }
+    }
+
+*Gzip* compression support:
+
+.. code-block:: python
+
+    import gzip
+
+    CACHES = {
+        "default": {
+            # ...
+            "OPTIONS": {
+                "COMPRESSOR": "django_redis.compressors.gzip.GzipCompressor",
             }
         }
     }
@@ -746,6 +761,35 @@ In order to enable this functionality you should add the following:
         },
     }
 
+It is also possible to set some caches as sentinels and some as not:
+
+.. code-block:: python
+
+    SENTINELS = [
+        ('sentinel-1', 26379),
+        ('sentinel-2', 26379),
+        ('sentinel-3', 26379),
+    ]
+    CACHES = {
+        "sentinel": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": "redis://service_name/db",
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.SentinelClient",
+                "SENTINELS": SENTINELS,
+                "CONNECTION_POOL_CLASS": "redis.sentinel.SentinelConnectionPool",
+                "CONNECTION_FACTORY": "django_redis.pool.SentinelConnectionFactory",
+            },
+        },
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": "redis://127.0.0.1:6379/1",
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            },
+        },
+    }
+
 .. _Redis Sentinels: https://redis.io/topics/sentinel
 
 Pluggable parsers
@@ -763,6 +807,8 @@ used with django-redis.
     "OPTIONS": {
         "PARSER_CLASS": "redis.connection.HiredisParser",
     }
+
+Note: if using version 5 of redis-py, use ``"redis.connection._HiredisParser"`` for the ``PARSER_CLASS`` due to an internal rename of classes within that package.
 
 Pluggable clients
 ~~~~~~~~~~~~~~~~~

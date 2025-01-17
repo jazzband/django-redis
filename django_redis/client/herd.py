@@ -6,8 +6,8 @@ from collections import OrderedDict
 from django.conf import settings
 from redis.exceptions import ConnectionError, ResponseError, TimeoutError
 
-from ..exceptions import ConnectionInterrupted
-from .default import DEFAULT_TIMEOUT, DefaultClient
+from django_redis.client.default import DEFAULT_TIMEOUT, DefaultClient
+from django_redis.exceptions import ConnectionInterrupted
 
 _main_exceptions = (ConnectionError, ResponseError, TimeoutError, socket.timeout)
 
@@ -21,22 +21,18 @@ class Marker:
     pass
 
 
-CACHE_HERD_TIMEOUT = getattr(settings, "CACHE_HERD_TIMEOUT", 60)
-
-
-def _is_expired(x):
-    if x >= CACHE_HERD_TIMEOUT:
+def _is_expired(x, herd_timeout: int) -> bool:
+    if x >= herd_timeout:
         return True
-    val = x + random.randint(1, CACHE_HERD_TIMEOUT)
+    val = x + random.randint(1, herd_timeout)
 
-    if val >= CACHE_HERD_TIMEOUT:
-        return True
-    return False
+    return val >= herd_timeout
 
 
 class HerdClient(DefaultClient):
     def __init__(self, *args, **kwargs):
         self._marker = Marker()
+        self._herd_timeout = getattr(settings, "CACHE_HERD_TIMEOUT", 60)
         super().__init__(*args, **kwargs)
 
     def _pack(self, value, timeout):
@@ -55,7 +51,7 @@ class HerdClient(DefaultClient):
         now = int(time.time())
         if herd_timeout < now:
             x = now - herd_timeout
-            return unpacked, _is_expired(x)
+            return unpacked, _is_expired(x, self._herd_timeout)
 
         return unpacked, False
 
@@ -69,7 +65,6 @@ class HerdClient(DefaultClient):
         nx=False,
         xx=False,
     ):
-
         if timeout is DEFAULT_TIMEOUT:
             timeout = self._backend.default_timeout
 
@@ -85,7 +80,7 @@ class HerdClient(DefaultClient):
             )
 
         packed = self._pack(value, timeout)
-        real_timeout = timeout + CACHE_HERD_TIMEOUT
+        real_timeout = timeout + self._herd_timeout
 
         return super().set(
             key, packed, timeout=real_timeout, version=version, client=client, nx=nx
@@ -150,10 +145,10 @@ class HerdClient(DefaultClient):
             raise ConnectionInterrupted(connection=client) from e
 
     def incr(self, *args, **kwargs):
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def decr(self, *args, **kwargs):
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def touch(self, key, timeout=DEFAULT_TIMEOUT, version=None, client=None):
         if client is None:
