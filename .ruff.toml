@@ -113,9 +113,21 @@ lint.select = [
 ]
 
 lint.ignore = [
-  "COM812", # missing trailing comma, covered by black
-  "ANN101", # ignore missing type annotation in self parameter
-  "S311", # ignore Standard pseudo-random generators because they are not used for cryptographic purposes
+  # missing trailing comma, covered by black
+  # docs: https://docs.astral.sh/ruff/rules/missing-trailing-comma/
+  "COM812",
+  # ignore missing type annotation in self parameter
+  # docs: https://docs.astral.sh/ruff/rules/missing-type-self/#missing-type-self-ann101
+  "ANN101",  
+  # ignore builtin import shadowing
+  # docs: https://docs.astral.sh/ruff/rules/builtin-import-shadowing/#builtin-import-shadowing-a004
+  "A004",
+  # ignore Standard pseudo-random generators because they are not used for cryptographic purposes
+  # docs: https://docs.astral.sh/ruff/rules/suspicious-non-cryptographic-random-usage/#suspicious-non-cryptographic-random-usage-s311
+  "S311",
+  # ignore stdlib module shadowing
+  # docs: https://docs.astral.sh/ruff/rules/stdlib-module-shadowing/
+  "A005",
 ]
 
 fix = true
