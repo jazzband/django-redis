@@ -1001,7 +1001,7 @@ class DefaultClient:
 
         cursor, result = client.sscan(
             key,
-            match=cast(PatternT, self.encode(match)) if match else None,
+            match=cast("PatternT", self.encode(match)) if match else None,
             count=count,
         )
         return {self.decode(value) for value in result}
@@ -1024,7 +1024,7 @@ class DefaultClient:
         key = self.make_key(key, version=version)
         for value in client.sscan_iter(
             key,
-            match=cast(PatternT, self.encode(match)) if match else None,
+            match=cast("PatternT", self.encode(match)) if match else None,
             count=count,
         ):
             yield self.decode(value)
