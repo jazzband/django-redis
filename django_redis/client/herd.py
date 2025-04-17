@@ -4,12 +4,19 @@ import time
 from collections import OrderedDict
 
 from django.conf import settings
-from redis.exceptions import ConnectionError, ResponseError, TimeoutError
+from redis.exceptions import ConnectionError as RedisConnectionError
+from redis.exceptions import ResponseError
+from redis.exceptions import TimeoutError as RedisTimeoutError
 
 from django_redis.client.default import DEFAULT_TIMEOUT, DefaultClient
 from django_redis.exceptions import ConnectionInterrupted
 
-_main_exceptions = (ConnectionError, ResponseError, TimeoutError, socket.timeout)
+_main_exceptions = (
+    RedisConnectionError,
+    RedisTimeoutError,
+    ResponseError,
+    socket.timeout,
+)
 
 
 class Marker:

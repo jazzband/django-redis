@@ -1,1 +1,2 @@
 Confirm support for Django 5.2.
+Fix shadowing builtin Python exceptions.
