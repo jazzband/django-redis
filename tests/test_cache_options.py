@@ -4,7 +4,7 @@ from typing import Iterable, cast
 import pytest
 from django.core.cache import caches
 from pytest import LogCaptureFixture
-from redis.exceptions import ConnectionError
+from redis.exceptions import ConnectionError as RedisConnectionError
 
 from django_redis.cache import RedisCache
 from django_redis.client import ShardClient
@@ -26,7 +26,7 @@ def ignore_exceptions_cache(settings) -> RedisCache:
     settings.CACHES = caches_setting
     settings.DJANGO_REDIS_IGNORE_EXCEPTIONS = True
     settings.DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS = True
-    return cast(RedisCache, caches["doesnotexist"])
+    return cast("RedisCache", caches["doesnotexist"])
 
 
 def test_get_django_omit_exceptions_many_returns_default_arg(
@@ -58,7 +58,7 @@ def test_get_django_omit_exceptions_priority_1(settings):
     caches_setting["doesnotexist"]["OPTIONS"]["IGNORE_EXCEPTIONS"] = True
     settings.CACHES = caches_setting
     settings.DJANGO_REDIS_IGNORE_EXCEPTIONS = False
-    cache = cast(RedisCache, caches["doesnotexist"])
+    cache = cast("RedisCache", caches["doesnotexist"])
     assert cache._ignore_exceptions is True
     assert cache.get("key") is None
 
@@ -68,9 +68,9 @@ def test_get_django_omit_exceptions_priority_2(settings):
     caches_setting["doesnotexist"]["OPTIONS"]["IGNORE_EXCEPTIONS"] = False
     settings.CACHES = caches_setting
     settings.DJANGO_REDIS_IGNORE_EXCEPTIONS = True
-    cache = cast(RedisCache, caches["doesnotexist"])
+    cache = cast("RedisCache", caches["doesnotexist"])
     assert cache._ignore_exceptions is False
-    with pytest.raises(ConnectionError):
+    with pytest.raises(RedisConnectionError):
         cache.get("key")
 
 
@@ -84,7 +84,7 @@ def key_prefix_cache(cache: RedisCache, settings) -> Iterable[RedisCache]:
 
 @pytest.fixture
 def with_prefix_cache() -> Iterable[RedisCache]:
-    with_prefix = cast(RedisCache, caches["with_prefix"])
+    with_prefix = cast("RedisCache", caches["with_prefix"])
     yield with_prefix
     with_prefix.clear()
 

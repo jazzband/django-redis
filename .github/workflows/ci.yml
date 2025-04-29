@@ -22,6 +22,7 @@ jobs:
           - '4.2'
           - '5.0'
           - '5.1'
+          - '5.2'
         redis-version:
           - 'latest'
 
@@ -38,7 +39,7 @@ jobs:
             python-version: '3.9'
 
           # latest Django with pre-release redis
-          - django-version: '5.1'
+          - django-version: '5.2'
             redis-version: 'master'
             python-version: '3.12'
 

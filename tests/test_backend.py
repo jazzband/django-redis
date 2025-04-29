@@ -300,7 +300,7 @@ class TestDjangoRedisCache:
         assert bool(res) is False
 
     def test_delete_many_empty_generator(self, cache: RedisCache):
-        res = cache.delete_many(key for key in cast(List[str], []))
+        res = cache.delete_many(key for key in cast("List[str]", []))
         assert bool(res) is False
 
     def test_incr(self, cache: RedisCache):
@@ -749,7 +749,7 @@ class TestDjangoRedisCache:
         if isinstance(cache.client, ShardClient):
             pytest.skip("ShardClient doesn't support get_client")
 
-        cache = cast(RedisCache, caches["sample"])
+        cache = cast("RedisCache", caches["sample"])
         client = cache.client
         client._server = ["foo", "bar"]
         client._clients = ["Foo", "Bar"]
@@ -761,7 +761,7 @@ class TestDjangoRedisCache:
         if isinstance(cache.client, ShardClient):
             pytest.skip("ShardClient doesn't support get_client")
 
-        cache = cast(RedisCache, caches["sample"])
+        cache = cast("RedisCache", caches["sample"])
         client = cache.client
         client._server = ["foo", "bar"]
         client._clients = ["Foo", "Bar"]

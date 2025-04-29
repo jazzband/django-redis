@@ -21,14 +21,21 @@ from django.core.cache.backends.base import DEFAULT_TIMEOUT, BaseCache, get_key_
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.module_loading import import_string
 from redis import Redis
-from redis.exceptions import ConnectionError, ResponseError, TimeoutError
+from redis.exceptions import ConnectionError as RedisConnectionError
+from redis.exceptions import ResponseError
+from redis.exceptions import TimeoutError as RedisTimeoutError
 from redis.typing import AbsExpiryT, EncodableT, ExpiryT, KeyT, PatternT
 
 from django_redis import pool
 from django_redis.exceptions import CompressorError, ConnectionInterrupted
 from django_redis.util import CacheKey
 
-_main_exceptions = (TimeoutError, ResponseError, ConnectionError, socket.timeout)
+_main_exceptions = (
+    RedisConnectionError,
+    RedisTimeoutError,
+    ResponseError,
+    socket.timeout,
+)
 
 special_re = re.compile("([*?[])")
 
@@ -1001,7 +1008,7 @@ class DefaultClient:
 
         cursor, result = client.sscan(
             key,
-            match=cast(PatternT, self.encode(match)) if match else None,
+            match=cast("PatternT", self.encode(match)) if match else None,
             count=count,
         )
         return {self.decode(value) for value in result}
@@ -1024,7 +1031,7 @@ class DefaultClient:
         key = self.make_key(key, version=version)
         for value in client.sscan_iter(
             key,
-            match=cast(PatternT, self.encode(match)) if match else None,
+            match=cast("PatternT", self.encode(match)) if match else None,
             count=count,
         ):
             yield self.decode(value)

@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import Any, Iterator, List, Optional, Set, Union
 
 from redis import Redis
-from redis.exceptions import ConnectionError
+from redis.exceptions import ConnectionError as RedisConnectionError
 from redis.typing import KeyT
 
 from django_redis.client.default import DEFAULT_TIMEOUT, DefaultClient
@@ -130,7 +130,7 @@ class ShardClient(DefaultClient):
         key = self.make_key(key, version=version)
         try:
             return client.exists(key) == 1
-        except ConnectionError as e:
+        except RedisConnectionError as e:
             raise ConnectionInterrupted(connection=client) from e
 
     def delete(self, key, version=None, client=None):
@@ -256,7 +256,7 @@ class ShardClient(DefaultClient):
 
         try:
             ttl = self.ttl(old_key, version=version, client=client)
-        except ConnectionError as e:
+        except RedisConnectionError as e:
             raise ConnectionInterrupted(connection=client) from e
 
         if value is None:
@@ -296,7 +296,7 @@ class ShardClient(DefaultClient):
         try:
             for connection in self._serverdict.values():
                 keys.extend(connection.keys(pattern))
-        except ConnectionError as e:
+        except RedisConnectionError as e:
             # FIXME: technically all clients should be passed as `connection`.
             client = self.get_server(pattern)
             raise ConnectionInterrupted(connection=client) from e
