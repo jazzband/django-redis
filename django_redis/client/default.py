@@ -1106,8 +1106,8 @@ class DefaultClient:
 
     def hset(
         self,
-        name: str,
-        key: KeyT,
+        name: KeyT,
+        key: str,
         value: EncodableT,
         version: Optional[int] = None,
         client: Optional[Redis] = None,
@@ -1118,14 +1118,15 @@ class DefaultClient:
         """
         if client is None:
             client = self.get_client(write=True)
-        nkey = self.make_key(key, version=version)
+
+        name = self.make_key(name, version=version)
         nvalue = self.encode(value)
-        return int(client.hset(name, nkey, nvalue))
+        return int(client.hset(name, key, nvalue))
 
     def hdel(
         self,
-        name: str,
-        key: KeyT,
+        name: KeyT,
+        key: str,
         version: Optional[int] = None,
         client: Optional[Redis] = None,
     ) -> int:
@@ -1135,12 +1136,14 @@ class DefaultClient:
         """
         if client is None:
             client = self.get_client(write=True)
-        nkey = self.make_key(key, version=version)
-        return int(client.hdel(name, nkey))
+
+        name = self.make_key(name, version=version)
+        return int(client.hdel(name, key))
 
     def hlen(
         self,
-        name: str,
+        name: KeyT,
+        version: Optional[int] = None,
         client: Optional[Redis] = None,
     ) -> int:
         """
@@ -1148,11 +1151,14 @@ class DefaultClient:
         """
         if client is None:
             client = self.get_client(write=False)
+
+        name = self.make_key(name, version=version)
         return int(client.hlen(name))
 
     def hkeys(
         self,
-        name: str,
+        name: KeyT,
+        version: Optional[int] = None,
         client: Optional[Redis] = None,
     ) -> List[Any]:
         """
@@ -1160,15 +1166,17 @@ class DefaultClient:
         """
         if client is None:
             client = self.get_client(write=False)
+
+        name = self.make_key(name, version=version)
         try:
-            return [self.reverse_key(k.decode()) for k in client.hkeys(name)]
+            return [k.decode() for k in client.hkeys(name)]
         except _main_exceptions as e:
             raise ConnectionInterrupted(connection=client) from e
 
     def hexists(
         self,
-        name: str,
-        key: KeyT,
+        name: KeyT,
+        key: str,
         version: Optional[int] = None,
         client: Optional[Redis] = None,
     ) -> bool:
@@ -1177,5 +1185,6 @@ class DefaultClient:
         """
         if client is None:
             client = self.get_client(write=False)
-        nkey = self.make_key(key, version=version)
-        return bool(client.hexists(name, nkey))
+
+        name = self.make_key(name, version=version)
+        return bool(client.hexists(name, key))
