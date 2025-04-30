@@ -114,8 +114,8 @@ lint.select = [
 
 lint.ignore = [
   "COM812", # missing trailing comma, covered by black
-  "ANN101", # ignore missing type annotation in self parameter
   "S311", # ignore Standard pseudo-random generators because they are not used for cryptographic purposes
+  "A004", # ignore Checks for imports that use the same names as builtins.
 ]
 
 fix = true
