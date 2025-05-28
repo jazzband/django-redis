@@ -37,21 +37,26 @@ jobs:
           - django-version: '4.2'
             redis-version: 'latest'
             python-version: '3.9'
+          
+          # latest Django with latest redis
+          - django-version: '5.2'
+            redis-version: 'latest'
+            python-version: '3.13'
 
           # latest Django with pre-release redis
           - django-version: '5.2'
             redis-version: 'master'
-            python-version: '3.12'
+            python-version: '3.13'
 
-          # latest redis with pre-release Django
+          # pre-release Django with latest redis
           - django-version: 'main'
             redis-version: 'latest'
-            python-version: '3.12'
+            python-version: '3.13'
 
-          # pre-release Django and redis
+          # pre-release Django and pre-release redis
           - django-version: 'main'
             redis-version: 'master'
-            python-version: '3.12'
+            python-version: '3.13'
 
     steps:
       - uses: actions/checkout@v4
