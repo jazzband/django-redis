@@ -1,8 +1,9 @@
 import datetime
 import threading
 import time
+from collections.abc import Iterable
 from datetime import timedelta
-from typing import Iterable, List, Union, cast
+from typing import Union, cast
 from unittest.mock import patch
 
 import pytest
@@ -300,7 +301,7 @@ class TestDjangoRedisCache:
         assert bool(res) is False
 
     def test_delete_many_empty_generator(self, cache: RedisCache):
-        res = cache.delete_many(key for key in cast("List[str]", []))
+        res = cache.delete_many(key for key in cast("list[str]", []))
         assert bool(res) is False
 
     def test_incr(self, cache: RedisCache):
