@@ -1,15 +1,16 @@
 import bisect
 import hashlib
-from typing import Dict, Iterable, Iterator, List, Optional, Tuple
+from collections.abc import Iterable, Iterator
+from typing import Optional
 
 
 class HashRing:
-    nodes: List[str] = []
+    nodes: list[str] = []
 
     def __init__(self, nodes: Iterable[str] = (), replicas: int = 128) -> None:
         self.replicas: int = replicas
-        self.ring: Dict[str, str] = {}
-        self.sorted_keys: List[str] = []
+        self.ring: dict[str, str] = {}
+        self.sorted_keys: list[str] = []
 
         for node in nodes:
             self.add_node(node)
@@ -37,7 +38,7 @@ class HashRing:
         n, i = self.get_node_pos(key)
         return n
 
-    def get_node_pos(self, key: str) -> Tuple[Optional[str], Optional[int]]:
+    def get_node_pos(self, key: str) -> tuple[Optional[str], Optional[int]]:
         if len(self.ring) == 0:
             return None, None
 
@@ -46,7 +47,7 @@ class HashRing:
         idx = min(idx - 1, (self.replicas * len(self.nodes)) - 1)
         return self.ring[self.sorted_keys[idx]], idx
 
-    def iter_nodes(self, key: str) -> Iterator[Tuple[Optional[str], Optional[str]]]:
+    def iter_nodes(self, key: str) -> Iterator[tuple[Optional[str], Optional[str]]]:
         if len(self.ring) == 0:
             yield None, None
 

@@ -1,7 +1,7 @@
 import base64
 from collections import Counter
+from collections.abc import Iterable
 from datetime import timedelta
-from typing import Iterable
 
 import django
 import pytest

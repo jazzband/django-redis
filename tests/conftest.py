@@ -1,7 +1,7 @@
 import sys
+from collections.abc import Iterable
 from os import environ
 from pathlib import Path
-from typing import Iterable
 
 import pytest
 from xdist.scheduler import LoadScopeScheduling

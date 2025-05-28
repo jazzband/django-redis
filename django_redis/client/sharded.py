@@ -1,7 +1,9 @@
+import builtins
 import re
 from collections import OrderedDict
+from collections.abc import Iterator
 from datetime import datetime
-from typing import Any, Iterator, List, Optional, Set, Union
+from typing import Any, Optional, Union
 
 from redis import Redis
 from redis.exceptions import ConnectionError as RedisConnectionError
@@ -367,7 +369,7 @@ class ShardClient(DefaultClient):
         key: KeyT,
         version: Optional[int] = None,
         client: Optional[Redis] = None,
-    ) -> Set[Any]:
+    ) -> builtins.set[Any]:
         if client is None:
             key = self.make_key(key, version=version)
             client = self.get_server(key)
@@ -413,7 +415,7 @@ class ShardClient(DefaultClient):
         count: Optional[int] = 10,
         version: Optional[int] = None,
         client: Optional[Redis] = None,
-    ) -> Set[Any]:
+    ) -> builtins.set[Any]:
         if client is None:
             key = self.make_key(key, version=version)
             client = self.get_server(key)
@@ -442,7 +444,7 @@ class ShardClient(DefaultClient):
         count: Optional[int] = None,
         version: Optional[int] = None,
         client: Optional[Redis] = None,
-    ) -> Union[Set, Any]:
+    ) -> Union[builtins.set, Any]:
         if client is None:
             key = self.make_key(key, version=version)
             client = self.get_server(key)
@@ -466,7 +468,7 @@ class ShardClient(DefaultClient):
         count: Optional[int] = None,
         version: Optional[int] = None,
         client: Optional[Redis] = None,
-    ) -> Union[Set, Any]:
+    ) -> Union[builtins.set, Any]:
         if client is None:
             key = self.make_key(key, version=version)
             client = self.get_server(key)
@@ -478,7 +480,7 @@ class ShardClient(DefaultClient):
         *members,
         version: Optional[int] = None,
         client: Optional[Redis] = None,
-    ) -> List[bool]:
+    ) -> list[bool]:
         if client is None:
             key = self.make_key(key, version=version)
             client = self.get_server(key)

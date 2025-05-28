@@ -1,6 +1,6 @@
 import functools
 import logging
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Optional
 
 from django import VERSION as DJANGO_VERSION
 from django.conf import settings
@@ -39,7 +39,7 @@ def omit_exception(
 
 
 class RedisCache(BaseCache):
-    def __init__(self, server: str, params: Dict[str, Any]) -> None:
+    def __init__(self, server: str, params: dict[str, Any]) -> None:
         super().__init__(params)
         self._server = server
         self._params = params
