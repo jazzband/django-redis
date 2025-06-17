@@ -1,17 +1,13 @@
+import builtins
 import random
 import re
 import socket
 from collections import OrderedDict
+from collections.abc import Iterable, Iterator
 from contextlib import suppress
 from typing import (
     Any,
-    Dict,
-    Iterable,
-    Iterator,
-    List,
     Optional,
-    Set,
-    Tuple,
     Union,
     cast,
 )
@@ -45,7 +41,7 @@ def glob_escape(s: str) -> str:
 
 
 class DefaultClient:
-    def __init__(self, server, params: Dict[str, Any], backend: BaseCache) -> None:
+    def __init__(self, server, params: dict[str, Any], backend: BaseCache) -> None:
         self._backend = backend
         self._server = server
         self._params = params
@@ -62,7 +58,7 @@ class DefaultClient:
         if not isinstance(self._server, (list, tuple, set)):
             self._server = self._server.split(",")
 
-        self._clients: List[Optional[Redis]] = [None] * len(self._server)
+        self._clients: list[Optional[Redis]] = [None] * len(self._server)
         self._options = params.get("OPTIONS", {})
         self._replica_read_only = self._options.get("REPLICA_READ_ONLY", True)
 
@@ -93,7 +89,7 @@ class DefaultClient:
         )
 
     def get_next_client_index(
-        self, write: bool = True, tried: Optional[List[int]] = None
+        self, write: bool = True, tried: Optional[list[int]] = None
     ) -> int:
         """
         Return a next index for read client. This function implements a default
@@ -117,7 +113,7 @@ class DefaultClient:
     def get_client(
         self,
         write: bool = True,
-        tried: Optional[List[int]] = None,
+        tried: Optional[list[int]] = None,
     ) -> Redis:
         """
         Method used for obtain a raw redis client.
@@ -136,8 +132,8 @@ class DefaultClient:
     def get_client_with_index(
         self,
         write: bool = True,
-        tried: Optional[List[int]] = None,
-    ) -> Tuple[Redis, int]:
+        tried: Optional[list[int]] = None,
+    ) -> tuple[Redis, int]:
         """
         Method used for obtain a raw redis client.
 
@@ -193,7 +189,7 @@ class DefaultClient:
             timeout = self._backend.default_timeout
 
         original_client = client
-        tried: List[int] = []
+        tried: list[int] = []
         while True:
             try:
                 if client is None:
@@ -522,7 +518,7 @@ class DefaultClient:
 
     def _decode_iterable_result(
         self, result: Any, covert_to_set: bool = True
-    ) -> Union[List[Any], None, Any]:
+    ) -> Union[list[Any], None, Any]:
         if result is None:
             return None
         if isinstance(result, list):
@@ -564,7 +560,7 @@ class DefaultClient:
 
     def set_many(
         self,
-        data: Dict[KeyT, EncodableT],
+        data: dict[KeyT, EncodableT],
         timeout: Optional[float] = DEFAULT_TIMEOUT,
         version: Optional[int] = None,
         client: Optional[Redis] = None,
@@ -764,7 +760,7 @@ class DefaultClient:
 
     def keys(
         self, search: str, version: Optional[int] = None, client: Optional[Redis] = None
-    ) -> List[Any]:
+    ) -> list[Any]:
         """
         Execute KEYS command and return matched results.
         Warning: this can return huge number of results, in
@@ -842,7 +838,7 @@ class DefaultClient:
         *keys: KeyT,
         version: Optional[int] = None,
         client: Optional[Redis] = None,
-    ) -> Set[Any]:
+    ) -> builtins.set[Any]:
         if client is None:
             client = self.get_client(write=False)
 
@@ -869,7 +865,7 @@ class DefaultClient:
         *keys: KeyT,
         version: Optional[int] = None,
         client: Optional[Redis] = None,
-    ) -> Set[Any]:
+    ) -> builtins.set[Any]:
         if client is None:
             client = self.get_client(write=False)
 
@@ -896,7 +892,7 @@ class DefaultClient:
         *members,
         version: Optional[int] = None,
         client: Optional[Redis] = None,
-    ) -> List[bool]:
+    ) -> list[bool]:
         if client is None:
             client = self.get_client(write=False)
 
@@ -924,7 +920,7 @@ class DefaultClient:
         key: KeyT,
         version: Optional[int] = None,
         client: Optional[Redis] = None,
-    ) -> Set[Any]:
+    ) -> builtins.set[Any]:
         if client is None:
             client = self.get_client(write=False)
 
@@ -953,7 +949,7 @@ class DefaultClient:
         count: Optional[int] = None,
         version: Optional[int] = None,
         client: Optional[Redis] = None,
-    ) -> Union[Set, Any]:
+    ) -> Union[builtins.set, Any]:
         if client is None:
             client = self.get_client(write=True)
 
@@ -967,7 +963,7 @@ class DefaultClient:
         count: Optional[int] = None,
         version: Optional[int] = None,
         client: Optional[Redis] = None,
-    ) -> Union[List, Any]:
+    ) -> Union[list, Any]:
         if client is None:
             client = self.get_client(write=False)
 
@@ -996,7 +992,7 @@ class DefaultClient:
         count: Optional[int] = 10,
         version: Optional[int] = None,
         client: Optional[Redis] = None,
-    ) -> Set[Any]:
+    ) -> builtins.set[Any]:
         if self._has_compression_enabled() and match:
             err_msg = "Using match with compression is not supported."
             raise ValueError(err_msg)
@@ -1041,7 +1037,7 @@ class DefaultClient:
         *keys: KeyT,
         version: Optional[int] = None,
         client: Optional[Redis] = None,
-    ) -> Set[Any]:
+    ) -> builtins.set[Any]:
         if client is None:
             client = self.get_client(write=False)
 
@@ -1154,7 +1150,7 @@ class DefaultClient:
         self,
         name: str,
         client: Optional[Redis] = None,
-    ) -> List[Any]:
+    ) -> list[Any]:
         """
         Return a list of keys in hash name.
         """

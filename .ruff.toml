@@ -120,7 +120,7 @@ lint.ignore = [
 
 fix = true
 
-target-version = "py38"
+target-version = "py39"
 
 [lint.flake8-tidy-imports]
 ## Disallow all relative imports.

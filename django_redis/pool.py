@@ -1,4 +1,3 @@
-from typing import Dict
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 from django.conf import settings
@@ -16,7 +15,7 @@ class ConnectionFactory:
     # ConnectionFactory is instantiated, as Django creates new cache client
     # (DefaultClient) instance for every request.
 
-    _pools: Dict[str, ConnectionPool] = {}
+    _pools: dict[str, ConnectionPool] = {}
 
     def __init__(self, options):
         pool_cls_path = options.get(
