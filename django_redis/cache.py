@@ -258,6 +258,22 @@ class RedisCache(BaseCache):
         return self.client.hset(*args, **kwargs)
 
     @omit_exception
+    def hsetnx(self, *args, **kwargs):
+        return self.client.hsetnx(*args, **kwargs)
+
+    @omit_exception
+    def hget(self, *args, **kwargs):
+        return self.client.hget(*args, **kwargs)
+
+    @omit_exception
+    def hgetall(self, *args, **kwargs):
+        return self.client.hgetall(*args, **kwargs)
+
+    @omit_exception
+    def hmget(self, *args, **kwargs):
+        return self.client.hmget(*args, **kwargs)
+
+    @omit_exception
     def hdel(self, *args, **kwargs):
         return self.client.hdel(*args, **kwargs)
 
@@ -272,3 +288,7 @@ class RedisCache(BaseCache):
     @omit_exception
     def hexists(self, *args, **kwargs):
         return self.client.hexists(*args, **kwargs)
+
+    @omit_exception
+    def hincrby(self, *args, **kwargs):
+        return self.client.hincrby(*args, **kwargs)
