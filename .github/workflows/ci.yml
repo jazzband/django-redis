@@ -107,8 +107,7 @@ jobs:
       fail-fast: false
       matrix:
         tool:
-          - 'black'
-          - 'ruff'
+          - 'pre-commit'
           - 'mypy'
 
     steps:
