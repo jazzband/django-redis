@@ -326,7 +326,7 @@ def test_decode_failure_logged_to_security(session, caplog):
 def test_actual_expiry(session):
     # this doesn't work with JSONSerializer (serializing timedelta)
     with override_settings(
-        SESSION_SERIALIZER="django.contrib.sessions.serializers.PickleSerializer"
+        SESSION_SERIALIZER="django.contrib.sessions.serializers.PickleSerializer",
     ):
         session = SessionStore()  # reinitialize after overriding settings
 

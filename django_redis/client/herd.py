@@ -90,7 +90,12 @@ class HerdClient(DefaultClient):
         real_timeout = timeout + self._herd_timeout
 
         return super().set(
-            key, packed, timeout=real_timeout, version=version, client=client, nx=nx
+            key,
+            packed,
+            timeout=real_timeout,
+            version=version,
+            client=client,
+            nx=nx,
         )
 
     def get(self, key, default=None, version=None, client=None):
@@ -129,7 +134,12 @@ class HerdClient(DefaultClient):
         return recovered_data
 
     def set_many(
-        self, data, timeout=DEFAULT_TIMEOUT, version=None, client=None, herd=True
+        self,
+        data,
+        timeout=DEFAULT_TIMEOUT,
+        version=None,
+        client=None,
+        herd=True,
     ):
         """
         Set a bunch of values in the cache at once from a dict of key/value

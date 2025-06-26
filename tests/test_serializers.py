@@ -9,7 +9,8 @@ from django_redis.serializers.pickle import PickleSerializer
 class TestPickleSerializer:
     def test_invalid_pickle_version_provided(self):
         with pytest.raises(
-            ImproperlyConfigured, match="PICKLE_VERSION value must be an integer"
+            ImproperlyConfigured,
+            match="PICKLE_VERSION value must be an integer",
         ):
             PickleSerializer({"PICKLE_VERSION": "not-an-integer"})
 

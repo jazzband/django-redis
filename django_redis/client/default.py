@@ -48,7 +48,7 @@ class DefaultClient:
 
         self.reverse_key = get_key_func(
             params.get("REVERSE_KEY_FUNCTION")
-            or "django_redis.util.default_reverse_key"
+            or "django_redis.util.default_reverse_key",
         )
 
         if not self._server:
@@ -63,12 +63,14 @@ class DefaultClient:
         self._replica_read_only = self._options.get("REPLICA_READ_ONLY", True)
 
         serializer_path = self._options.get(
-            "SERIALIZER", "django_redis.serializers.pickle.PickleSerializer"
+            "SERIALIZER",
+            "django_redis.serializers.pickle.PickleSerializer",
         )
         serializer_cls = import_string(serializer_path)
 
         compressor_path = self._options.get(
-            "COMPRESSOR", "django_redis.compressors.identity.IdentityCompressor"
+            "COMPRESSOR",
+            "django_redis.compressors.identity.IdentityCompressor",
         )
         compressor_cls = import_string(compressor_path)
 
@@ -83,13 +85,16 @@ class DefaultClient:
     def _has_compression_enabled(self) -> bool:
         return (
             self._options.get(
-                "COMPRESSOR", "django_redis.compressors.identity.IdentityCompressor"
+                "COMPRESSOR",
+                "django_redis.compressors.identity.IdentityCompressor",
             )
             != "django_redis.compressors.identity.IdentityCompressor"
         )
 
     def get_next_client_index(
-        self, write: bool = True, tried: Optional[list[int]] = None
+        self,
+        write: bool = True,
+        tried: Optional[list[int]] = None,
     ) -> int:
         """
         Return a next index for read client. This function implements a default
@@ -305,7 +310,10 @@ class DefaultClient:
         return self.decode(value)
 
     def persist(
-        self, key: KeyT, version: Optional[int] = None, client: Optional[Redis] = None
+        self,
+        key: KeyT,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
     ) -> bool:
         if client is None:
             client = self.get_client(write=True)
@@ -517,7 +525,9 @@ class DefaultClient:
         return value
 
     def _decode_iterable_result(
-        self, result: Any, covert_to_set: bool = True
+        self,
+        result: Any,
+        covert_to_set: bool = True,
     ) -> Union[list[Any], None, Any]:
         if result is None:
             return None
@@ -672,7 +682,10 @@ class DefaultClient:
         return self._incr(key=key, delta=-delta, version=version, client=client)
 
     def ttl(
-        self, key: KeyT, version: Optional[int] = None, client: Optional[Redis] = None
+        self,
+        key: KeyT,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
     ) -> Optional[int]:
         """
         Executes TTL redis command and return the "time-to-live" of specified key.
@@ -698,7 +711,10 @@ class DefaultClient:
         return None
 
     def pttl(
-        self, key: KeyT, version: Optional[int] = None, client: Optional[Redis] = None
+        self,
+        key: KeyT,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
     ) -> Optional[int]:
         """
         Executes PTTL redis command and return the "time-to-live" of specified key.
@@ -724,7 +740,10 @@ class DefaultClient:
         return None
 
     def has_key(
-        self, key: KeyT, version: Optional[int] = None, client: Optional[Redis] = None
+        self,
+        key: KeyT,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
     ) -> bool:
         """
         Test if key exists.
@@ -759,7 +778,10 @@ class DefaultClient:
             yield self.reverse_key(item.decode())
 
     def keys(
-        self, search: str, version: Optional[int] = None, client: Optional[Redis] = None
+        self,
+        search: str,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
     ) -> list[Any]:
         """
         Execute KEYS command and return matched results.
@@ -778,7 +800,10 @@ class DefaultClient:
             raise ConnectionInterrupted(connection=client) from e
 
     def make_key(
-        self, key: KeyT, version: Optional[int] = None, prefix: Optional[str] = None
+        self,
+        key: KeyT,
+        version: Optional[int] = None,
+        prefix: Optional[str] = None,
     ) -> KeyT:
         if isinstance(key, CacheKey):
             return key
@@ -792,7 +817,10 @@ class DefaultClient:
         return CacheKey(self._backend.key_func(key, prefix, version))
 
     def make_pattern(
-        self, pattern: str, version: Optional[int] = None, prefix: Optional[str] = None
+        self,
+        pattern: str,
+        version: Optional[int] = None,
+        prefix: Optional[str] = None,
     ) -> str:
         if isinstance(pattern, CacheKey):
             return pattern

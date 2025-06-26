@@ -38,7 +38,8 @@ def test_get_django_omit_exceptions_many_returns_default_arg(
 
 
 def test_get_django_omit_exceptions(
-    caplog: LogCaptureFixture, ignore_exceptions_cache: RedisCache
+    caplog: LogCaptureFixture,
+    ignore_exceptions_cache: RedisCache,
 ):
     assert ignore_exceptions_cache._ignore_exceptions is True
     assert ignore_exceptions_cache._log_ignored_exceptions is True
@@ -92,7 +93,9 @@ def with_prefix_cache() -> Iterable[RedisCache]:
 
 class TestDjangoRedisCacheEscapePrefix:
     def test_delete_pattern(
-        self, key_prefix_cache: RedisCache, with_prefix_cache: RedisCache
+        self,
+        key_prefix_cache: RedisCache,
+        with_prefix_cache: RedisCache,
     ):
         key_prefix_cache.set("a", "1")
         with_prefix_cache.set("b", "2")
@@ -101,7 +104,9 @@ class TestDjangoRedisCacheEscapePrefix:
         assert with_prefix_cache.get("b") == "2"
 
     def test_iter_keys(
-        self, key_prefix_cache: RedisCache, with_prefix_cache: RedisCache
+        self,
+        key_prefix_cache: RedisCache,
+        with_prefix_cache: RedisCache,
     ):
         if isinstance(key_prefix_cache.client, ShardClient):
             pytest.skip("ShardClient doesn't support iter_keys")

@@ -19,7 +19,8 @@ class ConnectionFactory:
 
     def __init__(self, options):
         pool_cls_path = options.get(
-            "CONNECTION_POOL_CLASS", "redis.connection.ConnectionPool"
+            "CONNECTION_POOL_CLASS",
+            "redis.connection.ConnectionPool",
         )
         self.pool_cls = import_string(pool_cls_path)
         self.pool_cls_kwargs = options.get("CONNECTION_POOL_KWARGS", {})
@@ -87,7 +88,8 @@ class ConnectionFactory:
         """
         pool = self.get_or_create_connection_pool(params)
         return self.redis_client_cls(
-            connection_pool=pool, **self.redis_client_cls_kwargs
+            connection_pool=pool,
+            **self.redis_client_cls_kwargs,
         )
 
     def get_parser_cls(self):
@@ -132,7 +134,8 @@ class SentinelConnectionFactory(ConnectionFactory):
     def __init__(self, options):
         # allow overriding the default SentinelConnectionPool class
         options.setdefault(
-            "CONNECTION_POOL_CLASS", "redis.sentinel.SentinelConnectionPool"
+            "CONNECTION_POOL_CLASS",
+            "redis.sentinel.SentinelConnectionPool",
         )
         super().__init__(options)
 
@@ -175,11 +178,13 @@ class SentinelConnectionFactory(ConnectionFactory):
         new_query = urlencode(query_params, doseq=True)
 
         new_url = urlunparse(
-            (url.scheme, url.netloc, url.path, url.params, new_query, url.fragment)
+            (url.scheme, url.netloc, url.path, url.params, new_query, url.fragment),
         )
 
         cp_params.update(
-            service_name=url.hostname, sentinel_manager=self._sentinel, url=new_url
+            service_name=url.hostname,
+            sentinel_manager=self._sentinel,
+            url=new_url,
         )
 
         return super().get_connection_pool(cp_params)
