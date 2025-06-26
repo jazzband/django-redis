@@ -1,5 +1,9 @@
+fix = true
+target-version = "py39"
+
+[lint]
 # https://beta.ruff.rs/docs/rules/
-lint.select = [
+select = [
     # https://docs.astral.sh/ruff/rules/#flake8-builtins-a
     # https://github.com/gforcada/flake8-builtins
     "A",
@@ -153,15 +157,11 @@ lint.select = [
     "YTT",
 ]
 
-lint.ignore = [
+ignore = [
   "COM812", # missing trailing comma, covered by black
   "ANN101", # ignore missing type annotation in self parameter
   "S311", # ignore Standard pseudo-random generators because they are not used for cryptographic purposes
 ]
-
-fix = true
-
-target-version = "py39"
 
 [lint.flake8-tidy-imports]
 ## Disallow all relative imports.
