@@ -26,6 +26,9 @@ select = [
 
     # https://docs.astral.sh/ruff/rules/#flake8-commas-com
     # https://github.com/PyCQA/flake8-commas/
+    # About this warning:
+    # > The following rule may cause conflicts when used with the formatter: `COM812`
+    # Check https://github.com/astral-sh/ruff/issues/9216
     "COM",
 
     # https://docs.astral.sh/ruff/rules/#flake8-comprehensions-c4
@@ -158,7 +161,6 @@ select = [
 ]
 
 ignore = [
-  "COM812", # missing trailing comma, covered by black
   "ANN101", # ignore missing type annotation in self parameter
   "S311", # ignore Standard pseudo-random generators because they are not used for cryptographic purposes
 ]
