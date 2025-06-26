@@ -9,15 +9,9 @@ repos:
   - id: check-symlinks
   - id: debug-statements
 
-# from readme - ruff with autofix must run before
-# other formatters, such as black
 - repo: https://github.com/astral-sh/ruff-pre-commit
   rev: v0.12.0
   hooks:
   - id: ruff-check
     args: [ --fix, --exit-non-zero-on-fix , --show-fixes]
-
-- repo: https://github.com/psf/black
-  rev: 25.1.0
-  hooks:
-  - id: black
+  - id: ruff-format
