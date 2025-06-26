@@ -13,7 +13,8 @@ CONNECTION_INTERRUPTED = object()
 
 
 def omit_exception(
-    method: Optional[Callable] = None, return_value: Optional[Any] = None
+    method: Optional[Callable] = None,
+    return_value: Optional[Any] = None,
 ):
     """
     Simple decorator that intercepts connection
@@ -44,12 +45,15 @@ class RedisCache(BaseCache):
         self._server = server
         self._params = params
         self._default_scan_itersize = getattr(
-            settings, "DJANGO_REDIS_SCAN_ITERSIZE", 10
+            settings,
+            "DJANGO_REDIS_SCAN_ITERSIZE",
+            10,
         )
 
         options = params.get("OPTIONS", {})
         self._client_cls = options.get(
-            "CLIENT_CLASS", "django_redis.client.DefaultClient"
+            "CLIENT_CLASS",
+            "django_redis.client.DefaultClient",
         )
         self._client_cls = import_string(self._client_cls)
         self._client = None
@@ -59,7 +63,9 @@ class RedisCache(BaseCache):
             getattr(settings, "DJANGO_REDIS_IGNORE_EXCEPTIONS", False),
         )
         self._log_ignored_exceptions = getattr(
-            settings, "DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS", False
+            settings,
+            "DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS",
+            False,
         )
         self.logger = (
             logging.getLogger(getattr(settings, "DJANGO_REDIS_LOGGER", __name__))

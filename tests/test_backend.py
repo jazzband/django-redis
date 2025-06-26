@@ -523,7 +523,8 @@ class TestDjangoRedisCache:
         cache.delete_pattern("*foo-a*")
 
         client_mock.delete_pattern.assert_called_once_with(
-            "*foo-a*", itersize=expected_count
+            "*foo-a*",
+            itersize=expected_count,
         )
 
     def test_close(self, cache: RedisCache, settings: SettingsWrapper):
@@ -905,7 +906,8 @@ class TestDjangoRedisCache:
         assert cache.smembers("foo3") == {"bar1"}
 
     def test_sdiffstore_with_different_keys_versions_without_initial_set_in_version(
-        self, cache: RedisCache
+        self,
+        cache: RedisCache,
     ):
         if isinstance(cache.client, ShardClient):
             pytest.skip("ShardClient doesn't support get_client")
@@ -915,7 +917,8 @@ class TestDjangoRedisCache:
         assert cache.sdiffstore("foo3", "foo1", "foo2", version_keys=2) == 0
 
     def test_sdiffstore_with_different_keys_versions_with_initial_set_in_version(
-        self, cache: RedisCache
+        self,
+        cache: RedisCache,
     ):
         if isinstance(cache.client, ShardClient):
             pytest.skip("ShardClient doesn't support get_client")
@@ -1000,7 +1003,7 @@ class TestDjangoRedisCache:
     def test_sscan_iter_with_match(self, cache: RedisCache):
         if cache.client._has_compression_enabled():
             pytest.skip(
-                "Compression is enabled, sscan_iter with match is not supported"
+                "Compression is enabled, sscan_iter with match is not supported",
             )
         cache.sadd("foo", "bar1", "bar2", "zoo")
         items = cache.sscan_iter("foo", match="bar*")

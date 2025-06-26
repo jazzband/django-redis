@@ -53,7 +53,11 @@ class ShardClient(DefaultClient):
             client = self.get_server(key)
 
         return super().add(
-            key=key, value=value, version=version, client=client, timeout=timeout
+            key=key,
+            value=value,
+            version=version,
+            client=client,
+            timeout=timeout,
         )
 
     def get(self, key, default=None, version=None, client=None):
@@ -306,7 +310,12 @@ class ShardClient(DefaultClient):
         return [self.reverse_key(k.decode()) for k in keys]
 
     def delete_pattern(
-        self, pattern, version=None, client=None, itersize=None, prefix=None
+        self,
+        pattern,
+        version=None,
+        client=None,
+        itersize=None,
+        prefix=None,
     ):
         """
         Remove all keys matching pattern.
@@ -420,7 +429,11 @@ class ShardClient(DefaultClient):
             key = self.make_key(key, version=version)
             client = self.get_server(key)
         return super().sscan(
-            key=key, match=match, count=count, version=version, client=client
+            key=key,
+            match=match,
+            count=count,
+            version=version,
+            client=client,
         )
 
     def sscan_iter(
@@ -435,7 +448,11 @@ class ShardClient(DefaultClient):
             key = self.make_key(key, version=version)
             client = self.get_server(key)
         return super().sscan_iter(
-            key=key, match=match, count=count, version=version, client=client
+            key=key,
+            match=match,
+            count=count,
+            version=version,
+            client=client,
         )
 
     def srandmember(
