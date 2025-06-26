@@ -1,40 +1,19 @@
 # https://beta.ruff.rs/docs/rules/
 lint.select = [
-  # rules from pyflakes
-  "F",
-
-  # rules from pycodestyle
-  "E", "W",
-
-  # rules from mccabe
-  "C90",
-
-  # rules from isort
-  "I",
-
-  # rules from pyupgrade
-  "UP",
-
-  # rules from flake8-2020
-  "YTT",
+  # rules from flake8-builtins
+  "A",
 
   # rules from flake8-annotations
-#  "ANN",
+  # "ANN",
 
-  # rules from flake8-bandit
-  "S",
-
-  # rules from flake8-blind-except
-  "BLE",
-
-  # rules from flake8-boolean-trap
-  # TODO: "FBT",
+  # rules from flake8-unused-arguments
+  # TODO: "ARG",
 
   # rules from flake8-bugbear
   "B",
 
-  # rules from flake8-builtins
-  "A",
+  # rules from flake8-blind-except
+  "BLE",
 
   # rules from flake8-commas
   "COM",
@@ -42,74 +21,95 @@ lint.select = [
   # rules from flake8-comprehensions
   "C4",
 
-  # rules from flake8-datetimez
-  # TODO: "DTZ",
-
-  # rules from flake8-debugger
-  "T10",
+  # rules from mccabe
+  "C90",
 
   # rules from flake8-django
   "DJ",
 
+  # rules from flake8-datetimez
+  # TODO: "DTZ",
+
   # rules from flake8-errmsg
   "EM",
+
+  # rules from pycodestyle
+  "E", "W",
 
   # rules from flake8-executable
   "EXE",
 
-  # rules from flake8-implicit-str-concat
-  "ISC",
+  # rules from pyflakes
+  "F",
 
-  # rules from flake8-import-conventions
-  "ICN",
+  # rules from flake8-boolean-trap
+  # TODO: "FBT",
 
   # rules from flake8-logging-format
   "G",
 
+  # rules from isort
+  "I",
+
+  # rules from flake8-import-conventions
+  "ICN",
+
+  # rules from flake8-implicit-str-concat
+  "ISC",
+
   # rules from flake8-no-pep420
   "INP",
-
-  # rules from flake8-pie
-  # TODO: "PIE",
-
-  # rules from flake8-print
-  "T20",
-
-  # rules from flake8-pyi
-  "PYI",
-
-  # rules from flake8-pytest-style
-  # TODO: "PT",
-
-  # rules from flake8-raise
-  "RSE",
-
-  # rules from flake8-return
-  "RET",
-
-  # rules from flake8-self
-  # TODO: "SLF",
-
-  # rules from flake8-simplify
-  "SIM",
-
-  # rules from flake8-tidy-imports
-  "TID",
-
-  # rules from flake8-type-checking
-  "TCH",
 
   # rules from flake8-gettext
   "INT",
 
-  # rules from flake8-unused-arguments
-  # TODO: "ARG",
+  # rules from flake8-pie
+  # TODO: "PIE",
+
+  # rules from flake8-pytest-style
+  # TODO: "PT",
+
+  # rules from flake8-pyi
+  "PYI",
 
   # rules from flake8-use-pathlib
   "PTH",
 
+  # rules from flake8-return
+  "RET",
+
+  # rules from flake8-raise
+  "RSE",
+
   # removes unused noqa comments
   "RUF100",
+
+  # rules from flake8-bandit
+  "S",
+
+  # rules from flake8-simplify
+  "SIM",
+
+  # rules from flake8-self
+  # TODO: "SLF",
+
+  # rules from flake8-type-checking
+  "TCH",
+
+  # rules from flake8-tidy-imports
+  "TID",
+
+  # rules from flake8-debugger
+  "T10",
+
+  # rules from flake8-print
+  "T20",
+
+  # rules from pyupgrade
+  "UP",
+
+  # rules from flake8-2020
+  "YTT",
 ]
 
 lint.ignore = [
