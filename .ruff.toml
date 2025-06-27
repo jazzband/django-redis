@@ -1,126 +1,167 @@
+fix = true
+target-version = "py39"
+
+[lint]
 # https://beta.ruff.rs/docs/rules/
-lint.select = [
-  # rules from pyflakes
-  "F",
+select = [
+    # https://docs.astral.sh/ruff/rules/#flake8-builtins-a
+    # https://github.com/gforcada/flake8-builtins
+    "A",
 
-  # rules from pycodestyle
-  "E", "W",
+    # https://docs.astral.sh/ruff/rules/#flake8-annotations-ann
+    # https://github.com/sco1/flake8-annotations
+    # "ANN",
 
-  # rules from mccabe
-  "C90",
+    # https://docs.astral.sh/ruff/rules/#flake8-unused-arguments-arg
+    # https://github.com/nhoad/flake8-unused-arguments
+    # TODO: "ARG",
 
-  # rules from isort
-  "I",
+    # https://docs.astral.sh/ruff/rules/#flake8-bugbear-b
+    # https://github.com/PyCQA/flake8-bugbear
+    "B",
 
-  # rules from pyupgrade
-  "UP",
+    # https://docs.astral.sh/ruff/rules/#flake8-blind-except-ble
+    # https://github.com/elijahandrews/flake8-blind-except
+    "BLE",
 
-  # rules from flake8-2020
-  "YTT",
+    # https://docs.astral.sh/ruff/rules/#flake8-commas-com
+    # https://github.com/PyCQA/flake8-commas/
+    "COM",
 
-  # rules from flake8-annotations
-#  "ANN",
+    # https://docs.astral.sh/ruff/rules/#flake8-comprehensions-c4
+    # https://github.com/adamchainz/flake8-comprehensions
+    "C4",
 
-  # rules from flake8-bandit
-  "S",
+    # rules from mccabe
+    "C90",
 
-  # rules from flake8-blind-except
-  "BLE",
+    # https://docs.astral.sh/ruff/rules/#flake8-django-dj
+    # https://github.com/rocioar/flake8-django
+    "DJ",
 
-  # rules from flake8-boolean-trap
-  # TODO: "FBT",
+    # https://docs.astral.sh/ruff/rules/#flake8-datetimez-dtz
+    # https://github.com/pjknkda/flake8-datetimez
+    # TODO: "DTZ",
 
-  # rules from flake8-bugbear
-  "B",
+    # https://docs.astral.sh/ruff/rules/#error-e
+    # https://github.com/PyCQA/pycodestyle
+    "E",
 
-  # rules from flake8-builtins
-  "A",
+    # https://docs.astral.sh/ruff/rules/#flake8-errmsg-em
+    # https://github.com/henryiii/flake8-errmsg
+    "EM",
 
-  # rules from flake8-commas
-  "COM",
+    # https://docs.astral.sh/ruff/rules/#flake8-executable-exe
+    # https://github.com/xuhdev/flake8-executable
+    "EXE",
 
-  # rules from flake8-comprehensions
-  "C4",
+    # https://docs.astral.sh/ruff/rules/#pyflakes-f
+    # https://github.com/PyCQA/pyflakes
+    "F",
 
-  # rules from flake8-datetimez
-  # TODO: "DTZ",
+    # https://docs.astral.sh/ruff/rules/#flake8-boolean-trap-fbt
+    # https://github.com/pwoolvett/flake8_boolean_trap
+    # TODO: "FBT",
 
-  # rules from flake8-debugger
-  "T10",
+    # https://docs.astral.sh/ruff/rules/#flake8-logging-format-g
+    # https://github.com/globality-corp/flake8-logging-format
+    "G",
 
-  # rules from flake8-django
-  "DJ",
+    # https://docs.astral.sh/ruff/rules/#isort-i
+    # https://pycqa.github.io/isort/
+    "I",
 
-  # rules from flake8-errmsg
-  "EM",
+    # https://docs.astral.sh/ruff/rules/#flake8-import-conventions-icn
+    # https://github.com/joaopalmeiro/flake8-import-conventions
+    "ICN",
 
-  # rules from flake8-executable
-  "EXE",
+    # https://docs.astral.sh/ruff/rules/#flake8-implicit-str-concat-isc
+    # https://github.com/flake8-implicit-str-concat/flake8-implicit-str-concat
+    "ISC",
 
-  # rules from flake8-implicit-str-concat
-  "ISC",
+    # https://docs.astral.sh/ruff/rules/#flake8-no-pep420-inp
+    # https://github.com/adamchainz/flake8-no-pep420
+    "INP",
 
-  # rules from flake8-import-conventions
-  "ICN",
+    # https://docs.astral.sh/ruff/rules/#flake8-gettext-int
+    # https://github.com/cielavenir/flake8_gettext
+    "INT",
 
-  # rules from flake8-logging-format
-  "G",
+    # https://docs.astral.sh/ruff/rules/#flake8-pie-pie
+    # https://github.com/sbdchd/flake8-pie
+    # TODO: "PIE",
 
-  # rules from flake8-no-pep420
-  "INP",
+    # https://docs.astral.sh/ruff/rules/#flake8-pytest-style-pt
+    # https://github.com/m-burst/flake8-pytest-style
+    # TODO: "PT",
 
-  # rules from flake8-pie
-  # TODO: "PIE",
+    # https://docs.astral.sh/ruff/rules/#flake8-pyi-pyi
+    # https://github.com/PyCQA/flake8-pyi
+    "PYI",
 
-  # rules from flake8-print
-  "T20",
+    # https://docs.astral.sh/ruff/rules/#flake8-use-pathlib-pth
+    # https://gitlab.com/RoPP/flake8-use-pathlib
+    "PTH",
 
-  # rules from flake8-pyi
-  "PYI",
+    # https://docs.astral.sh/ruff/rules/#flake8-return-ret
+    # https://github.com/afonasev/flake8-return
+    "RET",
 
-  # rules from flake8-pytest-style
-  # TODO: "PT",
+    # https://docs.astral.sh/ruff/rules/#flake8-raise-rse
+    # https://github.com/jdufresne/flake8-raise
+    "RSE",
 
-  # rules from flake8-raise
-  "RSE",
+    # https://docs.astral.sh/ruff/rules/unused-noqa/
+    "RUF100",
 
-  # rules from flake8-return
-  "RET",
+    # https://docs.astral.sh/ruff/rules/#flake8-bandit-s
+    # https://github.com/tylerwince/flake8-bandit
+    "S",
 
-  # rules from flake8-self
-  # TODO: "SLF",
+    # https://docs.astral.sh/ruff/rules/#flake8-simplify-sim
+    # https://github.com/MartinThoma/flake8-simplify
+    "SIM",
 
-  # rules from flake8-simplify
-  "SIM",
+    # https://docs.astral.sh/ruff/rules/#flake8-self-slf
+    # https://github.com/korijn/flake8-self
+    # TODO: "SLF",
 
-  # rules from flake8-tidy-imports
-  "TID",
+    # rules from flake8-type-checking
+    # TODO:
+    #   Replace with the new rules
+    #   https://github.com/astral-sh/ruff/issues/9573
+    "TCH",
 
-  # rules from flake8-type-checking
-  "TCH",
+    # https://docs.astral.sh/ruff/rules/#flake8-tidy-imports-tid
+    # https://github.com/adamchainz/flake8-tidy-imports
+    "TID",
 
-  # rules from flake8-gettext
-  "INT",
+    # https://docs.astral.sh/ruff/rules/#flake8-debugger-t10
+    # https://github.com/jbkahn/flake8-debugger
+    "T10",
 
-  # rules from flake8-unused-arguments
-  # TODO: "ARG",
+    # https://docs.astral.sh/ruff/rules/#flake8-print-t20
+    # https://github.com/jbkahn/flake8-print
+    "T20",
 
-  # rules from flake8-use-pathlib
-  "PTH",
+    # https://docs.astral.sh/ruff/rules/#pyupgrade-up
+    # https://github.com/asottile/pyupgrade
+    "UP",
 
-  # removes unused noqa comments
-  "RUF100",
+    # https://docs.astral.sh/ruff/rules/#warning-w
+    # https://github.com/PyCQA/pycodestyle
+    "W",
+
+    # https://docs.astral.sh/ruff/rules/#flake8-2020-ytt
+    # https://github.com/asottile-archive/flake8-2020
+    "YTT",
 ]
 
-lint.ignore = [
+ignore = [
   "COM812", # missing trailing comma, covered by black
   "ANN101", # ignore missing type annotation in self parameter
   "S311", # ignore Standard pseudo-random generators because they are not used for cryptographic purposes
 ]
-
-fix = true
-
-target-version = "py39"
 
 [lint.flake8-tidy-imports]
 ## Disallow all relative imports.
