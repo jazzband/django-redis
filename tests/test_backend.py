@@ -1035,9 +1035,9 @@ class TestDjangoRedisCache:
         # This should not raise TypeError even when called with extra parameters
         # that Django's request_finished signal passes
         cache.close(signal="request_finished", sender=object)
-        
+
         # Test with no parameters as well
         cache.close()
-        
+
         # Test with arbitrary keyword arguments
         cache.close(foo="bar", signal=None, sender="test")
