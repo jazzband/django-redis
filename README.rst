@@ -785,20 +785,20 @@ It is also possible to set some caches as sentinels and some as not:
 Pluggable parsers
 ~~~~~~~~~~~~~~~~~
 
-redis-py (the Python Redis client used by django-redis) comes with a pure
-Python Redis parser that works very well for most common task, but if you want
-some performance boost, you can use hiredis.
+`redis-py`_, the Python Redis client used by django-redis, will automatically
+use a C-based parser if the `hiredis`_ package is installed in your environment.
+This can provide a significant performance boost for parsing Redis replies.
 
-hiredis is a Redis client written in C and it has its own parser that can be
-used with django-redis.
+To take advantage of this, simply install the `hiredis` package with pip:
 
-.. code-block:: python
+.. code-block:: console
 
-    "OPTIONS": {
-        "PARSER_CLASS": "redis.connection.HiredisParser",
-    }
+    $ python -m pip install hiredis
 
-Note: if using version 5 of redis-py, use ``"redis.connection._HiredisParser"`` for the ``PARSER_CLASS`` due to an internal rename of classes within that package.
+No additional configuration in your Django settings is required. django-redis
+will use the faster parser automatically.
+
+.. _hiredis: https://pypi.org/project/hiredis/
 
 Pluggable clients
 ~~~~~~~~~~~~~~~~~
