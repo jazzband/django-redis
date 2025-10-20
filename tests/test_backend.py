@@ -532,6 +532,11 @@ class TestDjangoRedisCache:
         cache.set("f", "1")
         cache.close()
 
+    def test_close_uninitialized_client(self):
+        cache = RedisCache("default", {})
+        cache._client = None
+        cache.close()
+
     def test_close_client(self, cache: RedisCache, mocker: MockerFixture):
         mock = mocker.patch.object(cache.client, "close")
         cache.close()
