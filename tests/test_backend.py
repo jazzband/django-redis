@@ -532,6 +532,11 @@ class TestDjangoRedisCache:
         cache.set("f", "1")
         cache.close()
 
+    def test_close_uninitialized_client(self):
+        cache = RedisCache("default", {})
+        cache._client = None
+        cache.close()
+
     def test_close_client(self, cache: RedisCache, mocker: MockerFixture):
         mock = mocker.patch.object(cache.client, "close")
         cache.close()
@@ -1029,3 +1034,4 @@ class TestDjangoRedisCache:
         cache.sadd("foo2", "bar2", "bar3")
         assert cache.sunionstore("foo3", "foo1", "foo2") == 3
         assert cache.smembers("foo3") == {"bar1", "bar2", "bar3"}
+
