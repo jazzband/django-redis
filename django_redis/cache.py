@@ -185,7 +185,7 @@ class RedisCache(BaseCache):
 
     @omit_exception
     def close(self, **kwargs):
-        if self._client is not None:
+        if self._client:
             self.client.close(**kwargs)
 
     @omit_exception
