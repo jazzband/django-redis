@@ -1034,4 +1034,3 @@ class TestDjangoRedisCache:
         cache.sadd("foo2", "bar2", "bar3")
         assert cache.sunionstore("foo3", "foo1", "foo2") == 3
         assert cache.smembers("foo3") == {"bar1", "bar2", "bar3"}
-
