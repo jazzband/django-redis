@@ -8,34 +8,16 @@ Classes using this mixin must implement ClientProtocol
 (see django_redis.client.mixins.protocols).
 """
 
-from typing import TYPE_CHECKING, Any, Optional, Union
+from typing import Any, Optional, Union
 
 from redis import Redis
 from redis.typing import KeyT
 
+from django_redis.client.mixins.protocols import ClientProtocol
 
-class SortedSetMixin:
-    """
-    Mixin providing Redis sorted set (ZSET) operations.
 
-    Classes using this mixin must implement:
-    - make_key(key, version=None, prefix=None) -> KeyT
-    - encode(value) -> bytes | int
-    - decode(value) -> Any
-    - get_client(write=False) -> Redis
-    """
-
-    if TYPE_CHECKING:
-        # Methods expected from the class this mixin is applied to
-        def make_key(
-            self,
-            key: KeyT,
-            version: Optional[int] = None,
-            prefix: Optional[str] = None,
-        ) -> KeyT: ...
-        def encode(self, value: Any) -> Union[bytes, int]: ...
-        def decode(self, value: Union[bytes, int]) -> Any: ...
-        def get_client(self, write: bool = False) -> Redis: ...
+class SortedSetMixin(ClientProtocol):
+    """Mixin providing Redis sorted set (ZSET) operations."""
 
     def zadd(
         self,
