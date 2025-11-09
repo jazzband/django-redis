@@ -1,5 +1,3 @@
-"""Tests for sorted set (ZSET) operations in django-redis."""
-
 from django_redis.cache import RedisCache
 
 
@@ -15,7 +13,6 @@ class TestSortedSetOperations:
     def test_zadd_with_nx(self, cache: RedisCache):
         """Test zadd with nx flag (only add new)."""
         cache.zadd("scores", {"alice": 10.0})
-        # Should not update existing
         result = cache.zadd("scores", {"alice": 20.0}, nx=True)
         assert result == 0
         assert cache.zscore("scores", "alice") == 10.0
@@ -23,11 +20,9 @@ class TestSortedSetOperations:
     def test_zadd_with_xx(self, cache: RedisCache):
         """Test zadd with xx flag (only update existing)."""
         cache.zadd("scores", {"bob": 15.0})
-        # Should update existing
         result = cache.zadd("scores", {"bob": 25.0}, xx=True)
         assert result == 0  # No new members added
         assert cache.zscore("scores", "bob") == 25.0
-        # Should not add new member
         result = cache.zadd("scores", {"charlie": 30.0}, xx=True)
         assert result == 0
         assert cache.zscore("scores", "charlie") is None
@@ -35,7 +30,6 @@ class TestSortedSetOperations:
     def test_zadd_with_ch(self, cache: RedisCache):
         """Test zadd with ch flag (return changed count)."""
         cache.zadd("scores", {"player1": 100.0})
-        # Update existing member
         result = cache.zadd("scores", {"player1": 150.0, "player2": 200.0}, ch=True)
         assert result == 2  # 1 changed + 1 added
 
@@ -58,18 +52,15 @@ class TestSortedSetOperations:
         new_score = cache.zincrby("scores", 50.0, "player1")
         assert new_score == 150.0
         assert cache.zscore("scores", "player1") == 150.0
-        # Increment non-existent member
         new_score = cache.zincrby("scores", 25.0, "player2")
         assert new_score == 25.0
 
     def test_zpopmax(self, cache: RedisCache):
         """Test popping highest scored members."""
         cache.zadd("scores", {"a": 1.0, "b": 2.0, "c": 3.0})
-        # Pop single member
         result = cache.zpopmax("scores")
         assert result == ("c", 3.0)
         assert cache.zcard("scores") == 2
-        # Pop multiple members
         cache.zadd("scores", {"d": 4.0, "e": 5.0})
         result = cache.zpopmax("scores", count=2)
         assert len(result) == 2
@@ -79,11 +70,9 @@ class TestSortedSetOperations:
     def test_zpopmin(self, cache: RedisCache):
         """Test popping lowest scored members."""
         cache.zadd("scores", {"a": 1.0, "b": 2.0, "c": 3.0})
-        # Pop single member
         result = cache.zpopmin("scores")
         assert result == ("a", 1.0)
         assert cache.zcard("scores") == 2
-        # Pop multiple members
         cache.zadd("scores", {"d": 0.5, "e": 0.1})
         result = cache.zpopmin("scores", count=2)
         assert len(result) == 2
@@ -95,7 +84,6 @@ class TestSortedSetOperations:
         cache.zadd("scores", {"alice": 10.0, "bob": 20.0, "charlie": 15.0})
         result = cache.zrange("scores", 0, -1)
         assert result == ["alice", "charlie", "bob"]
-        # Get subset
         result = cache.zrange("scores", 0, 1)
         assert result == ["alice", "charlie"]
 
@@ -116,7 +104,6 @@ class TestSortedSetOperations:
         cache.zadd("scores", {"a": 1.0, "b": 2.0, "c": 3.0, "d": 4.0, "e": 5.0})
         result = cache.zrangebyscore("scores", 2.0, 4.0)
         assert result == ["b", "c", "d"]
-        # With infinity
         result = cache.zrangebyscore("scores", "-inf", 2.0)
         assert result == ["a", "b"]
 
@@ -147,7 +134,6 @@ class TestSortedSetOperations:
         result = cache.zrem("scores", "b")
         assert result == 1
         assert cache.zcard("scores") == 2
-        # Remove multiple
         result = cache.zrem("scores", "a", "c")
         assert result == 2
         assert cache.zcard("scores") == 0
@@ -175,7 +161,6 @@ class TestSortedSetOperations:
     def test_zrevrangebyscore(self, cache: RedisCache):
         """Test getting reverse range by score."""
         cache.zadd("scores", {"a": 1.0, "b": 2.0, "c": 3.0, "d": 4.0, "e": 5.0})
-        # Note: max comes before min in zrevrangebyscore
         result = cache.zrevrangebyscore("scores", 4.0, 2.0)
         assert result == ["d", "c", "b"]
 
@@ -190,7 +175,6 @@ class TestSortedSetOperations:
         """Test that complex objects serialize correctly as members."""
         cache.zadd("complex", {("tuple", "key"): 1.0, "string": 2.0})
         result = cache.zrange("complex", 0, -1)
-        # Note: JSON serializer converts tuples to lists
         assert ("tuple", "key") in result or ["tuple", "key"] in result
         assert "string" in result
 

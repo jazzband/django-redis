@@ -1,10 +1,3 @@
-"""
-Protocol definitions for django-redis client mixins.
-
-These protocols define the interface that client classes must implement
-for mixins to work correctly.
-"""
-
 from typing import Any, Optional, Protocol, Union
 
 from redis import Redis
