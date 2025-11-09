@@ -22,25 +22,7 @@ class SortedSetMixin(ClientProtocol):
         version: Optional[int] = None,
         client: Optional[Redis] = None,
     ) -> int:
-        """
-        Add members with scores to sorted set.
-
-        Args:
-            name: Key name for the sorted set
-            mapping: Dict of {member: score} pairs to add
-            nx: Only add new members, don't update existing
-            xx: Only update existing members, don't add new
-            ch: Return number of members changed (not just added)
-            incr: Increment score instead of setting it
-                  (mapping must contain single member)
-            gt: Only update if new score > current score (Redis 6.2+)
-            lt: Only update if new score < current score (Redis 6.2+)
-            version: Cache key version
-            client: Redis client instance
-
-        Returns:
-            Number of members added or changed
-        """
+        """Add members with scores to sorted set."""
         if client is None:
             client = self.get_client(write=True)
 
@@ -69,17 +51,7 @@ class SortedSetMixin(ClientProtocol):
         version: Optional[int] = None,
         client: Optional[Redis] = None,
     ) -> int:
-        """
-        Return the number of members in sorted set.
-
-        Args:
-            name: Key name for the sorted set
-            version: Cache key version
-            client: Redis client instance
-
-        Returns:
-            Number of members in the sorted set
-        """
+        """Get the number of members in sorted set."""
         if client is None:
             client = self.get_client(write=False)
 
@@ -94,19 +66,7 @@ class SortedSetMixin(ClientProtocol):
         version: Optional[int] = None,
         client: Optional[Redis] = None,
     ) -> int:
-        """
-        Count members in sorted set with scores within the given range.
-
-        Args:
-            name: Key name for the sorted set
-            min: Minimum score (inclusive) or "-inf"
-            max: Maximum score (inclusive) or "+inf"
-            version: Cache key version
-            client: Redis client instance
-
-        Returns:
-            Number of members with scores in the given range
-        """
+        """Count members in sorted set with scores between min and max."""
         if client is None:
             client = self.get_client(write=False)
 
@@ -121,19 +81,7 @@ class SortedSetMixin(ClientProtocol):
         version: Optional[int] = None,
         client: Optional[Redis] = None,
     ) -> float:
-        """
-        Increment the score of member in sorted set by amount.
-
-        Args:
-            name: Key name for the sorted set
-            amount: Amount to increment the score by
-            value: Member whose score to increment
-            version: Cache key version
-            client: Redis client instance
-
-        Returns:
-            New score of the member
-        """
+        """Increment the score of member in sorted set by amount."""
         if client is None:
             client = self.get_client(write=True)
 
@@ -148,20 +96,7 @@ class SortedSetMixin(ClientProtocol):
         version: Optional[int] = None,
         client: Optional[Redis] = None,
     ) -> Union[list[tuple[Any, float]], tuple[Any, float], None]:
-        """
-        Remove and return members with the highest scores from sorted set.
-
-        Args:
-            name: Key name for the sorted set
-            count: Number of members to remove (default: 1)
-            version: Cache key version
-            client: Redis client instance
-
-        Returns:
-            List of (member, score) tuples if count is specified,
-            Single (member, score) tuple if count is None,
-            None if sorted set is empty
-        """
+        """Remove and return members with highest scores."""
         if client is None:
             client = self.get_client(write=True)
 
@@ -185,20 +120,7 @@ class SortedSetMixin(ClientProtocol):
         version: Optional[int] = None,
         client: Optional[Redis] = None,
     ) -> Union[list[tuple[Any, float]], tuple[Any, float], None]:
-        """
-        Remove and return members with the lowest scores from sorted set.
-
-        Args:
-            name: Key name for the sorted set
-            count: Number of members to remove (default: 1)
-            version: Cache key version
-            client: Redis client instance
-
-        Returns:
-            List of (member, score) tuples if count is specified,
-            Single (member, score) tuple if count is None,
-            None if sorted set is empty
-        """
+        """Remove and return members with lowest scores."""
         if client is None:
             client = self.get_client(write=True)
 
@@ -226,22 +148,7 @@ class SortedSetMixin(ClientProtocol):
         version: Optional[int] = None,
         client: Optional[Redis] = None,
     ) -> Union[list[Any], list[tuple[Any, float]]]:
-        """
-        Return a range of members from sorted set by index.
-
-        Args:
-            name: Key name for the sorted set
-            start: Start index (0-based, can be negative)
-            end: End index (inclusive, can be negative, use -1 for end)
-            desc: Return members in descending order
-            withscores: Return members with their scores
-            score_cast_func: Function to cast scores (default: float)
-            version: Cache key version
-            client: Redis client instance
-
-        Returns:
-            List of members, or list of (member, score) tuples if withscores=True
-        """
+        """Return members in sorted set by index range."""
         if client is None:
             client = self.get_client(write=False)
 
@@ -272,23 +179,7 @@ class SortedSetMixin(ClientProtocol):
         version: Optional[int] = None,
         client: Optional[Redis] = None,
     ) -> Union[list[Any], list[tuple[Any, float]]]:
-        """
-        Return members from sorted set with scores within the given range.
-
-        Args:
-            name: Key name for the sorted set
-            min: Minimum score (inclusive) or "-inf"
-            max: Maximum score (inclusive) or "+inf"
-            start: Starting offset for pagination
-            num: Number of members to return for pagination
-            withscores: Return members with their scores
-            score_cast_func: Function to cast scores (default: float)
-            version: Cache key version
-            client: Redis client instance
-
-        Returns:
-            List of members, or list of (member, score) tuples if withscores=True
-        """
+        """Return members in sorted set by score range."""
         if client is None:
             client = self.get_client(write=False)
 
@@ -315,18 +206,7 @@ class SortedSetMixin(ClientProtocol):
         version: Optional[int] = None,
         client: Optional[Redis] = None,
     ) -> Optional[int]:
-        """
-        Return the rank (index) of member in sorted set (0-based, lowest score first).
-
-        Args:
-            name: Key name for the sorted set
-            value: Member to get rank for
-            version: Cache key version
-            client: Redis client instance
-
-        Returns:
-            Rank of the member, or None if member doesn't exist
-        """
+        """Get the rank (index) of member in sorted set, ordered low to high."""
         if client is None:
             client = self.get_client(write=False)
 
@@ -343,18 +223,7 @@ class SortedSetMixin(ClientProtocol):
         version: Optional[int] = None,
         client: Optional[Redis] = None,
     ) -> int:
-        """
-        Remove members from sorted set.
-
-        Args:
-            name: Key name for the sorted set
-            *values: Members to remove
-            version: Cache key version
-            client: Redis client instance
-
-        Returns:
-            Number of members removed
-        """
+        """Remove members from sorted set."""
         if client is None:
             client = self.get_client(write=True)
 
@@ -370,19 +239,7 @@ class SortedSetMixin(ClientProtocol):
         version: Optional[int] = None,
         client: Optional[Redis] = None,
     ) -> int:
-        """
-        Remove all members in sorted set with scores within the given range.
-
-        Args:
-            name: Key name for the sorted set
-            min: Minimum score (inclusive) or "-inf"
-            max: Maximum score (inclusive) or "+inf"
-            version: Cache key version
-            client: Redis client instance
-
-        Returns:
-            Number of members removed
-        """
+        """Remove members from sorted set with scores between min and max."""
         if client is None:
             client = self.get_client(write=True)
 
@@ -399,24 +256,7 @@ class SortedSetMixin(ClientProtocol):
         version: Optional[int] = None,
         client: Optional[Redis] = None,
     ) -> Union[list[Any], list[tuple[Any, float]]]:
-        """
-        Return a range of members from sorted set by index in reverse order.
-
-        (highest to lowest)
-
-        Args:
-            name: Key name for the sorted set
-            start: Start index (0-based, can be negative)
-            end: End index (inclusive, can be negative, use -1 for end)
-            withscores: Return members with their scores
-            score_cast_func: Function to cast scores (default: float)
-            version: Cache key version
-            client: Redis client instance
-
-        Returns:
-            List of members in descending order, or list of (member, score)
-            tuples if withscores=True
-        """
+        """Return members in sorted set by index range, ordered high to low."""
         if client is None:
             client = self.get_client(write=False)
 
@@ -446,26 +286,7 @@ class SortedSetMixin(ClientProtocol):
         version: Optional[int] = None,
         client: Optional[Redis] = None,
     ) -> Union[list[Any], list[tuple[Any, float]]]:
-        """
-        Return members from sorted set with scores within range.
-
-        In reverse order (highest to lowest).
-
-        Args:
-            name: Key name for the sorted set
-            max: Maximum score (inclusive) or "+inf"
-            min: Minimum score (inclusive) or "-inf"
-            start: Starting offset for pagination
-            num: Number of members to return for pagination
-            withscores: Return members with their scores
-            score_cast_func: Function to cast scores (default: float)
-            version: Cache key version
-            client: Redis client instance
-
-        Returns:
-            List of members in descending order, or list of (member, score)
-            tuples if withscores=True
-        """
+        """Return members in sorted set by score range, ordered high to low."""
         if client is None:
             client = self.get_client(write=False)
 
@@ -492,18 +313,7 @@ class SortedSetMixin(ClientProtocol):
         version: Optional[int] = None,
         client: Optional[Redis] = None,
     ) -> Optional[float]:
-        """
-        Return the score of member in sorted set.
-
-        Args:
-            name: Key name for the sorted set
-            value: Member to get score for
-            version: Cache key version
-            client: Optional[Redis] = None
-
-        Returns:
-            Score of the member, or None if member doesn't exist
-        """
+        """Get the score of member in sorted set."""
         if client is None:
             client = self.get_client(write=False)
 
