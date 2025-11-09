@@ -178,3 +178,6 @@ ban-relative-imports = "all"
 
 # pickle is used on purpose and its use is discouraged
 "django_redis/serializers/pickle.py" = ["S301"]
+
+# min/max are official Redis parameter names matching redis-py API
+"django_redis/client/mixins/sorted_sets.py" = ["A002"]
