@@ -1,13 +1,3 @@
-"""
-Sorted Set (ZSET) operations mixin for django-redis clients.
-
-This mixin provides Redis sorted set operations with proper key versioning,
-serialization/deserialization, and client management.
-
-Classes using this mixin must implement ClientProtocol
-(see django_redis.client.mixins.protocols).
-"""
-
 from typing import Any, Optional, Union
 
 from redis import Redis
