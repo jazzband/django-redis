@@ -185,6 +185,72 @@ following lines to your test class:
     def tearDown(self):
         get_redis_connection("default").flushall()
 
+In case you want to run the django tests in parallel mode, setup a custom
+TestRunner similar to the following:
+
+.. code-block:: python
+
+    import copy
+    import multiprocessing
+    import django.core.cache
+    from django.conf import UserSettingsHolder, settings
+    from django.test.runner import _init_worker
+    from django.test.runner import DiscoverRunner
+    from django.test.runner import ParallelTestSuite
+
+    def parallel_init_worker(
+        counter: multiprocessing.Value,
+        *args, **kwargs,
+    ):
+        """
+        Switch redis database dedicated to this worker.
+
+        This helper lives at module-level because of the multiprocessing module's
+        requirements.
+        """
+        
+        _init_worker(counter, *args, **kwargs)  # call django default to setup parallel db
+        from django.test.runner import _worker_id  # import after _init_worker called
+
+        redis_db = settings.CACHE_DB + _worker_id
+        redis_test_location = f'redis://127.0.0.1:6379/{redis_db}'
+
+        caches = copy.deepcopy(settings.CACHES)
+        caches["default"]["LOCATION"] = redis_location
+
+        # based of approach in django.tests.utils.override_settings
+        override = UserSettingsHolder(settings._wrapped)
+        setattr(override, 'CACHE_DB', redis_db)
+        setattr(override, 'REDIS_SERVER_LOCATION', redis_test_location)
+        setattr(override, 'CACHES', caches)
+        settings._wrapped = override
+    
+        setting_changed.send(
+            sender=settings._wrapped.__class__,
+            setting='CACHES', value=caches, enter=True,
+        )
+
+
+    class CustomParallelTestSuite(ParallelTestSuite):
+        init_worker = parallel_init_worker
+
+
+    class CustomDiscoverRunner(DiscoverRunner):
+        parallel_test_suite = CustomParallelTestSuite
+
+
+When running django tests in parallel mode, flushing the data following a test
+should be limited to the cache db used in that test process, by using
+``flushdb()`` instead of ``flushall()`` in the test class tearDown:
+
+.. code-block:: python
+
+    from django_redis import get_redis_connection
+
+    def tearDown(self):
+        get_redis_connection("default").flushdb()
+
+
 Advanced usage
 --------------
 
