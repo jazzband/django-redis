@@ -64,7 +64,7 @@ class DefaultClient(SortedSetMixin):
         self._clients: list[Optional[Redis]] = [None] * len(self._server)
         self._async_clients: WeakKeyDictionary[
             asyncio.AbstractEventLoop,
-            Any,
+            list[Optional[Any]],
         ] = WeakKeyDictionary()
         self._options = params.get("OPTIONS", {})
         self._replica_read_only = self._options.get("REPLICA_READ_ONLY", True)
@@ -163,25 +163,31 @@ class DefaultClient(SortedSetMixin):
 
         return self._clients[index], index  # type:ignore
 
-    async def get_async_client(self, write: bool = True):
+    async def get_async_client(
+        self,
+        write: bool = True,
+        tried: Optional[list[int]] = None,
+    ):
         """
         Get or create async client for current event loop.
 
-        Each event loop gets its own client and connection pool because:
+        Each event loop gets its own list of clients (one per server) because:
         - Async pools cannot be shared across event loops
         - Connections are bound to the event loop they were created in
         - WeakKeyDictionary automatically cleans up when loop is GC'd
         """
         loop = asyncio.get_running_loop()
 
-        if loop in self._async_clients:
-            return self._async_clients[loop]
+        if loop not in self._async_clients:
+            self._async_clients[loop] = [None] * len(self._server)
 
-        connection_string = self._server[0]
-        client = self.async_connection_factory.connect(connection_string)
+        clients = self._async_clients[loop]
+        index = self.get_next_client_index(write=write, tried=tried)
 
-        self._async_clients[loop] = client
-        return client
+        if clients[index] is None:
+            clients[index] = await self.async_connect(index)
+
+        return clients[index]
 
     async def aget(
         self,
@@ -469,8 +475,10 @@ class DefaultClient(SortedSetMixin):
 
     async def aclose(self) -> None:
         """Async close."""
-        for client in self._async_clients.values():
-            await self.async_connection_factory.disconnect(client)
+        for clients in self._async_clients.values():
+            for client in clients:
+                if client is not None:
+                    await self.async_connection_factory.disconnect(client)
         self._async_clients.clear()
 
     def connect(self, index: int = 0) -> Redis:
@@ -490,6 +498,13 @@ class DefaultClient(SortedSetMixin):
 
         if client is not None:
             self.connection_factory.disconnect(client)
+
+    async def async_connect(self, index: int = 0):
+        """
+        Given a connection index, returns a new async redis client instance.
+        Index is used for replication setups. In normal setups, index is 0.
+        """
+        return self.async_connection_factory.connect(self._server[index])
 
     def set(
         self,
