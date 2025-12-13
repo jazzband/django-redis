@@ -48,7 +48,7 @@ Requirements
 
 - `Python`_ 3.9+
 - `Django`_ 4.2+
-- `redis-py`_ 4.0.2+
+- `redis-py`_ 4.2.0+
 - `Redis server`_ 2.8+
 
 .. _Python: https://www.python.org/downloads/

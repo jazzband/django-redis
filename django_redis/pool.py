@@ -9,11 +9,8 @@ from redis.sentinel import Sentinel
 
 
 class ConnectionFactory:
-    # Store connection pool by cache backend options.
-    #
-    # _pools is a process-global, as otherwise _pools is cleared every time
-    # ConnectionFactory is instantiated, as Django creates new cache client
-    # (DefaultClient) instance for every request.
+    # _pools is a process-global dict that caches connection pools by URL.
+    # This allows connection reuse across multiple Redis client instances.
 
     _pools: dict[str, ConnectionPool] = {}
 
