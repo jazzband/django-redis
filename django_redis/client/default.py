@@ -161,12 +161,7 @@ class DefaultClient(SortedSetMixin):
         return self._clients[index], index  # type:ignore
 
     async def get_async_client(self, write: bool = True):
-        """
-        Get or create an async Redis client for the current event loop.
-
-        Each event loop gets its own client, stored in a WeakKeyDictionary
-        for automatic cleanup when the loop is garbage collected.
-        """
+        """Get or create async client for current event loop."""
         try:
             import redis.asyncio as aioredis
         except ImportError as e:
@@ -175,13 +170,9 @@ class DefaultClient(SortedSetMixin):
 
         loop = asyncio.get_running_loop()
 
-        # Return cached client if it exists for this loop
         if loop in self._async_clients:
             return self._async_clients[loop]
 
-        # Create new async client for this loop
-        # For now, only support single server (index 0)
-        # TODO: Add support for replica routing
         connection_string = self._server[0]
         client = aioredis.from_url(
             connection_string,
@@ -189,9 +180,7 @@ class DefaultClient(SortedSetMixin):
             decode_responses=False,
         )
 
-        # Cache the client for this event loop
         self._async_clients[loop] = client
-
         return client
 
     async def aget(
@@ -200,11 +189,7 @@ class DefaultClient(SortedSetMixin):
         default: Optional[Any] = None,
         version: Optional[int] = None,
     ) -> Any:
-        """
-        Async version of get. Retrieve a value from the cache.
-
-        Returns decoded value if key is found, the default if not.
-        """
+        """Async get. Returns decoded value if found, default if not."""
         client = await self.get_async_client(write=False)
         key = self.make_key(key, version=version)
 
@@ -227,13 +212,7 @@ class DefaultClient(SortedSetMixin):
         nx: bool = False,
         xx: bool = False,
     ) -> bool:
-        """
-        Async version of set. Persist a value to the cache,
-        and set an optional expiration time.
-
-        Also supports optional nx parameter. If set to True - will use redis
-        setnx instead of set.
-        """
+        """Async set with optional expiration and nx/xx flags."""
         client = await self.get_async_client(write=True)
         nkey = self.make_key(key, version=version)
         nvalue = self.encode(value)
@@ -243,14 +222,10 @@ class DefaultClient(SortedSetMixin):
 
         try:
             if timeout is not None:
-                # Convert to milliseconds
                 timeout = int(timeout * 1000)
 
                 if timeout <= 0:
                     if nx:
-                        # Using negative timeouts when nx is True should
-                        # not expire (in our case delete) the value if it exists.
-                        # Obviously expire not existent value is noop.
                         return not await self.ahas_key(key, version=version)
 
                     # redis doesn't support negative timeouts in ex flags
@@ -268,9 +243,7 @@ class DefaultClient(SortedSetMixin):
         version: Optional[int] = None,
         prefix: Optional[str] = None,
     ) -> int:
-        """
-        Async version of delete. Remove a key from the cache.
-        """
+        """Async delete."""
         client = await self.get_async_client(write=True)
 
         try:
@@ -285,9 +258,7 @@ class DefaultClient(SortedSetMixin):
         key: KeyT,
         version: Optional[int] = None,
     ) -> bool:
-        """
-        Async version of has_key. Test if key exists.
-        """
+        """Async has_key."""
         client = await self.get_async_client(write=False)
         key = self.make_key(key, version=version)
 
@@ -303,12 +274,7 @@ class DefaultClient(SortedSetMixin):
         timeout: Optional[float] = DEFAULT_TIMEOUT,
         version: Optional[int] = None,
     ) -> bool:
-        """
-        Async version of add. Add a value to the cache,
-        failing if the key already exists.
-
-        Returns ``True`` if the object was added, ``False`` if not.
-        """
+        """Async add (set if not exists)."""
         return await self.aset(key, value, timeout, version=version, nx=True)
 
     async def adelete_many(
@@ -316,9 +282,7 @@ class DefaultClient(SortedSetMixin):
         keys: Iterable[KeyT],
         version: Optional[int] = None,
     ) -> int:
-        """
-        Async version of delete_many. Remove multiple keys at once.
-        """
+        """Async delete_many."""
         client = await self.get_async_client(write=True)
         keys = [self.make_key(k, version=version) for k in keys]
 
@@ -331,9 +295,7 @@ class DefaultClient(SortedSetMixin):
             raise ConnectionInterrupted(connection=client) from e
 
     async def aclear(self) -> None:
-        """
-        Async version of clear. Flush all cache keys.
-        """
+        """Async clear."""
         client = await self.get_async_client(write=True)
 
         try:
@@ -346,9 +308,7 @@ class DefaultClient(SortedSetMixin):
         keys: Iterable[KeyT],
         version: Optional[int] = None,
     ) -> OrderedDict:
-        """
-        Async version of get_many. Retrieve many keys.
-        """
+        """Async get_many."""
         client = await self.get_async_client(write=False)
 
         if not keys:
@@ -374,20 +334,12 @@ class DefaultClient(SortedSetMixin):
         timeout: Optional[float] = DEFAULT_TIMEOUT,
         version: Optional[int] = None,
     ) -> None:
-        """
-        Async version of set_many. Set a bunch of values in the cache at once
-        from a dict of key/value pairs. This is much more efficient than
-        calling aset() multiple times.
-
-        If timeout is given, that timeout will be used for the key; otherwise
-        the default cache timeout will be used.
-        """
+        """Async set_many."""
         client = await self.get_async_client(write=True)
 
         try:
             pipeline = client.pipeline()
             for key, value in data.items():
-                # Replicate the logic from set() method
                 nkey = self.make_key(key, version=version)
                 nvalue = self.encode(value)
 
@@ -396,7 +348,6 @@ class DefaultClient(SortedSetMixin):
                     timeout_val = self._backend.default_timeout
 
                 if timeout_val is not None:
-                    # Convert to milliseconds
                     timeout_ms = int(timeout_val * 1000)
 
                     if timeout_ms <= 0:
@@ -418,9 +369,7 @@ class DefaultClient(SortedSetMixin):
         timeout: Optional[float] = DEFAULT_TIMEOUT,
         version: Optional[int] = None,
     ) -> bool:
-        """
-        Async version of touch. Sets a new expiration for a key.
-        """
+        """Async touch."""
         if timeout is DEFAULT_TIMEOUT:
             timeout = self._backend.default_timeout
 
@@ -429,8 +378,6 @@ class DefaultClient(SortedSetMixin):
 
         if timeout is None:
             return bool(await client.persist(key))
-
-        # Convert to milliseconds
         timeout_ms = int(timeout * 1000)
         return bool(await client.pexpire(key, timeout_ms))
 
@@ -439,11 +386,7 @@ class DefaultClient(SortedSetMixin):
         key: KeyT,
         version: Optional[int] = None,
     ) -> Optional[int]:
-        """
-        Async version of ttl. Executes TTL redis command and return
-        the "time-to-live" of specified key.
-        If key is a non volatile key, it returns None.
-        """
+        """Async ttl."""
         client = await self.get_async_client(write=False)
         key_obj = self.make_key(key, version=version)
 
@@ -458,8 +401,6 @@ class DefaultClient(SortedSetMixin):
             return None
         if t == -2:
             return 0
-
-        # Should never reach here
         return None
 
     async def _aincr(
@@ -475,9 +416,6 @@ class DefaultClient(SortedSetMixin):
 
         try:
             try:
-                # if key expired after exists check, then we get
-                # key with wrong value and ttl -1.
-                # use lua script for atomicity
                 if not ignore_key_check:
                     lua = """
                     local exists = redis.call('EXISTS', KEYS[1])
@@ -494,16 +432,7 @@ class DefaultClient(SortedSetMixin):
                     error_message = f"Key '{key!r}' not found"
                     raise ValueError(error_message)
             except ResponseError as e:
-                # if cached value or total value is greater than 64 bit signed
-                # integer.
-                # elif int is encoded. so redis sees the data as string.
-                # In this situations redis will throw ResponseError
-
-                # try to keep TTL of key
                 timeout = await self.attl(key, version=version)
-
-                # returns -2 if the key does not exist
-                # means, that key have expired
                 if timeout == -2:
                     error_message = f"Key '{key!r}' not found"
                     raise ValueError(error_message) from e
@@ -521,12 +450,7 @@ class DefaultClient(SortedSetMixin):
         version: Optional[int] = None,
         ignore_key_check: bool = False,
     ) -> int:
-        """
-        Async version of incr. Add delta to value in the cache.
-        If the key does not exist, raise a ValueError exception.
-        if ignore_key_check=True then the key will be created
-        and set to the delta value by default.
-        """
+        """Async incr."""
         return await self._aincr(
             key=key,
             delta=delta,
@@ -540,16 +464,11 @@ class DefaultClient(SortedSetMixin):
         delta: int = 1,
         version: Optional[int] = None,
     ) -> int:
-        """
-        Async version of decr. Decrease delta to value in the cache.
-        If the key does not exist, raise a ValueError exception.
-        """
+        """Async decr."""
         return await self.aincr(key=key, delta=-delta, version=version)
 
     async def aclose(self) -> None:
-        """
-        Async version of close. Close all async clients.
-        """
+        """Async close."""
         for client in self._async_clients.values():
             await client.aclose()
         self._async_clients.clear()
@@ -602,14 +521,10 @@ class DefaultClient(SortedSetMixin):
                     client, index = self.get_client_with_index(write=True, tried=tried)
 
                 if timeout is not None:
-                    # Convert to milliseconds
                     timeout = int(timeout * 1000)
 
                     if timeout <= 0:
                         if nx:
-                            # Using negative timeouts when nx is True should
-                            # not expire (in our case delete) the value if it exists.
-                            # Obviously expire not existent value is noop.
                             return not self.has_key(key, version=version, client=client)
 
                         # redis doesn't support negative timeouts in ex flags
@@ -1009,9 +924,6 @@ class DefaultClient(SortedSetMixin):
 
         try:
             try:
-                # if key expired after exists check, then we get
-                # key with wrong value and ttl -1.
-                # use lua script for atomicity
                 if not ignore_key_check:
                     lua = """
                     local exists = redis.call('EXISTS', KEYS[1])
@@ -1028,16 +940,7 @@ class DefaultClient(SortedSetMixin):
                     error_message = f"Key '{key!r}' not found"
                     raise ValueError(error_message)
             except ResponseError as e:
-                # if cached value or total value is greater than 64 bit signed
-                # integer.
-                # elif int is encoded. so redis sees the data as string.
-                # In this situations redis will throw ResponseError
-
-                # try to keep TTL of key
                 timeout = self.ttl(key, version=version, client=client)
-
-                # returns -2 if the key does not exist
-                # means, that key have expired
                 if timeout == -2:
                     error_message = f"Key '{key!r}' not found"
                     raise ValueError(error_message) from e
@@ -1107,8 +1010,6 @@ class DefaultClient(SortedSetMixin):
             return None
         if t == -2:
             return 0
-
-        # Should never reach here
         return None
 
     def pttl(
@@ -1136,8 +1037,6 @@ class DefaultClient(SortedSetMixin):
             return None
         if t == -2:
             return 0
-
-        # Should never reach here
         return None
 
     def has_key(
@@ -1524,8 +1423,6 @@ class DefaultClient(SortedSetMixin):
         key = self.make_key(key, version=version)
         if timeout is None:
             return bool(client.persist(key))
-
-        # Convert to milliseconds
         timeout = int(timeout * 1000)
         return bool(client.pexpire(key, timeout))
 
