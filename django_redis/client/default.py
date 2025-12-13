@@ -164,7 +164,14 @@ class DefaultClient(SortedSetMixin):
         return self._clients[index], index  # type:ignore
 
     async def get_async_client(self, write: bool = True):
-        """Get or create async client for current event loop."""
+        """
+        Get or create async client for current event loop.
+
+        Each event loop gets its own client and connection pool because:
+        - Async pools cannot be shared across event loops
+        - Connections are bound to the event loop they were created in
+        - WeakKeyDictionary automatically cleans up when loop is GC'd
+        """
         loop = asyncio.get_running_loop()
 
         if loop in self._async_clients:

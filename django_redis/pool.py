@@ -258,9 +258,10 @@ class AsyncConnectionFactory:
         """
         Return new connection pool for params.
 
-        TODO: Investigate why global pool caching causes issues with
-        certain test configurations. For now, create fresh pools which
-        get cached at the client level (per event loop).
+        Unlike sync pools, async pools CANNOT be shared across event loops
+        because connections are bound to the loop they were created in.
+        Each event loop needs its own pool, so we create fresh pools that
+        get cached at the client level (per event loop in WeakKeyDictionary).
         """
         return self.get_connection_pool(params)
 
