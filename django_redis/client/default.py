@@ -496,6 +496,19 @@ class DefaultClient(SortedSetMixin):
         """Return new async redis client for given server index."""
         return self.async_connection_factory.connect(self._server[index])
 
+    async def async_disconnect(
+        self,
+        index: int = 0,
+        client: Optional[Any] = None,
+    ) -> None:
+        loop = asyncio.get_running_loop()
+
+        if client is None and loop in self._async_clients:
+            client = self._async_clients[loop][index]
+
+        if client is not None:
+            await self.async_connection_factory.disconnect(client)
+
     def set(
         self,
         key: KeyT,
@@ -526,10 +539,14 @@ class DefaultClient(SortedSetMixin):
                     client, index = self.get_client_with_index(write=True, tried=tried)
 
                 if timeout is not None:
+                    # Convert to milliseconds
                     timeout = int(timeout * 1000)
 
                     if timeout <= 0:
                         if nx:
+                            # Using negative timeouts when nx is True should
+                            # not expire (in our case delete) the value if it exists.
+                            # Obviously expire not existent value is noop.
                             return not self.has_key(key, version=version, client=client)
 
                         # redis doesn't support negative timeouts in ex flags
