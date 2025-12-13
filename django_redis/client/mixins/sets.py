@@ -211,11 +211,7 @@ class SetMixin(ClientProtocol):
         client: Optional[Redis] = None,
     ) -> builtins.set[Any]:
         """Scan members of a set."""
-        if (
-            hasattr(self, "_has_compression_enabled")
-            and self._has_compression_enabled()
-            and match
-        ):  # type: ignore
+        if self._has_compression_enabled() and match:
             err_msg = "Using match with compression is not supported."
             raise ValueError(err_msg)
 
@@ -240,11 +236,7 @@ class SetMixin(ClientProtocol):
         client: Optional[Redis] = None,
     ) -> Iterator[Any]:
         """Iterate over members of a set using scan."""
-        if (
-            hasattr(self, "_has_compression_enabled")
-            and self._has_compression_enabled()
-            and match
-        ):  # type: ignore
+        if self._has_compression_enabled() and match:
             err_msg = "Using match with compression is not supported."
             raise ValueError(err_msg)
 
