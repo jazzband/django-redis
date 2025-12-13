@@ -197,18 +197,18 @@ class AsyncConnectionFactory:
 
     def __init__(self, options):
         pool_cls_path = options.get(
-            "CONNECTION_POOL_CLASS",
+            "ASYNC_CONNECTION_POOL_CLASS",
             "redis.asyncio.ConnectionPool",
         )
         self.pool_cls = import_string(pool_cls_path)
-        self.pool_cls_kwargs = options.get("CONNECTION_POOL_KWARGS", {})
+        self.pool_cls_kwargs = options.get("ASYNC_CONNECTION_POOL_KWARGS", {})
 
         redis_client_cls_path = options.get(
-            "REDIS_CLIENT_CLASS",
+            "ASYNC_REDIS_CLIENT_CLASS",
             "redis.asyncio.Redis",
         )
         self.redis_client_cls = import_string(redis_client_cls_path)
-        self.redis_client_cls_kwargs = options.get("REDIS_CLIENT_KWARGS", {})
+        self.redis_client_cls_kwargs = options.get("ASYNC_REDIS_CLIENT_KWARGS", {})
 
         self.options = options
 
@@ -258,9 +258,9 @@ class AsyncConnectionFactory:
         """
         Return new connection pool for params.
 
-        Note: Unlike sync factory, we don't cache async pools globally
-        because async connections are tied to event loops. The client
-        caching happens at the get_async_client level per event loop.
+        TODO: Investigate why global pool caching causes issues with
+        certain test configurations. For now, create fresh pools which
+        get cached at the client level (per event loop).
         """
         return self.get_connection_pool(params)
 
