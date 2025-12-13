@@ -168,14 +168,7 @@ class DefaultClient(SortedSetMixin):
         write: bool = True,
         tried: Optional[list[int]] = None,
     ):
-        """
-        Get or create async client for current event loop.
-
-        Each event loop gets its own list of clients (one per server) because:
-        - Async pools cannot be shared across event loops
-        - Connections are bound to the event loop they were created in
-        - WeakKeyDictionary automatically cleans up when loop is GC'd
-        """
+        """Get or create async client for current event loop."""
         loop = asyncio.get_running_loop()
 
         if loop not in self._async_clients:
@@ -500,10 +493,7 @@ class DefaultClient(SortedSetMixin):
             self.connection_factory.disconnect(client)
 
     async def async_connect(self, index: int = 0):
-        """
-        Given a connection index, returns a new async redis client instance.
-        Index is used for replication setups. In normal setups, index is 0.
-        """
+        """Return new async redis client for given server index."""
         return self.async_connection_factory.connect(self._server[index])
 
     def set(

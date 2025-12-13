@@ -188,8 +188,6 @@ class SentinelConnectionFactory(ConnectionFactory):
 
 
 class AsyncConnectionFactory:
-    """Async connection factory with per-event-loop connection pool caching."""
-
     def __init__(self, options):
         pool_cls_path = options.get(
             "ASYNC_CONNECTION_POOL_CLASS",
@@ -207,17 +205,13 @@ class AsyncConnectionFactory:
 
         self.options = options
 
-        # Cache pools per event loop (each loop gets its own dict of pools by URL)
-        # WeakKeyDictionary automatically cleans up when event loop is GC'd
         from weakref import WeakKeyDictionary
 
         self._pools: WeakKeyDictionary = WeakKeyDictionary()
 
     def make_connection_params(self, url):
-        """Build connection parameters dict from URL and options."""
         kwargs = {"url": url}
 
-        # Don't set parser_class - let redis.asyncio use its defaults
         password = self.options.get("PASSWORD", None)
         if password:
             kwargs["password"] = password
@@ -239,16 +233,13 @@ class AsyncConnectionFactory:
         return kwargs
 
     def connect(self, url: str):
-        """Return new async connection for given URL."""
         params = self.make_connection_params(url)
         return self.get_connection(params)
 
     async def disconnect(self, connection) -> None:
-        """Disconnect async client from Redis server."""
         await connection.aclose()
 
     def get_connection(self, params):
-        """Return new async connection using cached connection pool."""
         pool = self.get_or_create_connection_pool(params)
         return self.redis_client_cls(
             connection_pool=pool,
@@ -256,22 +247,13 @@ class AsyncConnectionFactory:
         )
 
     def get_or_create_connection_pool(self, params):
-        """
-        Return cached or new connection pool for params.
-
-        Pools are cached per event loop because async pools CANNOT be shared
-        across event loops - connections are bound to the loop they were created in.
-        WeakKeyDictionary automatically cleans up pools when event loop is GC'd.
-        """
         import asyncio
 
         try:
             loop = asyncio.get_running_loop()
         except RuntimeError:
-            # No event loop running, create pool without caching
             return self.get_connection_pool(params)
 
-        # Get or create the pool dict for this event loop
         if loop not in self._pools:
             self._pools[loop] = {}
 
@@ -284,7 +266,6 @@ class AsyncConnectionFactory:
         return loop_pools[key]
 
     def get_connection_pool(self, params):
-        """Create new async connection pool."""
         cp_params = dict(params)
         cp_params.update(self.pool_cls_kwargs)
         pool = self.pool_cls.from_url(**cp_params)
@@ -312,10 +293,7 @@ def get_connection_factory(path=None, options=None):
 
 
 class AsyncSentinelConnectionFactory(AsyncConnectionFactory):
-    """Async connection factory for Redis Sentinel."""
-
     def __init__(self, options):
-        # Allow overriding the default SentinelConnectionPool class
         options.setdefault(
             "ASYNC_CONNECTION_POOL_CLASS",
             "redis.asyncio.sentinel.SentinelConnectionPool",
@@ -327,10 +305,8 @@ class AsyncSentinelConnectionFactory(AsyncConnectionFactory):
             error_message = "SENTINELS must be provided as a list of (host, port)."
             raise ImproperlyConfigured(error_message)
 
-        # Import at runtime to avoid import errors if not available
         from redis.asyncio.sentinel import Sentinel
 
-        # Provide connection kwargs to sentinel
         connection_kwargs = self.make_connection_params(None)
         connection_kwargs.pop("url")
         connection_kwargs.update(self.pool_cls_kwargs)
@@ -342,19 +318,14 @@ class AsyncSentinelConnectionFactory(AsyncConnectionFactory):
         )
 
     def get_connection_pool(self, params):
-        """Create new sentinel connection pool for async."""
         url = urlparse(params["url"])
-
-        # Set service_name and sentinel_manager for SentinelConnectionPool
         cp_params = dict(params)
 
-        # Convert "is_master" to boolean if set on URL
         query_params = parse_qs(url.query)
         is_master = query_params.get("is_master")
         if is_master:
             cp_params["is_master"] = to_bool(is_master[0])
 
-        # Remove "is_master" from query string
         if "is_master" in query_params:
             del query_params["is_master"]
         new_query = urlencode(query_params, doseq=True)
