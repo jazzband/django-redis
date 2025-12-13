@@ -335,3 +335,46 @@ class RedisCache(BaseCache):
     @omit_exception
     def zscore(self, *args, **kwargs):
         return self.client.zscore(*args, **kwargs)
+
+    # Async Operations
+    async def aget(self, *args, **kwargs):
+        return await self.client.aget(*args, **kwargs)
+
+    async def aset(self, *args, **kwargs):
+        return await self.client.aset(*args, **kwargs)
+
+    async def adelete(self, *args, **kwargs):
+        return await self.client.adelete(*args, **kwargs)
+
+    async def ahas_key(self, *args, **kwargs):
+        return await self.client.ahas_key(*args, **kwargs)
+
+    async def aadd(self, *args, **kwargs):
+        return await self.client.aadd(*args, **kwargs)
+
+    async def adelete_many(self, *args, **kwargs):
+        return await self.client.adelete_many(*args, **kwargs)
+
+    async def aclear(self, *args, **kwargs):
+        return await self.client.aclear(*args, **kwargs)
+
+    async def aget_many(self, *args, **kwargs):
+        return await self.client.aget_many(*args, **kwargs)
+
+    async def aset_many(self, *args, **kwargs):
+        return await self.client.aset_many(*args, **kwargs)
+
+    async def atouch(self, *args, **kwargs):
+        return await self.client.atouch(*args, **kwargs)
+
+    async def aincr(self, *args, **kwargs):
+        return await self.client.aincr(*args, **kwargs)
+
+    async def adecr(self, *args, **kwargs):
+        return await self.client.adecr(*args, **kwargs)
+
+    async def attl(self, *args, **kwargs):
+        return await self.client.attl(*args, **kwargs)
+
+    async def aclose(self, *args, **kwargs):
+        return await self.client.aclose(*args, **kwargs)
