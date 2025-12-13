@@ -23,7 +23,7 @@ from redis.exceptions import TimeoutError as RedisTimeoutError
 from redis.typing import AbsExpiryT, EncodableT, ExpiryT, KeyT, PatternT
 
 from django_redis import pool
-from django_redis.client.mixins import SortedSetMixin
+from django_redis.client.mixins import ListMixin, SortedSetMixin
 from django_redis.exceptions import CompressorError, ConnectionInterrupted
 from django_redis.util import CacheKey
 
@@ -41,7 +41,7 @@ def glob_escape(s: str) -> str:
     return special_re.sub(r"[\1]", s)
 
 
-class DefaultClient(SortedSetMixin):
+class DefaultClient(ListMixin, SortedSetMixin):
     def __init__(self, server, params: dict[str, Any], backend: BaseCache) -> None:
         self._backend = backend
         self._server = server
