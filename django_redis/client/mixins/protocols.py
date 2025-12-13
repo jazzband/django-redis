@@ -31,3 +31,15 @@ class ClientProtocol(Protocol):
     def get_client(self, write: bool = False) -> Redis:
         """Get a Redis client instance for read or write operations."""
         ...
+
+    def _has_compression_enabled(self) -> bool:
+        """Check if compression is enabled for this client."""
+        ...
+
+    def _decode_iterable_result(
+        self,
+        result: Any,
+        covert_to_set: bool = True,
+    ) -> Union[list[Any], None, Any]:
+        """Decode an iterable result from Redis."""
+        ...
