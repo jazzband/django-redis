@@ -85,6 +85,9 @@ class DefaultClient(SortedSetMixin):
         self._compressor = compressor_cls(options=self._options)
 
         self.connection_factory = pool.get_connection_factory(options=self._options)
+        self.async_connection_factory = pool.get_async_connection_factory(
+            options=self._options,
+        )
 
     def __contains__(self, key: KeyT) -> bool:
         return self.has_key(key)
@@ -162,23 +165,13 @@ class DefaultClient(SortedSetMixin):
 
     async def get_async_client(self, write: bool = True):
         """Get or create async client for current event loop."""
-        try:
-            import redis.asyncio as aioredis
-        except ImportError as e:
-            msg = "redis.asyncio is required for async support"
-            raise ImportError(msg) from e
-
         loop = asyncio.get_running_loop()
 
         if loop in self._async_clients:
             return self._async_clients[loop]
 
         connection_string = self._server[0]
-        client = aioredis.from_url(
-            connection_string,
-            encoding="utf-8",
-            decode_responses=False,
-        )
+        client = self.async_connection_factory.connect(connection_string)
 
         self._async_clients[loop] = client
         return client
@@ -470,7 +463,7 @@ class DefaultClient(SortedSetMixin):
     async def aclose(self) -> None:
         """Async close."""
         for client in self._async_clients.values():
-            await client.aclose()
+            await self.async_connection_factory.disconnect(client)
         self._async_clients.clear()
 
     def connect(self, index: int = 0) -> Redis:

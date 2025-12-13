@@ -190,6 +190,93 @@ class SentinelConnectionFactory(ConnectionFactory):
         return super().get_connection_pool(cp_params)
 
 
+class AsyncConnectionFactory:
+    """Async connection factory with process-global connection pool caching."""
+
+    _pools: dict[str, object] = {}
+
+    def __init__(self, options):
+        pool_cls_path = options.get(
+            "CONNECTION_POOL_CLASS",
+            "redis.asyncio.ConnectionPool",
+        )
+        self.pool_cls = import_string(pool_cls_path)
+        self.pool_cls_kwargs = options.get("CONNECTION_POOL_KWARGS", {})
+
+        redis_client_cls_path = options.get(
+            "REDIS_CLIENT_CLASS",
+            "redis.asyncio.Redis",
+        )
+        self.redis_client_cls = import_string(redis_client_cls_path)
+        self.redis_client_cls_kwargs = options.get("REDIS_CLIENT_KWARGS", {})
+
+        self.options = options
+
+    def make_connection_params(self, url):
+        """Build connection parameters dict from URL and options."""
+        kwargs = {"url": url}
+
+        # Don't set parser_class - let redis.asyncio use its defaults
+        password = self.options.get("PASSWORD", None)
+        if password:
+            kwargs["password"] = password
+
+        socket_timeout = self.options.get("SOCKET_TIMEOUT", None)
+        if socket_timeout:
+            if not isinstance(socket_timeout, (int, float)):
+                error_message = "Socket timeout should be float or integer"
+                raise ImproperlyConfigured(error_message)
+            kwargs["socket_timeout"] = socket_timeout
+
+        socket_connect_timeout = self.options.get("SOCKET_CONNECT_TIMEOUT", None)
+        if socket_connect_timeout:
+            if not isinstance(socket_connect_timeout, (int, float)):
+                error_message = "Socket connect timeout should be float or integer"
+                raise ImproperlyConfigured(error_message)
+            kwargs["socket_connect_timeout"] = socket_connect_timeout
+
+        return kwargs
+
+    def connect(self, url: str):
+        """Return new async connection for given URL."""
+        params = self.make_connection_params(url)
+        return self.get_connection(params)
+
+    async def disconnect(self, connection) -> None:
+        """Disconnect async client from Redis server."""
+        await connection.aclose()
+
+    def get_connection(self, params):
+        """Return new async connection using cached connection pool."""
+        pool = self.get_or_create_connection_pool(params)
+        return self.redis_client_cls(
+            connection_pool=pool,
+            **self.redis_client_cls_kwargs,
+        )
+
+    def get_or_create_connection_pool(self, params):
+        """
+        Return new connection pool for params.
+
+        Note: Unlike sync factory, we don't cache async pools globally
+        because async connections are tied to event loops. The client
+        caching happens at the get_async_client level per event loop.
+        """
+        return self.get_connection_pool(params)
+
+    def get_connection_pool(self, params):
+        """Create new async connection pool."""
+        cp_params = dict(params)
+        cp_params.update(self.pool_cls_kwargs)
+        pool = self.pool_cls.from_url(**cp_params)
+
+        if pool.connection_kwargs.get("password", None) is None:
+            pool.connection_kwargs["password"] = params.get("password", None)
+            pool.reset()
+
+        return pool
+
+
 def get_connection_factory(path=None, options=None):
     if path is None:
         path = getattr(
@@ -198,6 +285,21 @@ def get_connection_factory(path=None, options=None):
             "django_redis.pool.ConnectionFactory",
         )
     opt_conn_factory = options.get("CONNECTION_FACTORY")
+    if opt_conn_factory:
+        path = opt_conn_factory
+
+    cls = import_string(path)
+    return cls(options or {})
+
+
+def get_async_connection_factory(path=None, options=None):
+    if path is None:
+        path = getattr(
+            settings,
+            "DJANGO_REDIS_ASYNC_CONNECTION_FACTORY",
+            "django_redis.pool.AsyncConnectionFactory",
+        )
+    opt_conn_factory = options.get("ASYNC_CONNECTION_FACTORY")
     if opt_conn_factory:
         path = opt_conn_factory
 
