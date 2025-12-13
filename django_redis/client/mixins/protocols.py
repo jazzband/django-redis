@@ -1,4 +1,4 @@
-from typing import Any, Optional, Protocol, Union
+from typing import Any, Callable, Optional, Protocol, Union
 
 from redis import Redis
 from redis.typing import KeyT
@@ -10,6 +10,8 @@ class ClientProtocol(Protocol):
 
     Any class using django-redis mixins must implement these methods.
     """
+
+    reverse_key: Callable[[str], str]
 
     def make_key(
         self,
