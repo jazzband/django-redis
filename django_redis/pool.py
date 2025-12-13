@@ -188,9 +188,7 @@ class SentinelConnectionFactory(ConnectionFactory):
 
 
 class AsyncConnectionFactory:
-    """Async connection factory with process-global connection pool caching."""
-
-    _pools: dict[str, object] = {}
+    """Async connection factory with per-event-loop connection pool caching."""
 
     def __init__(self, options):
         pool_cls_path = options.get(
@@ -208,6 +206,12 @@ class AsyncConnectionFactory:
         self.redis_client_cls_kwargs = options.get("ASYNC_REDIS_CLIENT_KWARGS", {})
 
         self.options = options
+
+        # Cache pools per event loop (each loop gets its own dict of pools by URL)
+        # WeakKeyDictionary automatically cleans up when event loop is GC'd
+        from weakref import WeakKeyDictionary
+
+        self._pools: WeakKeyDictionary = WeakKeyDictionary()
 
     def make_connection_params(self, url):
         """Build connection parameters dict from URL and options."""
@@ -253,14 +257,31 @@ class AsyncConnectionFactory:
 
     def get_or_create_connection_pool(self, params):
         """
-        Return new connection pool for params.
+        Return cached or new connection pool for params.
 
-        Unlike sync pools, async pools CANNOT be shared across event loops
-        because connections are bound to the loop they were created in.
-        Each event loop needs its own pool, so we create fresh pools that
-        get cached at the client level (per event loop in WeakKeyDictionary).
+        Pools are cached per event loop because async pools CANNOT be shared
+        across event loops - connections are bound to the loop they were created in.
+        WeakKeyDictionary automatically cleans up pools when event loop is GC'd.
         """
-        return self.get_connection_pool(params)
+        import asyncio
+
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            # No event loop running, create pool without caching
+            return self.get_connection_pool(params)
+
+        # Get or create the pool dict for this event loop
+        if loop not in self._pools:
+            self._pools[loop] = {}
+
+        loop_pools = self._pools[loop]
+        key = params["url"]
+
+        if key not in loop_pools:
+            loop_pools[key] = self.get_connection_pool(params)
+
+        return loop_pools[key]
 
     def get_connection_pool(self, params):
         """Create new async connection pool."""
