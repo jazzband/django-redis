@@ -529,30 +529,8 @@ You can use the ``SETNX`` command through the backend ``set()`` method with the
 Also, the ``incr`` and ``decr`` methods use Redis atomic operations when the
 value that a key contains is suitable for it.
 
-Redis List Operations
-~~~~~~~~~~~~~~~~~~~~~~
-
-django-redis provides full support for Redis list operations through the ``ListMixin``.
-Lists are useful for implementing queues, stacks, and maintaining ordered collections.
-
-.. code-block:: pycon
-
-    >>> from django.core.cache import cache
-    >>> # Push elements to a list
-    >>> cache.rpush("mylist", "item1", "item2", "item3")
-    3
-    >>> # Get all elements
-    >>> cache.lrange("mylist", 0, -1)
-    ["item1", "item2", "item3"]
-    >>> # Pop from the left (queue pattern)
-    >>> cache.lpop("mylist")
-    "item1"
-    >>> # Get list length
-    >>> cache.llen("mylist")
-    2
-
-Available list methods: ``lpush``, ``rpush``, ``lpop``, ``rpop``, ``lrange``,
-``lindex``, ``llen``, ``lrem``, ``ltrim``, ``lset``.
+For Redis list, set, and sorted set operations, django-redis provides methods like
+``lpush``, ``rpush``, ``lpop``, ``sadd``, ``smembers``, ``zadd``, ``zrange``, etc.
 
 Raw client access
 ~~~~~~~~~~~~~~~~~
