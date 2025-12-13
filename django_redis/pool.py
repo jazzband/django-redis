@@ -290,6 +290,67 @@ def get_connection_factory(path=None, options=None):
     return cls(options or {})
 
 
+class AsyncSentinelConnectionFactory(AsyncConnectionFactory):
+    """Async connection factory for Redis Sentinel."""
+
+    def __init__(self, options):
+        # Allow overriding the default SentinelConnectionPool class
+        options.setdefault(
+            "ASYNC_CONNECTION_POOL_CLASS",
+            "redis.asyncio.sentinel.SentinelConnectionPool",
+        )
+        super().__init__(options)
+
+        sentinels = options.get("SENTINELS")
+        if not sentinels:
+            error_message = "SENTINELS must be provided as a list of (host, port)."
+            raise ImproperlyConfigured(error_message)
+
+        # Import at runtime to avoid import errors if not available
+        from redis.asyncio.sentinel import Sentinel
+
+        # Provide connection kwargs to sentinel
+        connection_kwargs = self.make_connection_params(None)
+        connection_kwargs.pop("url")
+        connection_kwargs.update(self.pool_cls_kwargs)
+
+        self._sentinel = Sentinel(
+            sentinels,
+            sentinel_kwargs=options.get("SENTINEL_KWARGS"),
+            **connection_kwargs,
+        )
+
+    def get_connection_pool(self, params):
+        """Create new sentinel connection pool for async."""
+        url = urlparse(params["url"])
+
+        # Set service_name and sentinel_manager for SentinelConnectionPool
+        cp_params = dict(params)
+
+        # Convert "is_master" to boolean if set on URL
+        query_params = parse_qs(url.query)
+        is_master = query_params.get("is_master")
+        if is_master:
+            cp_params["is_master"] = to_bool(is_master[0])
+
+        # Remove "is_master" from query string
+        if "is_master" in query_params:
+            del query_params["is_master"]
+        new_query = urlencode(query_params, doseq=True)
+
+        new_url = urlunparse(
+            (url.scheme, url.netloc, url.path, url.params, new_query, url.fragment),
+        )
+
+        cp_params.update(
+            service_name=url.hostname,
+            sentinel_manager=self._sentinel,
+            url=new_url,
+        )
+
+        return super().get_connection_pool(cp_params)
+
+
 def get_async_connection_factory(path=None, options=None):
     if path is None:
         path = getattr(
