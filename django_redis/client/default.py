@@ -1196,9 +1196,7 @@ class DefaultClient(SortedSetMixin):
         if client is None:
             client = self.get_client(write=False)
         result = client.hgetall(name)
-        return {
-            self.reverse_key(k.decode()): self.decode(v) for k, v in result.items()
-        }
+        return {self.reverse_key(k.decode()): self.decode(v) for k, v in result.items()}
 
     def hmset(
         self,
