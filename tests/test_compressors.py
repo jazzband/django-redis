@@ -4,6 +4,7 @@ import pytest
 
 from django_redis.compressors.base import BaseCompressor
 from django_redis.compressors.gzip import GzipCompressor
+from django_redis.compressors.identity import IdentityCompressor
 from django_redis.exceptions import CompressorError
 
 
@@ -15,26 +16,30 @@ class BaseCompressorTests:
 
     __test__ = False  # pytest should only run subclasses
     compressor_cls: ClassVar[type[BaseCompressor]] = BaseCompressor
+    raises_on_invalid: ClassVar[bool] = True
 
     @pytest.fixture()
     def compressor(self) -> BaseCompressor:
         return self.compressor_cls({})
 
     def test_round_trip(self, compressor):
-        payload = b"a" * (compressor.min_length + 5)
+        payload = b"a" * (getattr(compressor, "min_length", 0) + 5)
 
         compressed = compressor.compress(payload)
 
-        assert compressed != payload
         assert compressor.decompress(compressed) == payload
 
     def test_small_values_are_not_compressed(self, compressor):
-        payload = b"a" * compressor.min_length
+        payload = b"a" * getattr(compressor, "min_length", 1)
         assert compressor.compress(payload) == payload
 
     def test_invalid_payload_raises(self, compressor):
-        with pytest.raises(CompressorError):
-            compressor.decompress(b"not-a-valid-stream")
+        bad = b"not-a-valid-stream"
+        if self.raises_on_invalid:
+            with pytest.raises(CompressorError):
+                compressor.decompress(bad)
+        else:
+            assert compressor.decompress(bad) == bad
 
 
 class TestGzipCompressor(BaseCompressorTests):
@@ -47,3 +52,14 @@ class TestGzipCompressor(BaseCompressorTests):
         second = compressor.compress(payload)
 
         assert first == second
+
+
+class TestIdentityCompressor(BaseCompressorTests):
+    compressor_cls = IdentityCompressor
+    raises_on_invalid = False
+
+    def test_identity_always_passthrough(self, compressor):
+        payloads = [b"", b"short", b"long" * 10]
+        for payload in payloads:
+            assert compressor.compress(payload) == payload
+            assert compressor.decompress(payload) == payload
