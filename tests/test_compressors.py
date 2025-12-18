@@ -1,5 +1,8 @@
+from typing import ClassVar
+
 import pytest
 
+from django_redis.compressors.base import BaseCompressor
 from django_redis.compressors.gzip import GzipCompressor
 from django_redis.exceptions import CompressorError
 
@@ -10,10 +13,11 @@ class BaseCompressorTests:
     Subclass this and set compressor_cls to add coverage for a new compressor.
     """
 
-    compressor_cls = None
+    __test__ = False  # pytest should only run subclasses
+    compressor_cls: ClassVar[type[BaseCompressor]] = BaseCompressor
 
     @pytest.fixture()
-    def compressor(self):
+    def compressor(self) -> BaseCompressor:
         return self.compressor_cls({})
 
     def test_round_trip(self, compressor):
@@ -21,7 +25,6 @@ class BaseCompressorTests:
 
         compressed = compressor.compress(payload)
 
-        # Should actually compress when above min_length.
         assert compressed != payload
         assert compressor.decompress(compressed) == payload
 
@@ -44,4 +47,3 @@ class TestGzipCompressor(BaseCompressorTests):
         second = compressor.compress(payload)
 
         assert first == second
-
