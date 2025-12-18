@@ -1,8 +1,8 @@
 import datetime
 import threading
-from contextlib import suppress
 import time
 from collections.abc import Iterable
+from contextlib import suppress
 from datetime import timedelta
 from typing import Union, cast
 from unittest.mock import patch
