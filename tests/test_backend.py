@@ -1,5 +1,6 @@
 import datetime
 import threading
+from contextlib import suppress
 import time
 from collections.abc import Iterable
 from datetime import timedelta
@@ -22,11 +23,13 @@ from tests.settings_wrapper import SettingsWrapper
 @pytest.fixture
 def patch_itersize_setting() -> Iterable[None]:
     # destroy cache to force recreation with overriden settings
-    del caches["default"]
+    with suppress(AttributeError):
+        del caches["default"]
     with override_settings(DJANGO_REDIS_SCAN_ITERSIZE=30):
         yield
     # destroy cache to force recreation with original settings
-    del caches["default"]
+    with suppress(AttributeError):
+        del caches["default"]
 
 
 class TestDjangoRedisCache:
