@@ -44,4 +44,3 @@ class TestGzipCompressor(BaseCompressorTests):
         second = compressor.compress(payload)
 
         assert first == second
-
