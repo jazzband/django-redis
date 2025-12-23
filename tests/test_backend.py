@@ -2,6 +2,7 @@ import datetime
 import threading
 import time
 from collections.abc import Iterable
+from contextlib import suppress
 from datetime import timedelta
 from typing import Union, cast
 from unittest.mock import patch
@@ -22,11 +23,13 @@ from tests.settings_wrapper import SettingsWrapper
 @pytest.fixture
 def patch_itersize_setting() -> Iterable[None]:
     # destroy cache to force recreation with overriden settings
-    del caches["default"]
+    with suppress(AttributeError):
+        del caches["default"]
     with override_settings(DJANGO_REDIS_SCAN_ITERSIZE=30):
         yield
     # destroy cache to force recreation with original settings
-    del caches["default"]
+    with suppress(AttributeError):
+        del caches["default"]
 
 
 class TestDjangoRedisCache:
@@ -870,6 +873,60 @@ class TestDjangoRedisCache:
         cache.hset("foo_hash5", "foo1", "bar1")
         assert cache.hexists("foo_hash5", "foo1")
         assert not cache.hexists("foo_hash5", "foo")
+
+    def test_hget_and_hgetall(self, cache: RedisCache):
+        if isinstance(cache.client, ShardClient):
+            pytest.skip("ShardClient doesn't support get_client")
+        cache.hset("foo_hash6", "foo1", "bar1")
+        cache.hset("foo_hash6", "foo2", 2)
+
+        assert cache.hget("foo_hash6", "foo1") == "bar1"
+        assert cache.hget("foo_hash6", "foo2") == 2
+        assert cache.hget("foo_hash6", "missing") is None
+
+        assert cache.hgetall("foo_hash6") == {"foo1": "bar1", "foo2": 2}
+
+    def test_hmset_and_hmget(self, cache: RedisCache):
+        if isinstance(cache.client, ShardClient):
+            pytest.skip("ShardClient doesn't support get_client")
+        data = {"foo1": "bar1", "foo2": 2, "foo3": 3}
+        assert cache.hmset("foo_hash7", data)
+        values = cache.hmget("foo_hash7", ["foo1", "foo2", "foo3", "foo4"])
+        assert values == ["bar1", 2, 3, None]
+        assert cache.hmget("foo_hash7", "foo1", "foo3") == ["bar1", 3]
+
+    def test_hsetnx(self, cache: RedisCache):
+        if isinstance(cache.client, ShardClient):
+            pytest.skip("ShardClient doesn't support get_client")
+        assert cache.hsetnx("foo_hash8", "foo1", "bar1") == 1
+        assert cache.hsetnx("foo_hash8", "foo1", "bar2") == 0
+        assert cache.hget("foo_hash8", "foo1") == "bar1"
+        assert cache.hsetnx("foo_hash8", "foo2", "bar2") == 1
+        assert cache.hget("foo_hash8", "foo2") == "bar2"
+
+    def test_hincrby_and_hincrbyfloat(self, cache: RedisCache):
+        if isinstance(cache.client, ShardClient):
+            pytest.skip("ShardClient doesn't support get_client")
+        cache.hset("foo_hash9", "foo1", 1)
+        assert cache.hincrby("foo_hash9", "foo1", 2) == 3
+        assert cache.hget("foo_hash9", "foo1") == 3
+
+        new_value = cache.hincrbyfloat("foo_hash9", "foo1", 0.5)
+        assert new_value == pytest.approx(3.5)
+        assert cache.hget("foo_hash9", "foo1") == pytest.approx(3.5)
+
+    def test_hvals_and_hstrlen(self, cache: RedisCache):
+        if isinstance(cache.client, ShardClient):
+            pytest.skip("ShardClient doesn't support get_client")
+        cache.hset("foo_hash10", "foo1", "bar1")
+        cache.hset("foo_hash10", "foo2", 2)
+
+        assert set(cache.hvals("foo_hash10")) == {"bar1", 2}
+
+        cache.hset("foo_hash10", "foo3", 12345)
+        assert set(cache.hvals("foo_hash10")) == {"bar1", 2, 12345}
+        assert cache.hstrlen("foo_hash10", "foo3") == 5
+        assert cache.hstrlen("foo_hash10", "foo_missing") == 0
 
     def test_sadd(self, cache: RedisCache):
         assert cache.sadd("foo", "bar") == 1

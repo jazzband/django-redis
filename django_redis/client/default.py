@@ -3,7 +3,7 @@ import random
 import re
 import socket
 from collections import OrderedDict
-from collections.abc import Iterable, Iterator
+from collections.abc import Iterable, Iterator, Mapping
 from contextlib import suppress
 from typing import (
     Any,
@@ -508,6 +508,8 @@ class DefaultClient(SortedSetMixin):
         try:
             value = int(value)
         except (ValueError, TypeError):
+            with suppress(ValueError, TypeError):
+                return float(value)
             # Handle little values, chosen to be not compressed
             with suppress(CompressorError):
                 value = self._compressor.decompress(value)
@@ -1147,6 +1149,133 @@ class DefaultClient(SortedSetMixin):
         nvalue = self.encode(value)
         return int(client.hset(name, nkey, nvalue))
 
+    def hsetnx(
+        self,
+        name: str,
+        key: KeyT,
+        value: EncodableT,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
+    ) -> int:
+        """
+        Set the value of hash name at key to value if it does not already exist.
+        Returns 1 if field was set, otherwise 0.
+        """
+        if client is None:
+            client = self.get_client(write=True)
+        nkey = self.make_key(key, version=version)
+        nvalue = self.encode(value)
+        return int(client.hsetnx(name, nkey, nvalue))
+
+    def hget(
+        self,
+        name: str,
+        key: KeyT,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
+    ) -> Any:
+        """
+        Return the value of key within hash name. Returns None if field is missing.
+        """
+        if client is None:
+            client = self.get_client(write=False)
+        nkey = self.make_key(key, version=version)
+        result = client.hget(name, nkey)
+        if result is None:
+            return None
+        return self.decode(result)
+
+    def hgetall(
+        self,
+        name: str,
+        client: Optional[Redis] = None,
+    ) -> dict[str, Any]:
+        """
+        Return a dictionary of all fields and values stored in hash name.
+        """
+        if client is None:
+            client = self.get_client(write=False)
+        result = client.hgetall(name)
+        return {self.reverse_key(k.decode()): self.decode(v) for k, v in result.items()}
+
+    def hmset(
+        self,
+        name: str,
+        mapping: Mapping[KeyT, EncodableT],
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
+    ) -> bool:
+        """
+        Set multiple hash fields to multiple values.
+        """
+        if client is None:
+            client = self.get_client(write=True)
+        nmapping = {
+            self.make_key(k, version=version): self.encode(v)
+            for k, v in mapping.items()
+        }
+        return bool(client.hset(name, mapping=nmapping))
+
+    def hmget(
+        self,
+        name: str,
+        keys: Iterable[KeyT],
+        *args: KeyT,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
+    ) -> list[Any]:
+        """
+        Return a list of values ordered identically to keys.
+        """
+        if client is None:
+            client = self.get_client(write=False)
+
+        if args:
+            if isinstance(keys, (str, CacheKey, bytes)):
+                key_iterable: Iterable[KeyT] = (keys, *args)
+            else:
+                key_iterable = (*keys, *args)
+        elif isinstance(keys, (str, CacheKey, bytes)):
+            key_iterable = (keys,)
+        else:
+            key_iterable = keys
+
+        nkeys = [self.make_key(key, version=version) for key in key_iterable]
+        results = client.hmget(name, nkeys)
+        return [self.decode(value) if value is not None else None for value in results]
+
+    def hincrby(
+        self,
+        name: str,
+        key: KeyT,
+        amount: int = 1,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
+    ) -> int:
+        """
+        Increment the integer value of a hash field by the given amount.
+        """
+        if client is None:
+            client = self.get_client(write=True)
+        nkey = self.make_key(key, version=version)
+        return int(client.hincrby(name, nkey, amount))
+
+    def hincrbyfloat(
+        self,
+        name: str,
+        key: KeyT,
+        amount: float = 1.0,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
+    ) -> float:
+        """
+        Increment the float value of a hash field by the given amount.
+        """
+        if client is None:
+            client = self.get_client(write=True)
+        nkey = self.make_key(key, version=version)
+        return float(client.hincrbyfloat(name, nkey, amount))
+
     def hdel(
         self,
         name: str,
@@ -1190,6 +1319,18 @@ class DefaultClient(SortedSetMixin):
         except _main_exceptions as e:
             raise ConnectionInterrupted(connection=client) from e
 
+    def hvals(
+        self,
+        name: str,
+        client: Optional[Redis] = None,
+    ) -> list[Any]:
+        """
+        Return a list of values in hash name.
+        """
+        if client is None:
+            client = self.get_client(write=False)
+        return [self.decode(value) for value in client.hvals(name)]
+
     def hexists(
         self,
         name: str,
@@ -1204,3 +1345,18 @@ class DefaultClient(SortedSetMixin):
             client = self.get_client(write=False)
         nkey = self.make_key(key, version=version)
         return bool(client.hexists(name, nkey))
+
+    def hstrlen(
+        self,
+        name: str,
+        key: KeyT,
+        version: Optional[int] = None,
+        client: Optional[Redis] = None,
+    ) -> int:
+        """
+        Return the string length of the value stored at key in hash name.
+        """
+        if client is None:
+            client = self.get_client(write=False)
+        nkey = self.make_key(key, version=version)
+        return int(client.hstrlen(name, nkey))
