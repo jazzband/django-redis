@@ -1,0 +1,1 @@
+Rename 'name' parameter to 'key' in all sorted set methods for better consistency with Redis terminology
