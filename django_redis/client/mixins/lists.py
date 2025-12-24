@@ -11,7 +11,7 @@ class ListMixin(ClientProtocol):
 
     def lpush(
         self,
-        name: KeyT,
+        key: KeyT,
         *values: Any,
         version: Optional[int] = None,
         client: Optional[Redis] = None,
@@ -20,13 +20,13 @@ class ListMixin(ClientProtocol):
         if client is None:
             client = self.get_client(write=True)
 
-        name = self.make_key(name, version=version)
+        key = self.make_key(key, version=version)
         encoded_values = [self.encode(value) for value in values]
-        return int(client.lpush(name, *encoded_values))
+        return int(client.lpush(key, *encoded_values))
 
     def rpush(
         self,
-        name: KeyT,
+        key: KeyT,
         *values: Any,
         version: Optional[int] = None,
         client: Optional[Redis] = None,
@@ -35,13 +35,13 @@ class ListMixin(ClientProtocol):
         if client is None:
             client = self.get_client(write=True)
 
-        name = self.make_key(name, version=version)
+        key = self.make_key(key, version=version)
         encoded_values = [self.encode(value) for value in values]
-        return int(client.rpush(name, *encoded_values))
+        return int(client.rpush(key, *encoded_values))
 
     def lpop(
         self,
-        name: KeyT,
+        key: KeyT,
         count: Optional[int] = None,
         version: Optional[int] = None,
         client: Optional[Redis] = None,
@@ -50,8 +50,8 @@ class ListMixin(ClientProtocol):
         if client is None:
             client = self.get_client(write=True)
 
-        name = self.make_key(name, version=version)
-        result = client.lpop(name, count=count)
+        key = self.make_key(key, version=version)
+        result = client.lpop(key, count=count)
 
         if result is None:
             return None
@@ -61,7 +61,7 @@ class ListMixin(ClientProtocol):
 
     def rpop(
         self,
-        name: KeyT,
+        key: KeyT,
         count: Optional[int] = None,
         version: Optional[int] = None,
         client: Optional[Redis] = None,
@@ -70,8 +70,8 @@ class ListMixin(ClientProtocol):
         if client is None:
             client = self.get_client(write=True)
 
-        name = self.make_key(name, version=version)
-        result = client.rpop(name, count=count)
+        key = self.make_key(key, version=version)
+        result = client.rpop(key, count=count)
 
         if result is None:
             return None
@@ -81,7 +81,7 @@ class ListMixin(ClientProtocol):
 
     def lrange(
         self,
-        name: KeyT,
+        key: KeyT,
         start: int,
         end: int,
         version: Optional[int] = None,
@@ -91,13 +91,13 @@ class ListMixin(ClientProtocol):
         if client is None:
             client = self.get_client(write=False)
 
-        name = self.make_key(name, version=version)
-        result = client.lrange(name, start, end)
+        key = self.make_key(key, version=version)
+        result = client.lrange(key, start, end)
         return [self.decode(item) for item in result]
 
     def lindex(
         self,
-        name: KeyT,
+        key: KeyT,
         index: int,
         version: Optional[int] = None,
         client: Optional[Redis] = None,
@@ -106,15 +106,15 @@ class ListMixin(ClientProtocol):
         if client is None:
             client = self.get_client(write=False)
 
-        name = self.make_key(name, version=version)
-        result = client.lindex(name, index)
+        key = self.make_key(key, version=version)
+        result = client.lindex(key, index)
         if result is None:
             return None
         return self.decode(result)
 
     def llen(
         self,
-        name: KeyT,
+        key: KeyT,
         version: Optional[int] = None,
         client: Optional[Redis] = None,
     ) -> int:
@@ -122,12 +122,12 @@ class ListMixin(ClientProtocol):
         if client is None:
             client = self.get_client(write=False)
 
-        name = self.make_key(name, version=version)
-        return int(client.llen(name))
+        key = self.make_key(key, version=version)
+        return int(client.llen(key))
 
     def lrem(
         self,
-        name: KeyT,
+        key: KeyT,
         count: int,
         value: Any,
         version: Optional[int] = None,
@@ -137,13 +137,13 @@ class ListMixin(ClientProtocol):
         if client is None:
             client = self.get_client(write=True)
 
-        name = self.make_key(name, version=version)
+        key = self.make_key(key, version=version)
         encoded_value = self.encode(value)
-        return int(client.lrem(name, count, encoded_value))
+        return int(client.lrem(key, count, encoded_value))
 
     def ltrim(
         self,
-        name: KeyT,
+        key: KeyT,
         start: int,
         end: int,
         version: Optional[int] = None,
@@ -153,12 +153,12 @@ class ListMixin(ClientProtocol):
         if client is None:
             client = self.get_client(write=True)
 
-        name = self.make_key(name, version=version)
-        return bool(client.ltrim(name, start, end))
+        key = self.make_key(key, version=version)
+        return bool(client.ltrim(key, start, end))
 
     def lset(
         self,
-        name: KeyT,
+        key: KeyT,
         index: int,
         value: Any,
         version: Optional[int] = None,
@@ -168,6 +168,6 @@ class ListMixin(ClientProtocol):
         if client is None:
             client = self.get_client(write=True)
 
-        name = self.make_key(name, version=version)
+        key = self.make_key(key, version=version)
         encoded_value = self.encode(value)
-        return bool(client.lset(name, index, encoded_value))
+        return bool(client.lset(key, index, encoded_value))
