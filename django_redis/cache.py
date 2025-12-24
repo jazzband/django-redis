@@ -335,3 +335,44 @@ class RedisCache(BaseCache):
     @omit_exception
     def zscore(self, *args, **kwargs):
         return self.client.zscore(*args, **kwargs)
+
+    # List Operations
+    @omit_exception
+    def lpush(self, *args, **kwargs):
+        return self.client.lpush(*args, **kwargs)
+
+    @omit_exception
+    def rpush(self, *args, **kwargs):
+        return self.client.rpush(*args, **kwargs)
+
+    @omit_exception
+    def lpop(self, *args, **kwargs):
+        return self.client.lpop(*args, **kwargs)
+
+    @omit_exception
+    def rpop(self, *args, **kwargs):
+        return self.client.rpop(*args, **kwargs)
+
+    @omit_exception
+    def lrange(self, *args, **kwargs):
+        return self.client.lrange(*args, **kwargs)
+
+    @omit_exception
+    def lindex(self, *args, **kwargs):
+        return self.client.lindex(*args, **kwargs)
+
+    @omit_exception
+    def llen(self, *args, **kwargs):
+        return self.client.llen(*args, **kwargs)
+
+    @omit_exception
+    def lrem(self, *args, **kwargs):
+        return self.client.lrem(*args, **kwargs)
+
+    @omit_exception
+    def ltrim(self, *args, **kwargs):
+        return self.client.ltrim(*args, **kwargs)
+
+    @omit_exception
+    def lset(self, *args, **kwargs):
+        return self.client.lset(*args, **kwargs)
