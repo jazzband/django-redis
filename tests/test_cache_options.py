@@ -3,12 +3,18 @@ from collections.abc import Iterable
 from typing import cast
 
 import pytest
+from django.core.cache import cache as default_cache
 from django.core.cache import caches
 from pytest import LogCaptureFixture
 from redis.exceptions import ConnectionError as RedisConnectionError
 
 from django_redis.cache import RedisCache
 from django_redis.client import ShardClient
+
+iter_methods = {
+    "iter_keys",
+    "sscan_iter",
+}
 
 
 def make_key(key: str, prefix: str, version: str) -> str:
@@ -53,6 +59,16 @@ def test_get_django_omit_exceptions(
         record.levelname == "ERROR" and record.msg == "Exception ignored"
         for record in caplog.records
     )
+
+
+def test_iterator_methods(ignore_exceptions_cache: RedisCache, subtests):
+    for m in iter_methods:
+        method = getattr(ignore_exceptions_cache, m)
+        with subtests.test(method=method):
+            if isinstance(default_cache.client, ShardClient) and m == "iter_keys":
+                pytest.skip(f"shard client doesn't support {m}")
+            for _ in method("abc"):
+                pass
 
 
 def test_get_django_omit_exceptions_priority_1(settings):

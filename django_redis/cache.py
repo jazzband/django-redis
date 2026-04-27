@@ -15,6 +15,7 @@ CONNECTION_INTERRUPTED = object()
 def omit_exception(
     method: Optional[Callable] = None,
     return_value: Optional[Any] = None,
+    gen=False,
 ):
     """
     Simple decorator that intercepts connection
@@ -22,7 +23,7 @@ def omit_exception(
     """
 
     if method is None:
-        return functools.partial(omit_exception, return_value=return_value)
+        return functools.partial(omit_exception, return_value=return_value, gen=gen)
 
     @functools.wraps(method)
     def _decorator(self, *args, **kwargs):
@@ -36,7 +37,21 @@ def omit_exception(
                 return return_value
             raise e.__cause__  # noqa: B904
 
-    return _decorator
+    @functools.wraps(method)
+    def _generator_decorator(self, *args, **kwargs):
+        try:
+            yield from method(self, *args, **kwargs)
+        except ConnectionInterrupted as e:
+            if self._ignore_exceptions:
+                if self._log_ignored_exceptions:
+                    self.logger.exception("Exception ignored")
+
+                return return_value
+            raise e.__cause__  # noqa: B904
+
+    if not gen:
+        return _decorator
+    return _generator_decorator
 
 
 class RedisCache(BaseCache):
@@ -147,7 +162,7 @@ class RedisCache(BaseCache):
     def keys(self, *args, **kwargs):
         return self.client.keys(*args, **kwargs)
 
-    @omit_exception
+    @omit_exception(gen=True)
     def iter_keys(self, *args, **kwargs):
         return self.client.iter_keys(*args, **kwargs)
 
@@ -243,7 +258,7 @@ class RedisCache(BaseCache):
     def sscan(self, *args, **kwargs):
         return self.client.sscan(*args, **kwargs)
 
-    @omit_exception
+    @omit_exception(gen=True)
     def sscan_iter(self, *args, **kwargs):
         return self.client.sscan_iter(*args, **kwargs)
 

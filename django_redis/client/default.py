@@ -775,8 +775,11 @@ class DefaultClient(SortedSetMixin):
             client = self.get_client(write=False)
 
         pattern = self.make_pattern(search, version=version)
-        for item in client.scan_iter(match=pattern, count=itersize):
-            yield self.reverse_key(item.decode())
+        try:
+            for item in client.scan_iter(match=pattern, count=itersize):
+                yield self.reverse_key(item.decode())
+        except _main_exceptions as e:
+            raise ConnectionInterrupted(connection=client) from e
 
     def keys(
         self,
@@ -1054,12 +1057,15 @@ class DefaultClient(SortedSetMixin):
             client = self.get_client(write=False)
 
         key = self.make_key(key, version=version)
-        for value in client.sscan_iter(
-            key,
-            match=cast("PatternT", self.encode(match)) if match else None,
-            count=count,
-        ):
-            yield self.decode(value)
+        try:
+            for value in client.sscan_iter(
+                key,
+                match=cast("PatternT", self.encode(match)) if match else None,
+                count=count,
+            ):
+                yield self.decode(value)
+        except _main_exceptions as e:
+            raise ConnectionInterrupted(connection=client) from e
 
     def sunion(
         self,
