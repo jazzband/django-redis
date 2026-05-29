@@ -1,0 +1,1 @@
+Add missing hash operations (hget/hgetall/hmget/hmset/hsetnx/hincrby/hincrbyfloat/hvals/hstrlen) to RedisCache with proper key encoding and value decoding.
