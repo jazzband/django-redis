@@ -54,7 +54,6 @@ test = [
 typing = [
   "django-stubs",
   "mypy",
-  "types-redis",
 ]
 
 [project.urls]

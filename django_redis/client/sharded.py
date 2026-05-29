@@ -7,7 +7,6 @@ from typing import Any
 
 from redis import Redis
 from redis.exceptions import ConnectionError as RedisConnectionError
-from redis.typing import KeyT
 
 from django_redis.client.default import DEFAULT_TIMEOUT, DefaultClient
 from django_redis.exceptions import ConnectionInterrupted
@@ -352,7 +351,7 @@ class ShardClient(DefaultClient):
 
     def sadd(
         self,
-        key: KeyT,
+        key: str,
         *values: Any,
         version: int | None = None,
         client: Redis | None = None,
@@ -364,7 +363,7 @@ class ShardClient(DefaultClient):
 
     def scard(
         self,
-        key: KeyT,
+        key: str,
         version: int | None = None,
         client: Redis | None = None,
     ) -> int:
@@ -375,7 +374,7 @@ class ShardClient(DefaultClient):
 
     def smembers(
         self,
-        key: KeyT,
+        key: str,
         version: int | None = None,
         client: Redis | None = None,
     ) -> builtins.set[Any]:
@@ -386,8 +385,8 @@ class ShardClient(DefaultClient):
 
     def smove(
         self,
-        source: KeyT,
-        destination: KeyT,
+        source: str,
+        destination: str,
         member: Any,
         version: int | None = None,
         client: Redis | None = None,
@@ -407,7 +406,7 @@ class ShardClient(DefaultClient):
 
     def srem(
         self,
-        key: KeyT,
+        key: str,
         *members,
         version: int | None = None,
         client: Redis | None = None,
@@ -419,7 +418,7 @@ class ShardClient(DefaultClient):
 
     def sscan(
         self,
-        key: KeyT,
+        key: str,
         match: str | None = None,
         count: int | None = 10,
         version: int | None = None,
@@ -438,7 +437,7 @@ class ShardClient(DefaultClient):
 
     def sscan_iter(
         self,
-        key: KeyT,
+        key: str,
         match: str | None = None,
         count: int | None = 10,
         version: int | None = None,
@@ -457,7 +456,7 @@ class ShardClient(DefaultClient):
 
     def srandmember(
         self,
-        key: KeyT,
+        key: str,
         count: int | None = None,
         version: int | None = None,
         client: Redis | None = None,
@@ -469,7 +468,7 @@ class ShardClient(DefaultClient):
 
     def sismember(
         self,
-        key: KeyT,
+        key: str,
         member: Any,
         version: int | None = None,
         client: Redis | None = None,
@@ -481,7 +480,7 @@ class ShardClient(DefaultClient):
 
     def spop(
         self,
-        key: KeyT,
+        key: str,
         count: int | None = None,
         version: int | None = None,
         client: Redis | None = None,
@@ -493,7 +492,7 @@ class ShardClient(DefaultClient):
 
     def smismember(
         self,
-        key: KeyT,
+        key: str,
         *members,
         version: int | None = None,
         client: Redis | None = None,

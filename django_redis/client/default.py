@@ -5,10 +5,7 @@ import socket
 from collections import OrderedDict
 from collections.abc import Iterable, Iterator, Mapping
 from contextlib import suppress
-from typing import (
-    Any,
-    cast,
-)
+from typing import Any, Literal, cast, overload
 
 from django.conf import settings
 from django.core.cache.backends.base import DEFAULT_TIMEOUT, BaseCache, get_key_func
@@ -18,7 +15,7 @@ from redis import Redis
 from redis.exceptions import ConnectionError as RedisConnectionError
 from redis.exceptions import ResponseError
 from redis.exceptions import TimeoutError as RedisTimeoutError
-from redis.typing import AbsExpiryT, EncodableT, ExpiryT, FieldT, KeyT, PatternT
+from redis.typing import AbsExpiryT, EncodableT, ExpiryT, FieldT, PatternT
 
 from django_redis import pool
 from django_redis.client.mixins import SortedSetMixin
@@ -78,7 +75,7 @@ class DefaultClient(SortedSetMixin):
 
         self.connection_factory = pool.get_connection_factory(options=self._options)
 
-    def __contains__(self, key: KeyT) -> bool:
+    def __contains__(self, key: str) -> bool:
         return self.has_key(key)
 
     def _has_compression_enabled(self) -> bool:
@@ -172,7 +169,7 @@ class DefaultClient(SortedSetMixin):
 
     def set(
         self,
-        key: KeyT,
+        key: str,
         value: EncodableT,
         timeout: float | None = DEFAULT_TIMEOUT,
         version: int | None = None,
@@ -229,7 +226,7 @@ class DefaultClient(SortedSetMixin):
 
     def incr_version(
         self,
-        key: KeyT,
+        key: str,
         delta: int = 1,
         version: int | None = None,
         client: Redis | None = None,
@@ -268,7 +265,7 @@ class DefaultClient(SortedSetMixin):
 
     def add(
         self,
-        key: KeyT,
+        key: str,
         value: EncodableT,
         timeout: float | None = DEFAULT_TIMEOUT,
         version: int | None = None,
@@ -283,7 +280,7 @@ class DefaultClient(SortedSetMixin):
 
     def get(
         self,
-        key: KeyT,
+        key: str,
         default: Any | None = None,
         version: int | None = None,
         client: Redis | None = None,
@@ -310,7 +307,7 @@ class DefaultClient(SortedSetMixin):
 
     def persist(
         self,
-        key: KeyT,
+        key: str,
         version: int | None = None,
         client: Redis | None = None,
     ) -> bool:
@@ -323,7 +320,7 @@ class DefaultClient(SortedSetMixin):
 
     def expire(
         self,
-        key: KeyT,
+        key: str,
         timeout: ExpiryT,
         version: int | None = None,
         client: Redis | None = None,
@@ -340,7 +337,7 @@ class DefaultClient(SortedSetMixin):
 
     def pexpire(
         self,
-        key: KeyT,
+        key: str,
         timeout: ExpiryT,
         version: int | None = None,
         client: Redis | None = None,
@@ -357,7 +354,7 @@ class DefaultClient(SortedSetMixin):
 
     def pexpire_at(
         self,
-        key: KeyT,
+        key: str,
         when: AbsExpiryT,
         version: int | None = None,
         client: Redis | None = None,
@@ -375,7 +372,7 @@ class DefaultClient(SortedSetMixin):
 
     def expire_at(
         self,
-        key: KeyT,
+        key: str,
         when: AbsExpiryT,
         version: int | None = None,
         client: Redis | None = None,
@@ -393,7 +390,7 @@ class DefaultClient(SortedSetMixin):
 
     def lock(
         self,
-        key: KeyT,
+        key: str,
         version: int | None = None,
         timeout: float | None = None,
         sleep: float = 0.1,
@@ -417,7 +414,7 @@ class DefaultClient(SortedSetMixin):
 
     def delete(
         self,
-        key: KeyT,
+        key: str,
         version: int | None = None,
         prefix: str | None = None,
         client: Redis | None = None,
@@ -465,7 +462,7 @@ class DefaultClient(SortedSetMixin):
 
     def delete_many(
         self,
-        keys: Iterable[KeyT],
+        keys: Iterable[str],
         version: int | None = None,
         client: Redis | None = None,
     ) -> int:
@@ -512,12 +509,16 @@ class DefaultClient(SortedSetMixin):
             value = self._serializer.loads(value)
         return value
 
-    def encode(self, value: EncodableT) -> bytes | int:
+    @overload
+    def encode(self, value: Any, *, allow_int: Literal[False]) -> bytes: ...
+    @overload
+    def encode(self, value: Any, *, allow_int: bool = ...) -> bytes | int: ...
+    def encode(self, value: Any, *, allow_int: bool = True) -> bytes | int:
         """
         Encode the given value.
         """
 
-        if isinstance(value, bool) or not isinstance(value, int):
+        if isinstance(value, bool) or not allow_int or not isinstance(value, int):
             value = self._serializer.dumps(value)
             return self._compressor.compress(value)
 
@@ -538,7 +539,7 @@ class DefaultClient(SortedSetMixin):
 
     def get_many(
         self,
-        keys: Iterable[KeyT],
+        keys: Iterable[str],
         version: int | None = None,
         client: Redis | None = None,
     ) -> OrderedDict:
@@ -569,7 +570,7 @@ class DefaultClient(SortedSetMixin):
 
     def set_many(
         self,
-        data: dict[KeyT, EncodableT],
+        data: dict[str, EncodableT],
         timeout: float | None = DEFAULT_TIMEOUT,
         version: int | None = None,
         client: Redis | None = None,
@@ -594,7 +595,7 @@ class DefaultClient(SortedSetMixin):
 
     def _incr(
         self,
-        key: KeyT,
+        key: str,
         delta: int = 1,
         version: int | None = None,
         client: Redis | None = None,
@@ -648,7 +649,7 @@ class DefaultClient(SortedSetMixin):
 
     def incr(
         self,
-        key: KeyT,
+        key: str,
         delta: int = 1,
         version: int | None = None,
         client: Redis | None = None,
@@ -669,7 +670,7 @@ class DefaultClient(SortedSetMixin):
 
     def decr(
         self,
-        key: KeyT,
+        key: str,
         delta: int = 1,
         version: int | None = None,
         client: Redis | None = None,
@@ -682,7 +683,7 @@ class DefaultClient(SortedSetMixin):
 
     def ttl(
         self,
-        key: KeyT,
+        key: str,
         version: int | None = None,
         client: Redis | None = None,
     ) -> int | None:
@@ -711,7 +712,7 @@ class DefaultClient(SortedSetMixin):
 
     def pttl(
         self,
-        key: KeyT,
+        key: str,
         version: int | None = None,
         client: Redis | None = None,
     ) -> int | None:
@@ -740,7 +741,7 @@ class DefaultClient(SortedSetMixin):
 
     def has_key(
         self,
-        key: KeyT,
+        key: str,
         version: int | None = None,
         client: Redis | None = None,
     ) -> bool:
@@ -774,7 +775,7 @@ class DefaultClient(SortedSetMixin):
 
         pattern = self.make_pattern(search, version=version)
         for item in client.scan_iter(match=pattern, count=itersize):
-            yield self.reverse_key(item.decode())
+            yield self.reverse_key(item.decode() if isinstance(item, bytes) else item)
 
     def keys(
         self,
@@ -794,16 +795,19 @@ class DefaultClient(SortedSetMixin):
 
         pattern = self.make_pattern(search, version=version)
         try:
-            return [self.reverse_key(k.decode()) for k in client.keys(pattern)]
+            return [
+                self.reverse_key(k.decode() if isinstance(k, bytes) else k)
+                for k in client.keys(pattern)
+            ]
         except _main_exceptions as e:
             raise ConnectionInterrupted(connection=client) from e
 
     def make_key(
         self,
-        key: KeyT,
+        key: str,
         version: int | None = None,
         prefix: str | None = None,
-    ) -> KeyT:
+    ) -> CacheKey:
         if isinstance(key, CacheKey):
             return key
 
@@ -836,7 +840,7 @@ class DefaultClient(SortedSetMixin):
 
     def sadd(
         self,
-        key: KeyT,
+        key: str,
         *values: Any,
         version: int | None = None,
         client: Redis | None = None,
@@ -850,7 +854,7 @@ class DefaultClient(SortedSetMixin):
 
     def scard(
         self,
-        key: KeyT,
+        key: str,
         version: int | None = None,
         client: Redis | None = None,
     ) -> int:
@@ -862,7 +866,7 @@ class DefaultClient(SortedSetMixin):
 
     def sdiff(
         self,
-        *keys: KeyT,
+        *keys: str,
         version: int | None = None,
         client: Redis | None = None,
     ) -> builtins.set[Any]:
@@ -870,12 +874,12 @@ class DefaultClient(SortedSetMixin):
             client = self.get_client(write=False)
 
         nkeys = [self.make_key(key, version=version) for key in keys]
-        return {self.decode(value) for value in client.sdiff(*nkeys)}
+        return {self.decode(value) for value in client.sdiff(*nkeys)}  # type: ignore[arg-type]
 
     def sdiffstore(
         self,
-        dest: KeyT,
-        *keys: KeyT,
+        dest: str,
+        *keys: str,
         version_dest: int | None = None,
         version_keys: int | None = None,
         client: Redis | None = None,
@@ -885,11 +889,11 @@ class DefaultClient(SortedSetMixin):
 
         dest = self.make_key(dest, version=version_dest)
         nkeys = [self.make_key(key, version=version_keys) for key in keys]
-        return int(client.sdiffstore(dest, *nkeys))
+        return int(client.sdiffstore(dest, *nkeys))  # type: ignore[arg-type]
 
     def sinter(
         self,
-        *keys: KeyT,
+        *keys: str,
         version: int | None = None,
         client: Redis | None = None,
     ) -> builtins.set[Any]:
@@ -897,12 +901,12 @@ class DefaultClient(SortedSetMixin):
             client = self.get_client(write=False)
 
         nkeys = [self.make_key(key, version=version) for key in keys]
-        return {self.decode(value) for value in client.sinter(*nkeys)}
+        return {self.decode(value) for value in client.sinter(*nkeys)}  # type: ignore[arg-type]
 
     def sinterstore(
         self,
-        dest: KeyT,
-        *keys: KeyT,
+        dest: str,
+        *keys: str,
         version: int | None = None,
         client: Redis | None = None,
     ) -> int:
@@ -911,11 +915,11 @@ class DefaultClient(SortedSetMixin):
 
         dest = self.make_key(dest, version=version)
         nkeys = [self.make_key(key, version=version) for key in keys]
-        return int(client.sinterstore(dest, *nkeys))
+        return int(client.sinterstore(dest, *nkeys))  # type: ignore[arg-type]
 
     def smismember(
         self,
-        key: KeyT,
+        key: str,
         *members,
         version: int | None = None,
         client: Redis | None = None,
@@ -926,11 +930,11 @@ class DefaultClient(SortedSetMixin):
         key = self.make_key(key, version=version)
         encoded_members = [self.encode(member) for member in members]
 
-        return [bool(value) for value in client.smismember(key, *encoded_members)]
+        return [bool(value) for value in client.smismember(key, *encoded_members)]  # type: ignore[arg-type]
 
     def sismember(
         self,
-        key: KeyT,
+        key: str,
         member: Any,
         version: int | None = None,
         client: Redis | None = None,
@@ -944,7 +948,7 @@ class DefaultClient(SortedSetMixin):
 
     def smembers(
         self,
-        key: KeyT,
+        key: str,
         version: int | None = None,
         client: Redis | None = None,
     ) -> builtins.set[Any]:
@@ -956,8 +960,8 @@ class DefaultClient(SortedSetMixin):
 
     def smove(
         self,
-        source: KeyT,
-        destination: KeyT,
+        source: str,
+        destination: str,
         member: Any,
         version: int | None = None,
         client: Redis | None = None,
@@ -972,7 +976,7 @@ class DefaultClient(SortedSetMixin):
 
     def spop(
         self,
-        key: KeyT,
+        key: str,
         count: int | None = None,
         version: int | None = None,
         client: Redis | None = None,
@@ -986,7 +990,7 @@ class DefaultClient(SortedSetMixin):
 
     def srandmember(
         self,
-        key: KeyT,
+        key: str,
         count: int | None = None,
         version: int | None = None,
         client: Redis | None = None,
@@ -1000,7 +1004,7 @@ class DefaultClient(SortedSetMixin):
 
     def srem(
         self,
-        key: KeyT,
+        key: str,
         *members: EncodableT,
         version: int | None = None,
         client: Redis | None = None,
@@ -1014,7 +1018,7 @@ class DefaultClient(SortedSetMixin):
 
     def sscan(
         self,
-        key: KeyT,
+        key: str,
         match: str | None = None,
         count: int | None = 10,
         version: int | None = None,
@@ -1038,7 +1042,7 @@ class DefaultClient(SortedSetMixin):
 
     def sscan_iter(
         self,
-        key: KeyT,
+        key: str,
         match: str | None = None,
         count: int | None = 10,
         version: int | None = None,
@@ -1061,7 +1065,7 @@ class DefaultClient(SortedSetMixin):
 
     def sunion(
         self,
-        *keys: KeyT,
+        *keys: str,
         version: int | None = None,
         client: Redis | None = None,
     ) -> builtins.set[Any]:
@@ -1069,12 +1073,12 @@ class DefaultClient(SortedSetMixin):
             client = self.get_client(write=False)
 
         nkeys = [self.make_key(key, version=version) for key in keys]
-        return {self.decode(value) for value in client.sunion(*nkeys)}
+        return {self.decode(value) for value in client.sunion(*nkeys)}  # type: ignore[arg-type]
 
     def sunionstore(
         self,
         destination: Any,
-        *keys: KeyT,
+        *keys: str,
         version: int | None = None,
         client: Redis | None = None,
     ) -> int:
@@ -1083,7 +1087,7 @@ class DefaultClient(SortedSetMixin):
 
         destination = self.make_key(destination, version=version)
         encoded_keys = [self.make_key(key, version=version) for key in keys]
-        return int(client.sunionstore(destination, *encoded_keys))
+        return int(client.sunionstore(destination, *encoded_keys))  # type: ignore[arg-type]
 
     def close(self) -> None:
         close_flag = self._options.get(
@@ -1104,7 +1108,7 @@ class DefaultClient(SortedSetMixin):
 
     def touch(
         self,
-        key: KeyT,
+        key: str,
         timeout: float | None = DEFAULT_TIMEOUT,
         version: int | None = None,
         client: Redis | None = None,
@@ -1129,7 +1133,7 @@ class DefaultClient(SortedSetMixin):
 
     def hset(
         self,
-        key: KeyT,
+        key: str,
         field: FieldT | None = None,
         value: EncodableT | None = None,
         mapping: Mapping[FieldT, EncodableT] | None = None,
@@ -1146,9 +1150,9 @@ class DefaultClient(SortedSetMixin):
         return int(
             client.hset(
                 nkey,
-                key=field,  # type: ignore[arg-type]
-                value=self.encode(value) if value is not None else None,  # type: ignore[arg-type]
-                mapping={f: self.encode(v) for f, v in mapping.items()}  # type: ignore[misc]
+                key=field,
+                value=self.encode(value) if value is not None else None,
+                mapping={f: self.encode(v) for f, v in mapping.items()}
                 if mapping is not None
                 else None,
             ),
@@ -1156,8 +1160,8 @@ class DefaultClient(SortedSetMixin):
 
     def hdel(
         self,
-        key: KeyT,
-        field: KeyT,
+        key: str,
+        field: str,
         version: int | None = None,
         client: Redis | None = None,
     ) -> int:
@@ -1172,7 +1176,7 @@ class DefaultClient(SortedSetMixin):
 
     def hlen(
         self,
-        key: KeyT,
+        key: str,
         version: int | None = None,
         client: Redis | None = None,
     ) -> int:
@@ -1186,10 +1190,10 @@ class DefaultClient(SortedSetMixin):
 
     def hkeys(
         self,
-        key: KeyT,
+        key: str,
         version: int | None = None,
         client: Redis | None = None,
-    ) -> list[Any]:
+    ) -> list[str]:
         """
         Return a list of fields in hash key.
         """
@@ -1197,14 +1201,16 @@ class DefaultClient(SortedSetMixin):
             client = self.get_client(write=False)
         nkey = self.make_key(key, version=version)
         try:
-            return [k.decode() for k in client.hkeys(nkey)]
+            return [
+                k.decode() if isinstance(k, bytes) else k for k in client.hkeys(nkey)
+            ]
         except _main_exceptions as e:
             raise ConnectionInterrupted(connection=client) from e
 
     def hexists(
         self,
-        key: KeyT,
-        field: KeyT,
+        key: str,
+        field: str,
         version: int | None = None,
         client: Redis | None = None,
     ) -> bool:

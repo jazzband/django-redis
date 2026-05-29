@@ -1,7 +1,9 @@
-from typing import Any, Protocol
+from typing import Any, Literal, Protocol, overload
 
 from redis import Redis
-from redis.typing import KeyT
+from redis.typing import EncodableT
+
+from django_redis.util import CacheKey
 
 
 class ClientProtocol(Protocol):
@@ -13,18 +15,22 @@ class ClientProtocol(Protocol):
 
     def make_key(
         self,
-        key: KeyT,
+        key: str,
         version: int | None = None,
         prefix: str | None = None,
-    ) -> KeyT:
+    ) -> CacheKey:
         """Create a cache key with optional version and prefix."""
         ...
 
-    def encode(self, value: Any) -> bytes | int:
+    @overload
+    def encode(self, value: Any, *, allow_int: Literal[False]) -> bytes: ...
+    @overload
+    def encode(self, value: Any, *, allow_int: bool = ...) -> bytes | int: ...
+    def encode(self, value: Any, *, allow_int: bool = True) -> bytes | int:
         """Encode a value for storage in Redis."""
         ...
 
-    def decode(self, value: bytes | int) -> Any:
+    def decode(self, value: EncodableT) -> Any:
         """Decode a value retrieved from Redis."""
         ...
 
