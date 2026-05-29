@@ -9,7 +9,9 @@ class GzipCompressor(BaseCompressor):
 
     def compress(self, value: bytes) -> bytes:
         if len(value) > self.min_length:
-            return gzip.compress(value)
+            # Use a fixed mtime so repeated compressions of the same value
+            # produce identical bytes (important when the result is used as a key).
+            return gzip.compress(value, mtime=0)
         return value
 
     def decompress(self, value: bytes) -> bytes:

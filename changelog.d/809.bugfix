@@ -1,0 +1,1 @@
+Make gzip compression deterministic by using a fixed mtime so identical inputs produce identical compressed bytes.
