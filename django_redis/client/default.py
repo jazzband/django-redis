@@ -3,7 +3,7 @@ import random
 import re
 import socket
 from collections import OrderedDict
-from collections.abc import Iterable, Iterator
+from collections.abc import Iterable, Iterator, Mapping
 from contextlib import suppress
 from typing import (
     Any,
@@ -18,7 +18,7 @@ from redis import Redis
 from redis.exceptions import ConnectionError as RedisConnectionError
 from redis.exceptions import ResponseError
 from redis.exceptions import TimeoutError as RedisTimeoutError
-from redis.typing import AbsExpiryT, EncodableT, ExpiryT, KeyT, PatternT
+from redis.typing import AbsExpiryT, EncodableT, ExpiryT, FieldT, KeyT, PatternT
 
 from django_redis import pool
 from django_redis.client.mixins import SortedSetMixin
@@ -1129,76 +1129,89 @@ class DefaultClient(SortedSetMixin):
 
     def hset(
         self,
-        name: str,
         key: KeyT,
-        value: EncodableT,
+        field: FieldT | None = None,
+        value: EncodableT | None = None,
+        mapping: Mapping[FieldT, EncodableT] | None = None,
         version: int | None = None,
         client: Redis | None = None,
     ) -> int:
         """
-        Set the value of hash name at key to value.
+        Set the value of hash key at field to value.
         Returns the number of fields added to the hash.
         """
         if client is None:
             client = self.get_client(write=True)
         nkey = self.make_key(key, version=version)
-        nvalue = self.encode(value)
-        return int(client.hset(name, nkey, nvalue))
+        return int(
+            client.hset(
+                nkey,
+                key=field,  # type: ignore[arg-type]
+                value=self.encode(value) if value is not None else None,  # type: ignore[arg-type]
+                mapping={f: self.encode(v) for f, v in mapping.items()}  # type: ignore[misc]
+                if mapping is not None
+                else None,
+            ),
+        )
 
     def hdel(
         self,
-        name: str,
         key: KeyT,
+        field: KeyT,
         version: int | None = None,
         client: Redis | None = None,
     ) -> int:
         """
-        Remove keys from hash name.
+        Remove fields from hash key.
         Returns the number of fields deleted from the hash.
         """
         if client is None:
             client = self.get_client(write=True)
         nkey = self.make_key(key, version=version)
-        return int(client.hdel(name, nkey))
+        return int(client.hdel(nkey, field))
 
     def hlen(
         self,
-        name: str,
+        key: KeyT,
+        version: int | None = None,
         client: Redis | None = None,
     ) -> int:
         """
-        Return the number of items in hash name.
+        Return the number of items in hash key.
         """
         if client is None:
             client = self.get_client(write=False)
-        return int(client.hlen(name))
+        nkey = self.make_key(key, version=version)
+        return int(client.hlen(nkey))
 
     def hkeys(
         self,
-        name: str,
+        key: KeyT,
+        version: int | None = None,
         client: Redis | None = None,
     ) -> list[Any]:
         """
-        Return a list of keys in hash name.
+        Return a list of fields in hash key.
         """
         if client is None:
             client = self.get_client(write=False)
+        nkey = self.make_key(key, version=version)
         try:
-            return [self.reverse_key(k.decode()) for k in client.hkeys(name)]
+            return [k.decode() for k in client.hkeys(nkey)]
         except _main_exceptions as e:
             raise ConnectionInterrupted(connection=client) from e
 
     def hexists(
         self,
-        name: str,
         key: KeyT,
+        field: KeyT,
         version: int | None = None,
         client: Redis | None = None,
     ) -> bool:
         """
-        Return True if key exists in hash name, else False.
+        Return True if field exists in hash key, else False.
         """
         if client is None:
             client = self.get_client(write=False)
         nkey = self.make_key(key, version=version)
-        return bool(client.hexists(name, nkey))
+        return bool(client.hexists(nkey, field))
