@@ -3,7 +3,7 @@ import random
 import re
 import socket
 from collections import OrderedDict
-from collections.abc import Iterable, Iterator
+from collections.abc import Iterable, Iterator, Mapping
 from contextlib import suppress
 from typing import (
     Any,
@@ -18,7 +18,7 @@ from redis import Redis
 from redis.exceptions import ConnectionError as RedisConnectionError
 from redis.exceptions import ResponseError
 from redis.exceptions import TimeoutError as RedisTimeoutError
-from redis.typing import AbsExpiryT, EncodableT, ExpiryT, KeyT, PatternT
+from redis.typing import AbsExpiryT, EncodableT, ExpiryT, FieldT, KeyT, PatternT
 
 from django_redis import pool
 from django_redis.client.mixins import SortedSetMixin
@@ -1130,8 +1130,9 @@ class DefaultClient(SortedSetMixin):
     def hset(
         self,
         key: KeyT,
-        field: KeyT,
-        value: EncodableT,
+        field: FieldT | None = None,
+        value: EncodableT | None = None,
+        mapping: Mapping[FieldT, EncodableT] | None = None,
         version: int | None = None,
         client: Redis | None = None,
     ) -> int:
@@ -1142,8 +1143,16 @@ class DefaultClient(SortedSetMixin):
         if client is None:
             client = self.get_client(write=True)
         nkey = self.make_key(key, version=version)
-        nvalue = self.encode(value)
-        return int(client.hset(nkey, field, nvalue))
+        return int(
+            client.hset(
+                nkey,
+                key=field,  # type: ignore[arg-type]
+                value=self.encode(value) if value is not None else None,  # type: ignore[arg-type]
+                mapping={f: self.encode(v) for f, v in mapping.items()}  # type: ignore[misc]
+                if mapping is not None
+                else None,
+            ),
+        )
 
     def hdel(
         self,
