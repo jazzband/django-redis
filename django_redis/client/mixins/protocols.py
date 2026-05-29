@@ -1,4 +1,4 @@
-from typing import Any, Optional, Protocol, Union
+from typing import Any, Protocol
 
 from redis import Redis
 from redis.typing import KeyT
@@ -14,17 +14,17 @@ class ClientProtocol(Protocol):
     def make_key(
         self,
         key: KeyT,
-        version: Optional[int] = None,
-        prefix: Optional[str] = None,
+        version: int | None = None,
+        prefix: str | None = None,
     ) -> KeyT:
         """Create a cache key with optional version and prefix."""
         ...
 
-    def encode(self, value: Any) -> Union[bytes, int]:
+    def encode(self, value: Any) -> bytes | int:
         """Encode a value for storage in Redis."""
         ...
 
-    def decode(self, value: Union[bytes, int]) -> Any:
+    def decode(self, value: bytes | int) -> Any:
         """Decode a value retrieved from Redis."""
         ...
 

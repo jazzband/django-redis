@@ -3,7 +3,7 @@ import re
 from collections import OrderedDict
 from collections.abc import Iterator
 from datetime import datetime
-from typing import Any, Optional, Union
+from typing import Any
 
 from redis import Redis
 from redis.exceptions import ConnectionError as RedisConnectionError
@@ -74,7 +74,7 @@ class ShardClient(DefaultClient):
         recovered_data = OrderedDict()
 
         new_keys = [self.make_key(key, version=version) for key in keys]
-        map_keys = dict(zip(new_keys, keys))
+        map_keys = dict(zip(new_keys, keys, strict=True))
 
         for key in new_keys:
             client = self.get_server(key)
@@ -191,7 +191,7 @@ class ShardClient(DefaultClient):
 
         return super().pexpire(key=key, timeout=timeout, version=version, client=client)
 
-    def pexpire_at(self, key, when: Union[datetime, int], version=None, client=None):
+    def pexpire_at(self, key, when: datetime | int, version=None, client=None):
         """
         Set an expire flag on a ``key`` to ``when`` on a shard client.
         ``when`` which can be represented as an integer indicating unix
@@ -203,7 +203,7 @@ class ShardClient(DefaultClient):
 
         return super().pexpire_at(key=key, when=when, version=version, client=client)
 
-    def expire_at(self, key, when: Union[datetime, int], version=None, client=None):
+    def expire_at(self, key, when: datetime | int, version=None, client=None):
         """
         Set an expire flag on a ``key`` to ``when`` on a shard client.
         ``when`` which can be represented as an integer indicating unix
@@ -354,8 +354,8 @@ class ShardClient(DefaultClient):
         self,
         key: KeyT,
         *values: Any,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
+        version: int | None = None,
+        client: Redis | None = None,
     ) -> int:
         if client is None:
             key = self.make_key(key, version=version)
@@ -365,8 +365,8 @@ class ShardClient(DefaultClient):
     def scard(
         self,
         key: KeyT,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
+        version: int | None = None,
+        client: Redis | None = None,
     ) -> int:
         if client is None:
             key = self.make_key(key, version=version)
@@ -376,8 +376,8 @@ class ShardClient(DefaultClient):
     def smembers(
         self,
         key: KeyT,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
+        version: int | None = None,
+        client: Redis | None = None,
     ) -> builtins.set[Any]:
         if client is None:
             key = self.make_key(key, version=version)
@@ -389,8 +389,8 @@ class ShardClient(DefaultClient):
         source: KeyT,
         destination: KeyT,
         member: Any,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
+        version: int | None = None,
+        client: Redis | None = None,
     ):
         if client is None:
             source = self.make_key(source, version=version)
@@ -409,8 +409,8 @@ class ShardClient(DefaultClient):
         self,
         key: KeyT,
         *members,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
+        version: int | None = None,
+        client: Redis | None = None,
     ) -> int:
         if client is None:
             key = self.make_key(key, version=version)
@@ -420,10 +420,10 @@ class ShardClient(DefaultClient):
     def sscan(
         self,
         key: KeyT,
-        match: Optional[str] = None,
-        count: Optional[int] = 10,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
+        match: str | None = None,
+        count: int | None = 10,
+        version: int | None = None,
+        client: Redis | None = None,
     ) -> builtins.set[Any]:
         if client is None:
             key = self.make_key(key, version=version)
@@ -439,10 +439,10 @@ class ShardClient(DefaultClient):
     def sscan_iter(
         self,
         key: KeyT,
-        match: Optional[str] = None,
-        count: Optional[int] = 10,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
+        match: str | None = None,
+        count: int | None = 10,
+        version: int | None = None,
+        client: Redis | None = None,
     ) -> Iterator[Any]:
         if client is None:
             key = self.make_key(key, version=version)
@@ -458,10 +458,10 @@ class ShardClient(DefaultClient):
     def srandmember(
         self,
         key: KeyT,
-        count: Optional[int] = None,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
-    ) -> Union[builtins.set, Any]:
+        count: int | None = None,
+        version: int | None = None,
+        client: Redis | None = None,
+    ) -> builtins.set | Any:
         if client is None:
             key = self.make_key(key, version=version)
             client = self.get_server(key)
@@ -471,8 +471,8 @@ class ShardClient(DefaultClient):
         self,
         key: KeyT,
         member: Any,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
+        version: int | None = None,
+        client: Redis | None = None,
     ) -> bool:
         if client is None:
             key = self.make_key(key, version=version)
@@ -482,10 +482,10 @@ class ShardClient(DefaultClient):
     def spop(
         self,
         key: KeyT,
-        count: Optional[int] = None,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
-    ) -> Union[builtins.set, Any]:
+        count: int | None = None,
+        version: int | None = None,
+        client: Redis | None = None,
+    ) -> builtins.set | Any:
         if client is None:
             key = self.make_key(key, version=version)
             client = self.get_server(key)
@@ -495,8 +495,8 @@ class ShardClient(DefaultClient):
         self,
         key: KeyT,
         *members,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
+        version: int | None = None,
+        client: Redis | None = None,
     ) -> list[bool]:
         if client is None:
             key = self.make_key(key, version=version)
