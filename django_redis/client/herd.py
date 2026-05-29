@@ -117,14 +117,14 @@ class HerdClient(DefaultClient):
         recovered_data = OrderedDict()
 
         new_keys = [self.make_key(key, version=version) for key in keys]
-        map_keys = dict(zip(new_keys, keys))
+        map_keys = dict(zip(new_keys, keys, strict=True))
 
         try:
             results = client.mget(*new_keys)
         except _main_exceptions as e:
             raise ConnectionInterrupted(connection=client) from e
 
-        for key, value in zip(new_keys, results):
+        for key, value in zip(new_keys, results, strict=True):
             if value is None:
                 continue
 

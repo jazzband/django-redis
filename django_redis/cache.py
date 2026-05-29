@@ -1,6 +1,7 @@
 import functools
 import logging
-from typing import Any, Callable, Optional
+from collections.abc import Callable
+from typing import Any
 
 from django import VERSION as DJANGO_VERSION
 from django.conf import settings
@@ -13,8 +14,8 @@ CONNECTION_INTERRUPTED = object()
 
 
 def omit_exception(
-    method: Optional[Callable] = None,
-    return_value: Optional[Any] = None,
+    method: Callable | None = None,
+    return_value: Any | None = None,
 ):
     """
     Simple decorator that intercepts connection
