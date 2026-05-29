@@ -1,4 +1,4 @@
-from typing import Any, Optional, Union
+from typing import Any
 
 from redis import Redis
 from redis.typing import KeyT
@@ -19,8 +19,8 @@ class SortedSetMixin(ClientProtocol):
         incr: bool = False,
         gt: bool = False,
         lt: bool = False,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
+        version: int | None = None,
+        client: Redis | None = None,
     ) -> int:
         """Add members with scores to sorted set."""
         if client is None:
@@ -48,8 +48,8 @@ class SortedSetMixin(ClientProtocol):
     def zcard(
         self,
         name: KeyT,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
+        version: int | None = None,
+        client: Redis | None = None,
     ) -> int:
         """Get the number of members in sorted set."""
         if client is None:
@@ -61,10 +61,10 @@ class SortedSetMixin(ClientProtocol):
     def zcount(
         self,
         name: KeyT,
-        min: Union[float, str],
-        max: Union[float, str],
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
+        min: float | str,
+        max: float | str,
+        version: int | None = None,
+        client: Redis | None = None,
     ) -> int:
         """Count members in sorted set with scores between min and max."""
         if client is None:
@@ -78,8 +78,8 @@ class SortedSetMixin(ClientProtocol):
         name: KeyT,
         amount: float,
         value: Any,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
+        version: int | None = None,
+        client: Redis | None = None,
     ) -> float:
         """Increment the score of member in sorted set by amount."""
         if client is None:
@@ -92,10 +92,10 @@ class SortedSetMixin(ClientProtocol):
     def zpopmax(
         self,
         name: KeyT,
-        count: Optional[int] = None,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
-    ) -> Union[list[tuple[Any, float]], tuple[Any, float], None]:
+        count: int | None = None,
+        version: int | None = None,
+        client: Redis | None = None,
+    ) -> list[tuple[Any, float]] | tuple[Any, float] | None:
         """Remove and return members with highest scores."""
         if client is None:
             client = self.get_client(write=True)
@@ -116,10 +116,10 @@ class SortedSetMixin(ClientProtocol):
     def zpopmin(
         self,
         name: KeyT,
-        count: Optional[int] = None,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
-    ) -> Union[list[tuple[Any, float]], tuple[Any, float], None]:
+        count: int | None = None,
+        version: int | None = None,
+        client: Redis | None = None,
+    ) -> list[tuple[Any, float]] | tuple[Any, float] | None:
         """Remove and return members with lowest scores."""
         if client is None:
             client = self.get_client(write=True)
@@ -145,9 +145,9 @@ class SortedSetMixin(ClientProtocol):
         desc: bool = False,
         withscores: bool = False,
         score_cast_func: type = float,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
-    ) -> Union[list[Any], list[tuple[Any, float]]]:
+        version: int | None = None,
+        client: Redis | None = None,
+    ) -> list[Any] | list[tuple[Any, float]]:
         """Return members in sorted set by index range."""
         if client is None:
             client = self.get_client(write=False)
@@ -170,15 +170,15 @@ class SortedSetMixin(ClientProtocol):
     def zrangebyscore(
         self,
         name: KeyT,
-        min: Union[float, str],
-        max: Union[float, str],
-        start: Optional[int] = None,
-        num: Optional[int] = None,
+        min: float | str,
+        max: float | str,
+        start: int | None = None,
+        num: int | None = None,
         withscores: bool = False,
         score_cast_func: type = float,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
-    ) -> Union[list[Any], list[tuple[Any, float]]]:
+        version: int | None = None,
+        client: Redis | None = None,
+    ) -> list[Any] | list[tuple[Any, float]]:
         """Return members in sorted set by score range."""
         if client is None:
             client = self.get_client(write=False)
@@ -203,9 +203,9 @@ class SortedSetMixin(ClientProtocol):
         self,
         name: KeyT,
         value: Any,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
-    ) -> Optional[int]:
+        version: int | None = None,
+        client: Redis | None = None,
+    ) -> int | None:
         """Get the rank (index) of member in sorted set, ordered low to high."""
         if client is None:
             client = self.get_client(write=False)
@@ -220,8 +220,8 @@ class SortedSetMixin(ClientProtocol):
         self,
         name: KeyT,
         *values: Any,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
+        version: int | None = None,
+        client: Redis | None = None,
     ) -> int:
         """Remove members from sorted set."""
         if client is None:
@@ -234,10 +234,10 @@ class SortedSetMixin(ClientProtocol):
     def zremrangebyscore(
         self,
         name: KeyT,
-        min: Union[float, str],
-        max: Union[float, str],
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
+        min: float | str,
+        max: float | str,
+        version: int | None = None,
+        client: Redis | None = None,
     ) -> int:
         """Remove members from sorted set with scores between min and max."""
         if client is None:
@@ -253,9 +253,9 @@ class SortedSetMixin(ClientProtocol):
         end: int,
         withscores: bool = False,
         score_cast_func: type = float,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
-    ) -> Union[list[Any], list[tuple[Any, float]]]:
+        version: int | None = None,
+        client: Redis | None = None,
+    ) -> list[Any] | list[tuple[Any, float]]:
         """Return members in sorted set by index range, ordered high to low."""
         if client is None:
             client = self.get_client(write=False)
@@ -277,15 +277,15 @@ class SortedSetMixin(ClientProtocol):
     def zrevrangebyscore(
         self,
         name: KeyT,
-        max: Union[float, str],
-        min: Union[float, str],
-        start: Optional[int] = None,
-        num: Optional[int] = None,
+        max: float | str,
+        min: float | str,
+        start: int | None = None,
+        num: int | None = None,
         withscores: bool = False,
         score_cast_func: type = float,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
-    ) -> Union[list[Any], list[tuple[Any, float]]]:
+        version: int | None = None,
+        client: Redis | None = None,
+    ) -> list[Any] | list[tuple[Any, float]]:
         """Return members in sorted set by score range, ordered high to low."""
         if client is None:
             client = self.get_client(write=False)
@@ -310,9 +310,9 @@ class SortedSetMixin(ClientProtocol):
         self,
         name: KeyT,
         value: Any,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
-    ) -> Optional[float]:
+        version: int | None = None,
+        client: Redis | None = None,
+    ) -> float | None:
         """Get the score of member in sorted set."""
         if client is None:
             client = self.get_client(write=False)
