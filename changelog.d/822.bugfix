@@ -1,1 +1,1 @@
-fix incorrect Redis types using legacy `types-redis` package, and change external API to not use Redis types as the encode/decode/make_key methods allow a different API surface.
+Fix incorrect Redis typing that relied on the legacy `types-redis` package, and update the public API to avoid exposing redis-py key types (the encode/decode/make_key methods allow a different API surface).
