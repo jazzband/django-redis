@@ -529,6 +529,9 @@ You can use the ``SETNX`` command through the backend ``set()`` method with the
 Also, the ``incr`` and ``decr`` methods use Redis atomic operations when the
 value that a key contains is suitable for it.
 
+For Redis list, set, and sorted set operations, django-redis provides methods like
+``lpush``, ``rpush``, ``lpop``, ``sadd``, ``smembers``, ``zadd``, ``zrange``, etc.
+
 Raw client access
 ~~~~~~~~~~~~~~~~~
 
