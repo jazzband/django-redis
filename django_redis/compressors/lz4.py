@@ -11,11 +11,11 @@ class Lz4Compressor(BaseCompressor):
 
     def compress(self, value: bytes) -> bytes:
         if len(value) > self.min_length:
-            return _compress(value)
+            return _compress(value)  # type: ignore[no-any-return]
         return value
 
     def decompress(self, value: bytes) -> bytes:
         try:
-            return _decompress(value)
+            return _decompress(value)  # type: ignore[no-any-return]
         except Exception as e:
             raise CompressorError from e

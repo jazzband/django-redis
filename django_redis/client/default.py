@@ -3,9 +3,17 @@ from __future__ import annotations
 import random
 import re
 import socket
-from collections import OrderedDict
 from contextlib import suppress
-from typing import TYPE_CHECKING, Any, Literal, TypeAlias, cast, overload
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Generic,
+    Literal,
+    TypeAlias,
+    TypeVar,
+    cast,
+    overload,
+)
 
 from django.conf import settings
 from django.core.cache.backends.base import DEFAULT_TIMEOUT, BaseCache, get_key_func
@@ -23,12 +31,20 @@ from django_redis.exceptions import CompressorError, ConnectionInterrupted
 from django_redis.util import CacheKey
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable, Iterator, Mapping
+    from collections.abc import Collection, Iterable, Iterator, Mapping
 
     from redis import Redis
-    from redis.typing import AbsExpiryT, EncodableT, ExpiryT, FieldT, PatternT
+    from redis.lock import Lock
+    from redis.typing import AbsExpiryT, ExpiryT, FieldT, PatternT
+
+    from django_redis.compressors.base import BaseCompressor
+    from django_redis.serializers.base import BaseSerializer
 
     Set: TypeAlias = set
+
+ConnectionFactoryType = TypeVar("ConnectionFactoryType")
+CompressorType = TypeVar("CompressorType", bound="BaseCompressor")
+SerializerType = TypeVar("SerializerType", bound="BaseSerializer")
 
 _main_exceptions = (
     RedisConnectionError,
@@ -44,7 +60,10 @@ def glob_escape(s: str) -> str:
     return special_re.sub(r"[\1]", s)
 
 
-class DefaultClient(SortedSetMixin):
+class DefaultClient(
+    SortedSetMixin,
+    Generic[ConnectionFactoryType, SerializerType, CompressorType],
+):
     def __init__(self, server, params: dict[str, Any], backend: BaseCache) -> None:
         self._backend = backend
         self._server = server
@@ -70,13 +89,13 @@ class DefaultClient(SortedSetMixin):
             "SERIALIZER",
             "django_redis.serializers.pickle.PickleSerializer",
         )
-        serializer_cls = import_string(serializer_path)
+        serializer_cls: type[SerializerType] = import_string(serializer_path)
 
         compressor_path = self._options.get(
             "COMPRESSOR",
             "django_redis.compressors.identity.IdentityCompressor",
         )
-        compressor_cls = import_string(compressor_path)
+        compressor_cls: type[CompressorType] = import_string(compressor_path)
 
         self._serializer = serializer_cls(options=self._options)
         self._compressor = compressor_cls(options=self._options)
@@ -88,9 +107,12 @@ class DefaultClient(SortedSetMixin):
 
     def _has_compression_enabled(self) -> bool:
         return (
-            self._options.get(
-                "COMPRESSOR",
-                "django_redis.compressors.identity.IdentityCompressor",
+            cast(
+                "str",
+                self._options.get(
+                    "COMPRESSOR",
+                    "django_redis.compressors.identity.IdentityCompressor",
+                ),
             )
             != "django_redis.compressors.identity.IdentityCompressor"
         )
@@ -163,7 +185,7 @@ class DefaultClient(SortedSetMixin):
         instance. Index is used for replication setups and indicates that
         connection string should be used. In normal setups, index is 0.
         """
-        return self.connection_factory.connect(self._server[index])
+        return self.connection_factory.connect(self._server[index])  # type: ignore[no-any-return]
 
     def disconnect(self, index: int = 0, client: Redis | None = None) -> None:
         """
@@ -178,7 +200,7 @@ class DefaultClient(SortedSetMixin):
     def set(
         self,
         key: str,
-        value: EncodableT,
+        value: Any,
         timeout: float | None = DEFAULT_TIMEOUT,
         version: int | None = None,
         client: Redis | None = None,
@@ -274,7 +296,7 @@ class DefaultClient(SortedSetMixin):
     def add(
         self,
         key: str,
-        value: EncodableT,
+        value: Any,
         timeout: float | None = DEFAULT_TIMEOUT,
         version: int | None = None,
         client: Redis | None = None,
@@ -406,18 +428,21 @@ class DefaultClient(SortedSetMixin):
         blocking_timeout: float | None = None,
         client: Redis | None = None,
         thread_local: bool = True,
-    ):
+    ) -> Lock:
         if client is None:
             client = self.get_client(write=True)
 
         key = self.make_key(key, version=version)
-        return client.lock(
-            key,
-            timeout=timeout,
-            sleep=sleep,
-            blocking=blocking,
-            blocking_timeout=blocking_timeout,
-            thread_local=thread_local,
+        return cast(
+            "Lock",
+            client.lock(
+                key,
+                timeout=timeout,
+                sleep=sleep,
+                blocking=blocking,
+                blocking_timeout=blocking_timeout,
+                thread_local=thread_local,
+            ),
         )
 
     def delete(
@@ -504,13 +529,16 @@ class DefaultClient(SortedSetMixin):
         except _main_exceptions as e:
             raise ConnectionInterrupted(connection=client) from e
 
-    def decode(self, value: EncodableT) -> Any:
+    def decode(self, value: bytes | int | str) -> Any:
         """
         Decode the given value.
         """
         try:
             value = int(value)
         except (ValueError, TypeError):
+            # str should not happen, but fail in the compressor/serializer
+            value = cast("bytes", value)
+
             # Handle little values, chosen to be not compressed
             with suppress(CompressorError):
                 value = self._compressor.decompress(value)
@@ -547,10 +575,10 @@ class DefaultClient(SortedSetMixin):
 
     def get_many(
         self,
-        keys: Iterable[str],
+        keys: Collection[str],
         version: int | None = None,
         client: Redis | None = None,
-    ) -> OrderedDict:
+    ) -> dict:
         """
         Retrieve many keys.
         """
@@ -559,11 +587,11 @@ class DefaultClient(SortedSetMixin):
             client = self.get_client(write=False)
 
         if not keys:
-            return OrderedDict()
+            return {}
 
-        recovered_data = OrderedDict()
+        recovered_data = {}
 
-        map_keys = OrderedDict((self.make_key(k, version=version), k) for k in keys)
+        map_keys = {self.make_key(k, version=version): k for k in keys}
 
         try:
             results = client.mget(*map_keys)
@@ -578,7 +606,7 @@ class DefaultClient(SortedSetMixin):
 
     def set_many(
         self,
-        data: dict[str, EncodableT],
+        data: dict[str, Any],
         timeout: float | None = DEFAULT_TIMEOUT,
         version: int | None = None,
         client: Redis | None = None,
@@ -630,8 +658,8 @@ class DefaultClient(SortedSetMixin):
                     lua = """
                     return redis.call('INCRBY', KEYS[1], ARGV[1])
                     """
-                value = client.eval(lua, 1, key, delta)
-                if value is None:
+                value: int | Literal[False] | None = client.eval(lua, 1, key, delta)
+                if value is None or value is False:
                     error_message = f"Key '{key!r}' not found"
                     raise ValueError(error_message)
             except ResponseError as e:
@@ -1013,7 +1041,7 @@ class DefaultClient(SortedSetMixin):
     def srem(
         self,
         key: str,
-        *members: EncodableT,
+        *members: Any,
         version: int | None = None,
         client: Redis | None = None,
     ) -> int:
@@ -1143,8 +1171,8 @@ class DefaultClient(SortedSetMixin):
         self,
         key: str,
         field: FieldT | None = None,
-        value: EncodableT | None = None,
-        mapping: Mapping[FieldT, EncodableT] | None = None,
+        value: Any | None = None,
+        mapping: Mapping[FieldT, Any] | None = None,
         version: int | None = None,
         client: Redis | None = None,
     ) -> int:

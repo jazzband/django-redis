@@ -39,7 +39,7 @@ def omit_exception(
                     self.logger.exception("Exception ignored")
 
                 return return_value
-            raise e.__cause__  # noqa: B904
+            raise e.__cause__  # type: ignore[misc] # noqa: B904
 
     return _decorator
 

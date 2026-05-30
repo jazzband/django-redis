@@ -73,7 +73,7 @@ class ConnectionFactory:
         return a new connection.
         """
         params = self.make_connection_params(url)
-        return self.get_connection(params)
+        return self.get_connection(params)  # type: ignore[no-any-return]
 
     def disconnect(self, connection: Redis) -> None:
         """
