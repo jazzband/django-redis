@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 SECRET_KEY = "django_tests_secret_key"
 
 SENTINELS = [("127.0.0.1", 26379)]

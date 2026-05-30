@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+
 class BaseCompressor:
     def __init__(self, options):
         self._options = options

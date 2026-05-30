@@ -1,5 +1,6 @@
-from lz4.frame import compress as _compress
-from lz4.frame import decompress as _decompress
+from __future__ import annotations
+
+from lz4.frame import compress as _compress, decompress as _decompress
 
 from django_redis.compressors.base import BaseCompressor
 from django_redis.exceptions import CompressorError

@@ -1,9 +1,12 @@
-from typing import Any, Literal, Protocol, overload
+from __future__ import annotations
 
-from redis import Redis
-from redis.typing import EncodableT
+from typing import TYPE_CHECKING, Any, Literal, Protocol, overload
 
-from django_redis.util import CacheKey
+if TYPE_CHECKING:
+    from redis import Redis
+    from redis.typing import EncodableT
+
+    from django_redis.util import CacheKey
 
 
 class ClientProtocol(Protocol):

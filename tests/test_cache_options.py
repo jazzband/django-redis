@@ -1,14 +1,19 @@
+from __future__ import annotations
+
 import copy
-from collections.abc import Iterable
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
 import pytest
 from django.core.cache import caches
 from pytest import LogCaptureFixture
 from redis.exceptions import ConnectionError as RedisConnectionError
 
-from django_redis.cache import RedisCache
 from django_redis.client import ShardClient
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
+
+    from django_redis.cache import RedisCache
 
 
 def make_key(key: str, prefix: str, version: str) -> str:

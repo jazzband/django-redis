@@ -1,22 +1,28 @@
+from __future__ import annotations
+
 import datetime
 import threading
 import time
-from collections.abc import Iterable
 from datetime import timedelta
-from typing import cast
+from typing import TYPE_CHECKING, cast
 from unittest.mock import patch
 
 import pytest
 from django.core.cache import caches
 from django.core.cache.backends.base import DEFAULT_TIMEOUT
 from django.test import override_settings
-from pytest_mock import MockerFixture
 
-from django_redis.cache import RedisCache
 from django_redis.client import ShardClient, herd
 from django_redis.serializers.json import JSONSerializer
 from django_redis.serializers.msgpack import MSGPackSerializer
-from tests.settings_wrapper import SettingsWrapper
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
+
+    from pytest_mock import MockerFixture
+
+    from django_redis.cache import RedisCache
+    from tests.settings_wrapper import SettingsWrapper
 
 
 @pytest.fixture

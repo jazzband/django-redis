@@ -1,10 +1,11 @@
-from typing import TYPE_CHECKING, Any, cast
+from __future__ import annotations
 
-from redis import Redis
+from typing import TYPE_CHECKING, Any, cast
 
 from django_redis.client.mixins.protocols import ClientProtocol
 
 if TYPE_CHECKING:
+    from redis import Redis
     from redis.typing import ZSetScoredMembers
 
 

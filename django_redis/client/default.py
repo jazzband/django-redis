@@ -1,26 +1,34 @@
-import builtins
+from __future__ import annotations
+
 import random
 import re
 import socket
 from collections import OrderedDict
-from collections.abc import Iterable, Iterator, Mapping
 from contextlib import suppress
-from typing import Any, Literal, cast, overload
+from typing import TYPE_CHECKING, Any, Literal, TypeAlias, cast, overload
 
 from django.conf import settings
 from django.core.cache.backends.base import DEFAULT_TIMEOUT, BaseCache, get_key_func
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.module_loading import import_string
-from redis import Redis
-from redis.exceptions import ConnectionError as RedisConnectionError
-from redis.exceptions import ResponseError
-from redis.exceptions import TimeoutError as RedisTimeoutError
-from redis.typing import AbsExpiryT, EncodableT, ExpiryT, FieldT, PatternT
+from redis.exceptions import (
+    ConnectionError as RedisConnectionError,
+    ResponseError,
+    TimeoutError as RedisTimeoutError,
+)
 
 from django_redis import pool
 from django_redis.client.mixins import SortedSetMixin
 from django_redis.exceptions import CompressorError, ConnectionInterrupted
 from django_redis.util import CacheKey
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable, Iterator, Mapping
+
+    from redis import Redis
+    from redis.typing import AbsExpiryT, EncodableT, ExpiryT, FieldT, PatternT
+
+    Set: TypeAlias = set
 
 _main_exceptions = (
     RedisConnectionError,
@@ -869,7 +877,7 @@ class DefaultClient(SortedSetMixin):
         *keys: str,
         version: int | None = None,
         client: Redis | None = None,
-    ) -> builtins.set[Any]:
+    ) -> Set[Any]:
         if client is None:
             client = self.get_client(write=False)
 
@@ -896,7 +904,7 @@ class DefaultClient(SortedSetMixin):
         *keys: str,
         version: int | None = None,
         client: Redis | None = None,
-    ) -> builtins.set[Any]:
+    ) -> Set[Any]:
         if client is None:
             client = self.get_client(write=False)
 
@@ -951,7 +959,7 @@ class DefaultClient(SortedSetMixin):
         key: str,
         version: int | None = None,
         client: Redis | None = None,
-    ) -> builtins.set[Any]:
+    ) -> Set[Any]:
         if client is None:
             client = self.get_client(write=False)
 
@@ -980,7 +988,7 @@ class DefaultClient(SortedSetMixin):
         count: int | None = None,
         version: int | None = None,
         client: Redis | None = None,
-    ) -> builtins.set | Any:
+    ) -> Set | Any:
         if client is None:
             client = self.get_client(write=True)
 
@@ -1023,7 +1031,7 @@ class DefaultClient(SortedSetMixin):
         count: int | None = 10,
         version: int | None = None,
         client: Redis | None = None,
-    ) -> builtins.set[Any]:
+    ) -> Set[Any]:
         if self._has_compression_enabled() and match:
             err_msg = "Using match with compression is not supported."
             raise ValueError(err_msg)
@@ -1068,7 +1076,7 @@ class DefaultClient(SortedSetMixin):
         *keys: str,
         version: int | None = None,
         client: Redis | None = None,
-    ) -> builtins.set[Any]:
+    ) -> Set[Any]:
         if client is None:
             client = self.get_client(write=False)
 

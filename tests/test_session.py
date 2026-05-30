@@ -1,13 +1,18 @@
+from __future__ import annotations
+
 import base64
 from collections import Counter
-from collections.abc import Iterable
 from datetime import timedelta
+from typing import TYPE_CHECKING
 
 import django
 import pytest
 from django.contrib.sessions.backends.cache import SessionStore
 from django.test import override_settings
 from django.utils import timezone
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
 
 
 @pytest.fixture

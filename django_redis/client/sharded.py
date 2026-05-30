@@ -1,17 +1,23 @@
-import builtins
+from __future__ import annotations
+
 import re
 from collections import OrderedDict
-from collections.abc import Iterator
-from datetime import datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any, TypeAlias
 
-from redis import Redis
 from redis.exceptions import ConnectionError as RedisConnectionError
 
 from django_redis.client.default import DEFAULT_TIMEOUT, DefaultClient
 from django_redis.exceptions import ConnectionInterrupted
 from django_redis.hash_ring import HashRing
 from django_redis.util import CacheKey
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
+    from datetime import datetime
+
+    from redis import Redis
+
+    Set: TypeAlias = set
 
 
 class ShardClient(DefaultClient):
@@ -377,7 +383,7 @@ class ShardClient(DefaultClient):
         key: str,
         version: int | None = None,
         client: Redis | None = None,
-    ) -> builtins.set[Any]:
+    ) -> Set[Any]:
         if client is None:
             key = self.make_key(key, version=version)
             client = self.get_server(key)
@@ -423,7 +429,7 @@ class ShardClient(DefaultClient):
         count: int | None = 10,
         version: int | None = None,
         client: Redis | None = None,
-    ) -> builtins.set[Any]:
+    ) -> Set[Any]:
         if client is None:
             key = self.make_key(key, version=version)
             client = self.get_server(key)
@@ -460,7 +466,7 @@ class ShardClient(DefaultClient):
         count: int | None = None,
         version: int | None = None,
         client: Redis | None = None,
-    ) -> builtins.set | Any:
+    ) -> Set | Any:
         if client is None:
             key = self.make_key(key, version=version)
             client = self.get_server(key)
@@ -484,7 +490,7 @@ class ShardClient(DefaultClient):
         count: int | None = None,
         version: int | None = None,
         client: Redis | None = None,
-    ) -> builtins.set | Any:
+    ) -> Set | Any:
         if client is None:
             key = self.make_key(key, version=version)
             client = self.get_server(key)

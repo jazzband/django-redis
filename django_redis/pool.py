@@ -1,11 +1,16 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.module_loading import import_string
-from redis import Redis
 from redis.connection import ConnectionPool, DefaultParser, to_bool
 from redis.sentinel import Sentinel
+
+if TYPE_CHECKING:
+    from redis import Redis
 
 
 class ConnectionFactory:
