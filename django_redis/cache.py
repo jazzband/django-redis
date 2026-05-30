@@ -1,7 +1,8 @@
+from __future__ import annotations
+
 import functools
 import logging
-from collections.abc import Callable
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from django import VERSION as DJANGO_VERSION
 from django.conf import settings
@@ -9,6 +10,9 @@ from django.core.cache.backends.base import BaseCache
 from django.utils.module_loading import import_string
 
 from django_redis.exceptions import ConnectionInterrupted
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 CONNECTION_INTERRUPTED = object()
 

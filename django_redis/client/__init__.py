@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from django_redis.client.default import DefaultClient
 from django_redis.client.herd import HerdClient
 from django_redis.client.sentinel import SentinelClient

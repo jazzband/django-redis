@@ -1,4 +1,9 @@
-from django_redis.cache import RedisCache
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from django_redis.cache import RedisCache
 
 
 class TestSortedSetOperations:
