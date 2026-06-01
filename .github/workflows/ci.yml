@@ -76,13 +76,17 @@ jobs:
           python -m pip install --upgrade tox-uv tox-gh
 
       - name: Docker compose up
-        run: docker compose -f docker/docker-compose.yml up -d --wait
+        run: docker compose -f tests/compose.yml up --detach --wait
 
       - name: Tox tests
         run: tox
         env:
           DJANGO: ${{ matrix.django-version }}
           REDIS: ${{ matrix.redis-version }}
+
+      - name: Docker compose down
+        if: ${{ !cancelled() }}
+        run: docker compose -f tests/compose.yml down
 
       - name: Upload coverage
         uses: codecov/codecov-action@v6
