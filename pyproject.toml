@@ -77,10 +77,6 @@ django_settings_module = "tests.settings.sqlite"
 ignore_missing_settings = true
 
 [tool.mypy]
-disallow_any_generics = false
-disallow_untyped_calls = false
-disallow_untyped_defs = false
-disallow_incomplete_defs = false
 packages = ["django_redis"]
 plugins = [
   "mypy_django_plugin.main",
@@ -91,6 +87,17 @@ show_error_context = true
 strict = true
 warn_unreachable = true
 warn_unused_configs = true
+
+# first party mypy strictness overrides
+[[tool.mypy.overrides]]
+module = [
+  "django_redis.cache",
+  "django_redis.client.*",
+]
+disallow_any_generics = false
+disallow_untyped_calls = false
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
 
 # third party mypy config
 [[tool.mypy.overrides]]

@@ -25,9 +25,15 @@ from redis.exceptions import (
     TimeoutError as RedisTimeoutError,
 )
 
-from django_redis import pool
 from django_redis.client.mixins import SortedSetMixin
 from django_redis.exceptions import CompressorError, ConnectionInterrupted
+from django_redis.pool import (
+    ConnectionFactoryProtocol,
+    ConnectionPoolType,
+    RedisParserType,
+    RedisType,
+    get_connection_factory,
+)
 from django_redis.util import CacheKey
 
 if TYPE_CHECKING:
@@ -42,7 +48,6 @@ if TYPE_CHECKING:
 
     Set: TypeAlias = set
 
-ConnectionFactoryType = TypeVar("ConnectionFactoryType")
 CompressorType = TypeVar("CompressorType", bound="BaseCompressor")
 SerializerType = TypeVar("SerializerType", bound="BaseSerializer")
 
@@ -62,7 +67,13 @@ def glob_escape(s: str) -> str:
 
 class DefaultClient(
     SortedSetMixin,
-    Generic[ConnectionFactoryType, SerializerType, CompressorType],
+    Generic[
+        RedisType,
+        ConnectionPoolType,
+        RedisParserType,
+        SerializerType,
+        CompressorType,
+    ],
 ):
     def __init__(self, server, params: dict[str, Any], backend: BaseCache) -> None:
         self._backend = backend
@@ -81,7 +92,7 @@ class DefaultClient(
         if not isinstance(self._server, (list, tuple, set)):
             self._server = self._server.split(",")
 
-        self._clients: list[Redis | None] = [None] * len(self._server)
+        self._clients: list[RedisType | None] = [None] * len(self._server)
         self._options = params.get("OPTIONS", {})
         self._replica_read_only = self._options.get("REPLICA_READ_ONLY", True)
 
@@ -100,7 +111,11 @@ class DefaultClient(
         self._serializer = serializer_cls(options=self._options)
         self._compressor = compressor_cls(options=self._options)
 
-        self.connection_factory = pool.get_connection_factory(options=self._options)
+        self.connection_factory: ConnectionFactoryProtocol[
+            RedisType,
+            ConnectionPoolType,
+            RedisParserType,
+        ] = get_connection_factory(self._options)
 
     def __contains__(self, key: str) -> bool:
         return self.has_key(key)
@@ -179,15 +194,15 @@ class DefaultClient(
 
         return self._clients[index], index  # type:ignore
 
-    def connect(self, index: int = 0) -> Redis:
+    def connect(self, index: int = 0) -> RedisType:
         """
         Given a connection index, returns a new raw redis client/connection
         instance. Index is used for replication setups and indicates that
         connection string should be used. In normal setups, index is 0.
         """
-        return self.connection_factory.connect(self._server[index])  # type: ignore[no-any-return]
+        return self.connection_factory.connect(self._server[index])
 
-    def disconnect(self, index: int = 0, client: Redis | None = None) -> None:
+    def disconnect(self, index: int = 0, client: RedisType | None = None) -> None:
         """
         delegates the connection factory to disconnect the client
         """

@@ -4,7 +4,7 @@ from typing import Any
 
 
 class BaseSerializer:
-    def __init__(self, options):
+    def __init__(self, options: dict[str, Any]) -> None:
         pass
 
     def dumps(self, value: Any) -> bytes:
