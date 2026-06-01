@@ -5,7 +5,6 @@ from collections import Counter
 from datetime import timedelta
 from typing import TYPE_CHECKING
 
-import django
 import pytest
 from django.contrib.sessions.backends.cache import SessionStore
 from django.test import override_settings
@@ -322,34 +321,6 @@ def test_decode_failure_logged_to_security(session, caplog):
         30,
         "Session data corrupted",
     ) in caplog.record_tuples
-
-
-@pytest.mark.skipif(
-    django.VERSION >= (4, 2),
-    reason="PickleSerializer is removed as of https://code.djangoproject.com/ticket/29708",
-)
-def test_actual_expiry(session):
-    # this doesn't work with JSONSerializer (serializing timedelta)
-    with override_settings(
-        SESSION_SERIALIZER="django.contrib.sessions.serializers.PickleSerializer",
-    ):
-        session = SessionStore()  # reinitialize after overriding settings
-
-        # Regression test for #19200
-        old_session_key = None
-        new_session_key = None
-        try:
-            session["foo"] = "bar"
-            session.set_expiry(-timedelta(seconds=10))
-            session.save()
-            old_session_key = session.session_key
-            # With an expiry date in the past, the session expires instantly.
-            new_session = SessionStore(session.session_key)
-            new_session_key = new_session.session_key
-            assert "foo" not in new_session
-        finally:
-            session.delete(old_session_key)
-            session.delete(new_session_key)
 
 
 def test_session_load_does_not_create_record(session):
