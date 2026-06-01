@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING, Any, Literal, Protocol, overload
 
 if TYPE_CHECKING:
     from redis import Redis
-    from redis.typing import EncodableT
 
     from django_redis.util import CacheKey
 
@@ -33,7 +32,7 @@ class ClientProtocol(Protocol):
         """Encode a value for storage in Redis."""
         ...
 
-    def decode(self, value: EncodableT) -> Any:
+    def decode(self, value: bytes | int | str) -> Any:
         """Decode a value retrieved from Redis."""
         ...
 

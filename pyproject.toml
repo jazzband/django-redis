@@ -53,6 +53,7 @@ test = [
 ]
 typing = [
   "django-stubs",
+  "msgpack-types",
   "mypy",
 ]
 
@@ -76,25 +77,24 @@ django_settings_module = "tests.settings.sqlite"
 ignore_missing_settings = true
 
 [tool.mypy]
-packages = ["django_redis", "tests"]
+disallow_any_generics = false
+disallow_untyped_calls = false
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+packages = ["django_redis"]
 plugins = [
   "mypy_django_plugin.main",
 ]
 pretty = true
 show_error_codes = true
 show_error_context = true
-strict_bytes = false
-warn_redundant_casts = true
+strict = true
 warn_unreachable = true
-warn_unused_ignores = true
+warn_unused_configs = true
 
 # third party mypy config
 [[tool.mypy.overrides]]
 module = "lz4.frame"
-ignore_missing_imports = true
-
-[[tool.mypy.overrides]]
-module = "xdist.scheduler"
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
@@ -366,6 +366,7 @@ skip_install = true
 commands = [["mypy", { replace = "posargs", default = ["--cobertura-xml-report", "."], extend = true}]]
 deps = ["lxml"]
 dependency_groups = ["test", "typing"]
+extras = ["lz4", "msgpack", "pyzstd"]
 
 [tool.tox.gh.python]
 "3.10" = ["py310"]
