@@ -3,6 +3,7 @@ from __future__ import annotations
 import random
 import re
 import socket
+import sys
 from contextlib import suppress
 from typing import (
     TYPE_CHECKING,
@@ -10,7 +11,6 @@ from typing import (
     Generic,
     Literal,
     TypeAlias,
-    TypeVar,
     cast,
     overload,
 )
@@ -36,6 +36,11 @@ from django_redis.pool import (
 )
 from django_redis.util import CacheKey
 
+if sys.version_info < (3, 13):
+    from typing_extensions import TypeVar
+else:
+    from typing import TypeVar
+
 if TYPE_CHECKING:
     from collections.abc import Collection, Iterable, Iterator, Mapping
 
@@ -44,12 +49,22 @@ if TYPE_CHECKING:
     from redis.typing import AbsExpiryT, ExpiryT, FieldT, PatternT
 
     from django_redis.compressors.base import BaseCompressor
+    from django_redis.compressors.identity import IdentityCompressor
     from django_redis.serializers.base import BaseSerializer
+    from django_redis.serializers.pickle import PickleSerializer
 
     Set: TypeAlias = set
 
-CompressorType = TypeVar("CompressorType", bound="BaseCompressor")
-SerializerType = TypeVar("SerializerType", bound="BaseSerializer")
+CompressorType = TypeVar(
+    "CompressorType",
+    bound="BaseCompressor",
+    default="IdentityCompressor",
+)
+SerializerType = TypeVar(
+    "SerializerType",
+    bound="BaseSerializer",
+    default="PickleSerializer",
+)
 
 _main_exceptions = (
     RedisConnectionError,

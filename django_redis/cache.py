@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import functools
 import logging
-from typing import TYPE_CHECKING, Any
+import sys
+from typing import TYPE_CHECKING, Any, Generic
 
 from django.conf import settings
 from django.core.cache.backends.base import BaseCache
@@ -10,9 +11,22 @@ from django.utils.module_loading import import_string
 
 from django_redis.exceptions import ConnectionInterrupted
 
+if sys.version_info < (3, 13):
+    from typing_extensions import TypeVar
+else:
+    from typing import TypeVar
+
 if TYPE_CHECKING:
     from collections.abc import Callable
 
+    from django_redis.client import DefaultClient
+
+
+ClientType = TypeVar(
+    "ClientType",
+    bound="DefaultClient",
+    default="DefaultClient",
+)
 CONNECTION_INTERRUPTED = object()
 
 
@@ -43,42 +57,43 @@ def omit_exception(
     return _decorator
 
 
-class RedisCache(BaseCache):
+class RedisCache(BaseCache, Generic[ClientType]):
     def __init__(self, server: str, params: dict[str, Any]) -> None:
         super().__init__(params)
         self._server = server
         self._params = params
-        self._default_scan_itersize = getattr(
+        self._default_scan_itersize: int = getattr(
             settings,
             "DJANGO_REDIS_SCAN_ITERSIZE",
             10,
         )
 
-        options = params.get("OPTIONS", {})
-        self._client_cls = options.get(
-            "CLIENT_CLASS",
-            "django_redis.client.DefaultClient",
+        options: dict[str, Any] = params.get("OPTIONS", {})
+        self._client_cls: type[ClientType] = import_string(
+            options.get(
+                "CLIENT_CLASS",
+                "django_redis.client.DefaultClient",
+            ),
         )
-        self._client_cls = import_string(self._client_cls)
-        self._client = None
+        self._client: ClientType | None = None
 
-        self._ignore_exceptions = options.get(
+        self._ignore_exceptions: bool = options.get(
             "IGNORE_EXCEPTIONS",
             getattr(settings, "DJANGO_REDIS_IGNORE_EXCEPTIONS", False),
         )
-        self._log_ignored_exceptions = getattr(
+        self._log_ignored_exceptions: bool = getattr(
             settings,
             "DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS",
             False,
         )
-        self.logger = (
+        self.logger: logging.Logger | None = (
             logging.getLogger(getattr(settings, "DJANGO_REDIS_LOGGER", __name__))
             if self._log_ignored_exceptions
             else None
         )
 
     @property
-    def client(self):
+    def client(self) -> ClientType:
         """
         Lazy client connection property.
         """
