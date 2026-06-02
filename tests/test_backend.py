@@ -12,6 +12,7 @@ from django.core.cache import caches
 from django.core.cache.backends.base import DEFAULT_TIMEOUT
 from django.test import override_settings
 
+from django_redis.cache import RedisCache
 from django_redis.client import ShardClient, herd
 from django_redis.serializers.json import JSONSerializer
 from django_redis.serializers.msgpack import MSGPackSerializer
@@ -21,7 +22,6 @@ if TYPE_CHECKING:
 
     from pytest_mock import MockerFixture
 
-    from django_redis.cache import RedisCache
     from tests.settings_wrapper import SettingsWrapper
 
 
@@ -526,10 +526,11 @@ class TestDjangoRedisCache:
         cache.set("f", "1")
         cache.close()
 
-    def test_close_uninitialized_client(self):
+    @patch("django_redis.cache.RedisCache.client")
+    def test_close_uninitialized_client(self, client_mock):
         cache = RedisCache("default", {})
-        cache._client = None
         cache.close()
+        client_mock.close.assert_not_called()
 
     def test_close_client(self, cache: RedisCache, mocker: MockerFixture):
         mock = mocker.patch.object(cache.client, "close")
