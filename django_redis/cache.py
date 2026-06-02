@@ -203,7 +203,8 @@ class RedisCache(BaseCache, Generic[ClientType]):
 
     @omit_exception
     def close(self, **kwargs):
-        self.client.close()
+        if self._client:
+            self.client.close()
 
     @omit_exception
     def touch(self, *args, **kwargs):
