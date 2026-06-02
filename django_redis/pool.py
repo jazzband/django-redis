@@ -1,37 +1,74 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any, Protocol, TypeVar, cast
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.module_loading import import_string
-from redis import Redis
-from redis.connection import ConnectionPool, DefaultParser, to_bool
+from redis.connection import DefaultParser, to_bool
 from redis.sentinel import Sentinel
 
+if TYPE_CHECKING:
+    from redis import ConnectionPool, Redis
+    from redis._parsers import BaseParser
 
-class ConnectionFactory:
+ConnectionPoolType = TypeVar("ConnectionPoolType", bound="ConnectionPool")
+ConnectionPoolType_co = TypeVar(
+    "ConnectionPoolType_co",
+    bound="ConnectionPool",
+    covariant=True,
+)
+RedisParserType = TypeVar("RedisParserType", bound="BaseParser")
+RedisParserType_co = TypeVar("RedisParserType_co", bound="BaseParser", covariant=True)
+RedisType = TypeVar("RedisType", bound="Redis")
+
+
+class ConnectionFactoryProtocol(
+    Protocol[RedisType, ConnectionPoolType_co, RedisParserType_co],
+):
+    def __init__(self, options: dict[str, Any]) -> None: ...
+    def make_connection_params(self, url: str) -> dict[str, Any]: ...
+    def connect(self, url: str) -> RedisType: ...
+    def disconnect(self, connection: RedisType) -> None: ...
+    def get_connection(self, params: dict[str, Any]) -> RedisType: ...
+    def get_parser_cls(self) -> type[RedisParserType_co]: ...
+    def get_or_create_connection_pool(
+        self,
+        params: dict[str, Any],
+    ) -> ConnectionPoolType_co: ...
+    def get_connection_pool(self, params: dict[str, Any]) -> ConnectionPoolType_co: ...
+
+
+class ConnectionFactory(
+    ConnectionFactoryProtocol[RedisType, ConnectionPoolType, RedisParserType],
+):
     # Store connection pool by cache backend options.
     #
     # _pools is a process-global, as otherwise _pools is cleared every time
     # ConnectionFactory is instantiated, as Django creates new cache client
     # (DefaultClient) instance for every request.
 
-    _pools: dict[str, ConnectionPool] = {}
+    _pools: dict[str, ConnectionPoolType] = {}
 
-    def __init__(self, options):
+    def __init__(self, options: dict[str, Any]) -> None:
         pool_cls_path = options.get(
             "CONNECTION_POOL_CLASS",
             "redis.connection.ConnectionPool",
         )
-        self.pool_cls = import_string(pool_cls_path)
-        self.pool_cls_kwargs = options.get("CONNECTION_POOL_KWARGS", {})
+        self.pool_cls: type[ConnectionPoolType] = import_string(pool_cls_path)
+        self.pool_cls_kwargs: dict[str, Any] = options.get("CONNECTION_POOL_KWARGS", {})
 
         redis_client_cls_path = options.get("REDIS_CLIENT_CLASS", "redis.client.Redis")
-        self.redis_client_cls = import_string(redis_client_cls_path)
-        self.redis_client_cls_kwargs = options.get("REDIS_CLIENT_KWARGS", {})
+        self.redis_client_cls: type[RedisType] = import_string(redis_client_cls_path)
+        self.redis_client_cls_kwargs: dict[str, Any] = options.get(
+            "REDIS_CLIENT_KWARGS",
+            {},
+        )
 
         self.options = options
 
-    def make_connection_params(self, url):
+    def make_connection_params(self, url: str) -> dict[str, Any]:
         """
         Given a main connection parameters, build a complete
         dict of connection parameters.
@@ -62,7 +99,7 @@ class ConnectionFactory:
 
         return kwargs
 
-    def connect(self, url: str) -> Redis:
+    def connect(self, url: str) -> RedisType:
         """
         Given a basic connection parameters,
         return a new connection.
@@ -70,7 +107,7 @@ class ConnectionFactory:
         params = self.make_connection_params(url)
         return self.get_connection(params)
 
-    def disconnect(self, connection: Redis) -> None:
+    def disconnect(self, connection: RedisType) -> None:
         """
         Given a not null client connection it disconnect from the Redis server.
 
@@ -78,7 +115,7 @@ class ConnectionFactory:
         """
         connection.connection_pool.disconnect()
 
-    def get_connection(self, params):
+    def get_connection(self, params: dict[str, Any]) -> RedisType:
         """
         Given a now preformatted params, return a
         new connection.
@@ -92,13 +129,16 @@ class ConnectionFactory:
             **self.redis_client_cls_kwargs,
         )
 
-    def get_parser_cls(self):
+    def get_parser_cls(self) -> type[RedisParserType]:
         cls = self.options.get("PARSER_CLASS", None)
         if cls is None:
-            return DefaultParser
-        return import_string(cls)
+            return DefaultParser  # type: ignore[return-value]
+        return cast("type[RedisParserType]", import_string(cls))
 
-    def get_or_create_connection_pool(self, params):
+    def get_or_create_connection_pool(
+        self,
+        params: dict[str, Any],
+    ) -> ConnectionPoolType:
         """
         Given a connection parameters and return a new
         or cached connection pool for them.
@@ -111,7 +151,7 @@ class ConnectionFactory:
             self._pools[key] = self.get_connection_pool(params)
         return self._pools[key]
 
-    def get_connection_pool(self, params):
+    def get_connection_pool(self, params: dict[str, Any]) -> ConnectionPoolType:
         """
         Given a connection parameters, return a new
         connection pool for them.
@@ -124,14 +164,16 @@ class ConnectionFactory:
         pool = self.pool_cls.from_url(**cp_params)
 
         if pool.connection_kwargs.get("password", None) is None:
-            pool.connection_kwargs["password"] = params.get("password", None)
+            pool.connection_kwargs["password"] = params.get("password")
             pool.reset()
 
         return pool
 
 
-class SentinelConnectionFactory(ConnectionFactory):
-    def __init__(self, options):
+class SentinelConnectionFactory(
+    ConnectionFactory[RedisType, ConnectionPoolType, RedisParserType],
+):
+    def __init__(self, options: dict[str, Any]) -> None:
         # allow overriding the default SentinelConnectionPool class
         options.setdefault(
             "CONNECTION_POOL_CLASS",
@@ -146,16 +188,16 @@ class SentinelConnectionFactory(ConnectionFactory):
 
         # provide the connection pool kwargs to the sentinel in case it
         # needs to use the socket options for the sentinels themselves
-        connection_kwargs = self.make_connection_params(None)
+        connection_kwargs = self.make_connection_params("")
         connection_kwargs.pop("url")
         connection_kwargs.update(self.pool_cls_kwargs)
-        self._sentinel = Sentinel(
+        self._sentinel = Sentinel(  # type: ignore[no-untyped-call]
             sentinels,
             sentinel_kwargs=options.get("SENTINEL_KWARGS"),
             **connection_kwargs,
         )
 
-    def get_connection_pool(self, params):
+    def get_connection_pool(self, params: dict[str, Any]) -> ConnectionPoolType:
         """
         Given a connection parameters, return a new sentinel connection pool
         for them.
@@ -170,7 +212,7 @@ class SentinelConnectionFactory(ConnectionFactory):
         query_params = parse_qs(url.query)
         is_master = query_params.get("is_master")
         if is_master:
-            cp_params["is_master"] = to_bool(is_master[0])
+            cp_params["is_master"] = to_bool(is_master[0])  # type: ignore[no-untyped-call]
         # then remove the "is_master" query string from the URL
         # so it doesn't interfere with the SentinelConnectionPool constructor
         if "is_master" in query_params:
@@ -190,16 +232,20 @@ class SentinelConnectionFactory(ConnectionFactory):
         return super().get_connection_pool(cp_params)
 
 
-def get_connection_factory(path=None, options=None):
-    if path is None:
-        path = getattr(
-            settings,
-            "DJANGO_REDIS_CONNECTION_FACTORY",
-            "django_redis.pool.ConnectionFactory",
-        )
-    opt_conn_factory = options.get("CONNECTION_FACTORY")
-    if opt_conn_factory:
-        path = opt_conn_factory
-
-    cls = import_string(path)
-    return cls(options or {})
+def get_connection_factory(
+    options: dict[str, Any],
+) -> ConnectionFactoryProtocol[RedisType, ConnectionPoolType, RedisParserType]:
+    cls: type[
+        ConnectionFactoryProtocol[RedisType, ConnectionPoolType, RedisParserType]
+    ] = import_string(
+        options.get("CONNECTION_FACTORY")
+        or cast(
+            "str",
+            getattr(
+                settings,
+                "DJANGO_REDIS_CONNECTION_FACTORY",
+                "django_redis.pool.ConnectionFactory",
+            ),
+        ),
+    )
+    return cls(options)

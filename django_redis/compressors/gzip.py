@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import gzip
 
 from django_redis.compressors.base import BaseCompressor

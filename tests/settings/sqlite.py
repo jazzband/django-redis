@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 SECRET_KEY = "django_tests_secret_key"
 CACHES = {
     "default": {

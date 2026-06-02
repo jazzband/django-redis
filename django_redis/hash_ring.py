@@ -1,7 +1,11 @@
+from __future__ import annotations
+
 import bisect
 import hashlib
-from collections.abc import Iterable, Iterator
-from typing import Optional
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable, Iterator
 
 
 class HashRing:
@@ -34,11 +38,11 @@ class HashRing:
             del self.ring[_hash]
             self.sorted_keys.remove(_hash)
 
-    def get_node(self, key: str) -> Optional[str]:
+    def get_node(self, key: str) -> str | None:
         n, i = self.get_node_pos(key)
         return n
 
-    def get_node_pos(self, key: str) -> tuple[Optional[str], Optional[int]]:
+    def get_node_pos(self, key: str) -> tuple[str | None, int | None]:
         if len(self.ring) == 0:
             return None, None
 
@@ -47,7 +51,7 @@ class HashRing:
         idx = min(idx - 1, (self.replicas * len(self.nodes)) - 1)
         return self.ring[self.sorted_keys[idx]], idx
 
-    def iter_nodes(self, key: str) -> Iterator[tuple[Optional[str], Optional[str]]]:
+    def iter_nodes(self, key: str) -> Iterator[tuple[str | None, str | None]]:
         if len(self.ring) == 0:
             yield None, None
 
@@ -55,5 +59,5 @@ class HashRing:
         for k in self.sorted_keys[pos:]:
             yield k, self.ring[k]
 
-    def __call__(self, key: str) -> Optional[str]:
+    def __call__(self, key: str) -> str | None:
         return self.get_node(key)
