@@ -3,6 +3,45 @@ Changelog
 
 .. towncrier release notes start
 
+django-redis 7.0.0 (2026-06-02)
+===============================
+
+Features
+--------
+
+- Added the ability to pass redis username in the cache options (`#657 <https://github.com/jazzband/django-redis/issues/657>`_)
+- `RedisCache` does not attempt to close clients which have not been initialized. (`#796 <https://github.com/jazzband/django-redis/issues/796>`_)
+- Add sorted set operations (zadd, zrange, zrem, etc.) and mixins for RedisCache (`#797 <https://github.com/jazzband/django-redis/issues/797>`_)
+- Centralize configuration in `pyproject.toml`, drop EoL Python & Django
+  versions, and add support & testing for modern Python & Django versions. (`#820 <https://github.com/jazzband/django-redis/issues/820>`_)
+- Provide TypeVar defaults & provide initial typing for `RedisCache`. (`#829 <https://github.com/jazzband/django-redis/issues/829>`_)
+
+
+Bug Fixes
+---------
+
+- Fix IntEnum encoding (`#602 <https://github.com/jazzband/django-redis/issues/602>`_)
+- Fix incorrect Redis typing that relied on the legacy `types-redis` package, and update the public API to avoid exposing redis-py key types (the encode/decode/make_key methods allow a different API surface). (`#822 <https://github.com/jazzband/django-redis/issues/822>`_)
+
+
+Miscellaneous
+-------------
+
+- Drop support for Django 5.0 (EOL) (`#779 <https://github.com/jazzband/django-redis/issues/779>`_)
+- Clean & organize ruff config (`#781 <https://github.com/jazzband/django-redis/issues/781>`_)
+- Replace black with ruff format (`#782 <https://github.com/jazzband/django-redis/issues/782>`_)
+- Update `RedisCache.close` to not forward `kwargs` to the client implementation. (`#788 <https://github.com/jazzband/django-redis/issues/788>`_)
+- Rename 'name' parameter to 'key' in all sorted set methods for better consistency with Redis terminology (`#811 <https://github.com/jazzband/django-redis/issues/811>`_)
+- Fix hash method parameters: rename 'name' → 'key', 'key' → 'field' to align with Redis/Valkey terminology. Add version parameter to hlen() and hkeys(). Fix make_key() to only apply to hash key, not fields. (`#812 <https://github.com/jazzband/django-redis/issues/812>`_)
+- pre-commit autoupdate (`#819 <https://github.com/jazzband/django-redis/issues/819>`_)
+- Use `from __future__ import annotations` to postpone evaluation of annotations. (`#823 <https://github.com/jazzband/django-redis/issues/823>`_)
+- Increase mypy strictness, fix typing configuration, and fix type errors. (`#824 <https://github.com/jazzband/django-redis/issues/824>`_)
+- This change updates the compose configuration, and moves it to `tests`
+  directory as it is only for testing. (`#825 <https://github.com/jazzband/django-redis/issues/825>`_)
+- Remove code handling unsupported Django versions (`#826 <https://github.com/jazzband/django-redis/issues/826>`_)
+- Increase mypy type coverage & update strictness overrides to only target specific modules (`#827 <https://github.com/jazzband/django-redis/issues/827>`_)
+
+
 django-redis 6.0.0 (2025-06-17)
 ===============================
 

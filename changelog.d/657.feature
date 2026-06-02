@@ -1,1 +1,0 @@
-Added the ability to pass redis username in the cache options
