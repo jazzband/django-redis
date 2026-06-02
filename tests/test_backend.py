@@ -678,14 +678,8 @@ class TestDjangoRedisCache:
         assert cache.expire_at("not-existent-key", expiration_time) is False
 
     def test_intenum(self, cache: RedisCache):
-
         cache.set("hello", Values2.SOMETHING_1, enforce_encoding=True)
-
-        value = cache.get("hello")
-
-        assert value == Values2.SOMETHING_1
-
-        assert isinstance(value, Values2)
+        assert cache.get("hello") is Values2.SOMETHING_1
 
     def test_lock(self, cache: RedisCache):
         lock = cache.lock("foobar")
