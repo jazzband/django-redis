@@ -1,23 +1,39 @@
+from __future__ import annotations
+
 import datetime
 import threading
 import time
 from datetime import timedelta
 from enum import IntEnum
-from typing import List, Union, cast
+from typing import TYPE_CHECKING, cast
 from unittest.mock import patch
 
 import pytest
 from django.core.cache import caches
-from pytest_django.fixtures import SettingsWrapper
-from pytest_mock import MockerFixture
+from django.core.cache.backends.base import DEFAULT_TIMEOUT
+from django.test import override_settings
 
-import django_redis.cache
-from django_redis.cache import RedisCache
 from django_redis.client import ShardClient, herd
 from django_redis.serializers.json import JSONSerializer
 from django_redis.serializers.msgpack import MSGPackSerializer
 
-herd.CACHE_HERD_TIMEOUT = 2
+if TYPE_CHECKING:
+    from collections.abc import Iterable
+
+    from pytest_mock import MockerFixture
+
+    from django_redis.cache import RedisCache
+    from tests.settings_wrapper import SettingsWrapper
+
+
+@pytest.fixture
+def patch_itersize_setting() -> Iterable[None]:
+    # destroy cache to force recreation with overriden settings
+    del caches["default"]
+    with override_settings(DJANGO_REDIS_SCAN_ITERSIZE=30):
+        yield
+    # destroy cache to force recreation with original settings
+    del caches["default"]
 
 
 class Values2(IntEnum):
@@ -100,7 +116,7 @@ class TestDjangoRedisCache:
         if isinstance(cache.client._serializer, (JSONSerializer, MSGPackSerializer)):
             # JSONSerializer and MSGPackSerializer use the isoformat for
             # datetimes.
-            now_dt: Union[str, datetime.datetime] = datetime.datetime.now().isoformat()
+            now_dt: str | datetime.datetime = datetime.datetime.now().isoformat()
         else:
             now_dt = datetime.datetime.now()
 
@@ -205,7 +221,12 @@ class TestDjangoRedisCache:
         res = cache.get_many(["a", "b", "c"])
         assert res == {"a": 1, "b": 2, "c": 3}
 
-    def test_set_call_empty_pipeline(self, cache: RedisCache, mocker: MockerFixture):
+    def test_set_call_empty_pipeline(
+        self,
+        cache: RedisCache,
+        mocker: MockerFixture,
+        settings: SettingsWrapper,
+    ):
         if isinstance(cache.client, ShardClient):
             pytest.skip("ShardClient doesn't support get_client")
 
@@ -218,7 +239,7 @@ class TestDjangoRedisCache:
 
         if isinstance(cache.client, herd.HerdClient):
             default_timeout = cache.client._backend.default_timeout
-            herd_timeout = (default_timeout + herd.CACHE_HERD_TIMEOUT) * 1000
+            herd_timeout = (default_timeout + settings.CACHE_HERD_TIMEOUT) * 1000
             herd_pack_value = cache.client._pack(value, default_timeout)
             mocked_set.assert_called_once_with(
                 cache.client.make_key(key, version=None),
@@ -247,8 +268,7 @@ class TestDjangoRedisCache:
         res = cache.delete("a")
         assert bool(res) is False
 
-    @patch("django_redis.cache.DJANGO_VERSION", (3, 1, 0, "final", 0))
-    def test_delete_return_value_type_new31(self, cache: RedisCache):
+    def test_delete_return_value_type(self, cache: RedisCache):
         """delete() returns a boolean instead of int since django version 3.1"""
         cache.set("a", 1)
         res = cache.delete("a")
@@ -257,17 +277,6 @@ class TestDjangoRedisCache:
         res = cache.delete("b")
         assert isinstance(res, bool)
         assert res is False
-
-    @patch("django_redis.cache.DJANGO_VERSION", new=(3, 0, 1, "final", 0))
-    def test_delete_return_value_type_before31(self, cache: RedisCache):
-        """delete() returns a int before django version 3.1"""
-        cache.set("a", 1)
-        res = cache.delete("a")
-        assert isinstance(res, int)
-        assert res == 1
-        res = cache.delete("b")
-        assert isinstance(res, int)
-        assert res == 0
 
     def test_delete_many(self, cache: RedisCache):
         cache.set_many({"a": 1, "b": 2, "c": 3})
@@ -292,7 +301,7 @@ class TestDjangoRedisCache:
         assert bool(res) is False
 
     def test_delete_many_empty_generator(self, cache: RedisCache):
-        res = cache.delete_many(key for key in cast(List[str], []))
+        res = cache.delete_many(key for key in cast("list[str]", []))
         assert bool(res) is False
 
     def test_incr(self, cache: RedisCache):
@@ -501,16 +510,21 @@ class TestDjangoRedisCache:
 
     @patch("django_redis.cache.RedisCache.client")
     def test_delete_pattern_with_settings_default_scan_count(
-        self, client_mock, cache: RedisCache
+        self,
+        client_mock,
+        patch_itersize_setting,
+        cache: RedisCache,
+        settings: SettingsWrapper,
     ):
         for key in ["foo-aa", "foo-ab", "foo-bb", "foo-bc"]:
             cache.set(key, "foo")
-        expected_count = django_redis.cache.DJANGO_REDIS_SCAN_ITERSIZE
+        expected_count = settings.DJANGO_REDIS_SCAN_ITERSIZE
 
         cache.delete_pattern("*foo-a*")
 
         client_mock.delete_pattern.assert_called_once_with(
-            "*foo-a*", itersize=expected_count
+            "*foo-a*",
+            itersize=expected_count,
         )
 
     def test_close(self, cache: RedisCache, settings: SettingsWrapper):
@@ -547,7 +561,6 @@ class TestDjangoRedisCache:
         assert ttl == 0
 
     def test_pttl(self, cache: RedisCache):
-
         # Test pttl
         cache.set("foo", "bar", 10)
         ttl = cache.pttl("foo")
@@ -596,6 +609,11 @@ class TestDjangoRedisCache:
         assert pytest.approx(ttl) == 20
         assert cache.expire("not-existent-key", 20) is False
 
+    def test_expire_with_default_timeout(self, cache: RedisCache):
+        cache.set("foo", "bar", timeout=None)
+        assert cache.expire("foo", DEFAULT_TIMEOUT) is True
+        assert cache.expire("not-existent-key", DEFAULT_TIMEOUT) is False
+
     def test_pexpire(self, cache: RedisCache):
         cache.set("foo", "bar", timeout=None)
         assert cache.pexpire("foo", 20500) is True
@@ -604,8 +622,12 @@ class TestDjangoRedisCache:
         assert pytest.approx(ttl, 10) == 20500
         assert cache.pexpire("not-existent-key", 20500) is False
 
-    def test_pexpire_at(self, cache: RedisCache):
+    def test_pexpire_with_default_timeout(self, cache: RedisCache):
+        cache.set("foo", "bar", timeout=None)
+        assert cache.pexpire("foo", DEFAULT_TIMEOUT) is True
+        assert cache.pexpire("not-existent-key", DEFAULT_TIMEOUT) is False
 
+    def test_pexpire_at(self, cache: RedisCache):
         # Test settings expiration time 1 hour ahead by datetime.
         cache.set("foo", "bar", timeout=None)
         expiration_time = datetime.datetime.now() + timedelta(hours=1)
@@ -631,7 +653,6 @@ class TestDjangoRedisCache:
         assert cache.pexpire_at("not-existent-key", expiration_time) is False
 
     def test_expire_at(self, cache: RedisCache):
-
         # Test settings expiration time 1 hour ahead by datetime.
         cache.set("foo", "bar", timeout=None)
         expiration_time = datetime.datetime.now() + timedelta(hours=1)
@@ -668,7 +689,19 @@ class TestDjangoRedisCache:
 
     def test_lock(self, cache: RedisCache):
         lock = cache.lock("foobar")
-        lock.acquire(blocking=True)
+        assert lock.acquire(blocking=True)
+
+        assert cache.has_key("foobar")
+        lock.release()
+        assert not cache.has_key("foobar")
+
+    def test_lock_not_blocking(self, cache: RedisCache):
+        lock = cache.lock("foobar")
+        assert lock.acquire(blocking=False)
+
+        lock2 = cache.lock("foobar")
+
+        assert not lock2.acquire(blocking=False)
 
         assert cache.has_key("foobar")
         lock.release()
@@ -676,7 +709,7 @@ class TestDjangoRedisCache:
 
     def test_lock_released_by_thread(self, cache: RedisCache):
         lock = cache.lock("foobar", thread_local=False)
-        lock.acquire(blocking=True)
+        assert lock.acquire(blocking=True)
 
         def release_lock(lock_):
             lock_.release()
@@ -728,13 +761,25 @@ class TestDjangoRedisCache:
         if isinstance(cache.client, ShardClient):
             pytest.skip("ShardClient doesn't support get_client")
 
-        cache = cast(RedisCache, caches["sample"])
+        cache = cast("RedisCache", caches["sample"])
         client = cache.client
         client._server = ["foo", "bar"]
         client._clients = ["Foo", "Bar"]
 
         assert client.get_client(write=True) == "Foo"
         assert client.get_client(write=False) == "Bar"
+
+    def test_primary_replica_switching_with_index(self, cache: RedisCache):
+        if isinstance(cache.client, ShardClient):
+            pytest.skip("ShardClient doesn't support get_client")
+
+        cache = cast("RedisCache", caches["sample"])
+        client = cache.client
+        client._server = ["foo", "bar"]
+        client._clients = ["Foo", "Bar"]
+
+        assert client.get_client_with_index(write=True) == ("Foo", 0)
+        assert client.get_client_with_index(write=False) == ("Bar", 1)
 
     def test_touch_zero_timeout(self, cache: RedisCache):
         cache.set("test_key", 222, timeout=10)
@@ -787,3 +832,295 @@ class TestDjangoRedisCache:
         cache.clear()
         value_from_cache_after_clear = cache.get("foo")
         assert value_from_cache_after_clear is None
+
+    def test_hset(self, cache: RedisCache):
+        if isinstance(cache.client, ShardClient):
+            pytest.skip("ShardClient doesn't support get_client")
+        cache.hset("foo_hash1", "foo1", "bar1")
+        cache.hset("foo_hash1", "foo2", "bar2")
+        assert cache.hlen("foo_hash1") == 2
+        assert cache.hexists("foo_hash1", "foo1")
+        assert cache.hexists("foo_hash1", "foo2")
+
+    def test_hdel(self, cache: RedisCache):
+        if isinstance(cache.client, ShardClient):
+            pytest.skip("ShardClient doesn't support get_client")
+        cache.hset("foo_hash2", "foo1", "bar1")
+        cache.hset("foo_hash2", "foo2", "bar2")
+        assert cache.hlen("foo_hash2") == 2
+        deleted_count = cache.hdel("foo_hash2", "foo1")
+        assert deleted_count == 1
+        assert cache.hlen("foo_hash2") == 1
+        assert not cache.hexists("foo_hash2", "foo1")
+        assert cache.hexists("foo_hash2", "foo2")
+
+    def test_hlen(self, cache: RedisCache):
+        if isinstance(cache.client, ShardClient):
+            pytest.skip("ShardClient doesn't support get_client")
+        assert cache.hlen("foo_hash3") == 0
+        cache.hset("foo_hash3", "foo1", "bar1")
+        assert cache.hlen("foo_hash3") == 1
+        cache.hset("foo_hash3", "foo2", "bar2")
+        assert cache.hlen("foo_hash3") == 2
+
+    def test_hkeys(self, cache: RedisCache):
+        if isinstance(cache.client, ShardClient):
+            pytest.skip("ShardClient doesn't support get_client")
+        cache.hset("foo_hash4", "foo1", "bar1")
+        cache.hset("foo_hash4", "foo2", "bar2")
+        cache.hset("foo_hash4", "foo3", "bar3")
+        keys = cache.hkeys("foo_hash4")
+        assert len(keys) == 3
+        for i in range(len(keys)):
+            assert keys[i] == f"foo{i + 1}"
+
+    def test_hexists(self, cache: RedisCache):
+        if isinstance(cache.client, ShardClient):
+            pytest.skip("ShardClient doesn't support get_client")
+        cache.hset("foo_hash5", "foo1", "bar1")
+        assert cache.hexists("foo_hash5", "foo1")
+        assert not cache.hexists("foo_hash5", "foo")
+
+    def test_hash_version_support(self, cache: RedisCache):
+        """Test that version parameter works correctly for hash methods."""
+        if isinstance(cache.client, ShardClient):
+            pytest.skip("ShardClient doesn't support get_client")
+
+        # Set values with different versions
+        cache.hset("my_hash", "field1", "value1", version=1)
+        cache.hset("my_hash", "field2", "value2", version=1)
+        cache.hset("my_hash", "field1", "different_value", version=2)
+
+        # Verify both versions exist independently
+        assert cache.hexists("my_hash", "field1", version=1)
+        assert cache.hexists("my_hash", "field2", version=1)
+        assert cache.hexists("my_hash", "field1", version=2)
+        assert not cache.hexists("my_hash", "field2", version=2)
+
+        # Verify hlen works with versions
+        assert cache.hlen("my_hash", version=1) == 2
+        assert cache.hlen("my_hash", version=2) == 1
+
+        # Verify hkeys works with versions
+        keys_v1 = cache.hkeys("my_hash", version=1)
+        assert len(keys_v1) == 2
+        assert "field1" in keys_v1
+        assert "field2" in keys_v1
+
+        keys_v2 = cache.hkeys("my_hash", version=2)
+        assert len(keys_v2) == 1
+        assert "field1" in keys_v2
+
+        # Verify hdel works with versions
+        cache.hdel("my_hash", "field1", version=1)
+        assert not cache.hexists("my_hash", "field1", version=1)
+        assert cache.hexists("my_hash", "field1", version=2)  # v2 should still exist
+
+    def test_hash_key_structure_in_redis(self, cache: RedisCache):
+        """Test that hash keys are prefixed but fields are not."""
+        if isinstance(cache.client, ShardClient):
+            pytest.skip("ShardClient doesn't support get_client")
+
+        # Get raw Redis client
+        client = cache.client.get_client(write=False)
+
+        # Set some hash data
+        cache.hset("user:1000", "email", "alice@example.com", version=2)
+        cache.hset("user:1000", "name", "Alice", version=2)
+
+        # Get the actual Redis key that was created
+        expected_key = cache.client.make_key("user:1000", version=2)
+
+        # Verify the hash exists in Redis with the prefixed key
+        assert client.exists(expected_key)
+        assert client.type(expected_key) == b"hash"
+
+        # Verify fields are stored WITHOUT prefix
+        actual_fields = client.hkeys(expected_key)
+        # Fields should be plain "email" and "name", not prefixed
+        assert b"email" in actual_fields
+        assert b"name" in actual_fields
+
+        # Verify field values are correct
+        assert client.hget(expected_key, b"email") is not None
+        assert client.hget(expected_key, b"name") is not None
+
+    def test_sadd(self, cache: RedisCache):
+        assert cache.sadd("foo", "bar") == 1
+        assert cache.smembers("foo") == {"bar"}
+
+    def test_scard(self, cache: RedisCache):
+        cache.sadd("foo", "bar", "bar2")
+        assert cache.scard("foo") == 2
+
+    def test_sdiff(self, cache: RedisCache):
+        if isinstance(cache.client, ShardClient):
+            pytest.skip("ShardClient doesn't support get_client")
+
+        cache.sadd("foo1", "bar1", "bar2")
+        cache.sadd("foo2", "bar2", "bar3")
+        assert cache.sdiff("foo1", "foo2") == {"bar1"}
+
+    def test_sdiffstore(self, cache: RedisCache):
+        if isinstance(cache.client, ShardClient):
+            pytest.skip("ShardClient doesn't support get_client")
+
+        cache.sadd("foo1", "bar1", "bar2")
+        cache.sadd("foo2", "bar2", "bar3")
+        assert cache.sdiffstore("foo3", "foo1", "foo2") == 1
+        assert cache.smembers("foo3") == {"bar1"}
+
+    def test_sdiffstore_with_keys_version(self, cache: RedisCache):
+        if isinstance(cache.client, ShardClient):
+            pytest.skip("ShardClient doesn't support get_client")
+
+        cache.sadd("foo1", "bar1", "bar2", version=2)
+        cache.sadd("foo2", "bar2", "bar3", version=2)
+        assert cache.sdiffstore("foo3", "foo1", "foo2", version_keys=2) == 1
+        assert cache.smembers("foo3") == {"bar1"}
+
+    def test_sdiffstore_with_different_keys_versions_without_initial_set_in_version(
+        self,
+        cache: RedisCache,
+    ):
+        if isinstance(cache.client, ShardClient):
+            pytest.skip("ShardClient doesn't support get_client")
+
+        cache.sadd("foo1", "bar1", "bar2", version=1)
+        cache.sadd("foo2", "bar2", "bar3", version=2)
+        assert cache.sdiffstore("foo3", "foo1", "foo2", version_keys=2) == 0
+
+    def test_sdiffstore_with_different_keys_versions_with_initial_set_in_version(
+        self,
+        cache: RedisCache,
+    ):
+        if isinstance(cache.client, ShardClient):
+            pytest.skip("ShardClient doesn't support get_client")
+
+        cache.sadd("foo1", "bar1", "bar2", version=2)
+        cache.sadd("foo2", "bar2", "bar3", version=1)
+        assert cache.sdiffstore("foo3", "foo1", "foo2", version_keys=2) == 2
+
+    def test_sinter(self, cache: RedisCache):
+        if isinstance(cache.client, ShardClient):
+            pytest.skip("ShardClient doesn't support get_client")
+
+        cache.sadd("foo1", "bar1", "bar2")
+        cache.sadd("foo2", "bar2", "bar3")
+        assert cache.sinter("foo1", "foo2") == {"bar2"}
+
+    def test_interstore(self, cache: RedisCache):
+        if isinstance(cache.client, ShardClient):
+            pytest.skip("ShardClient doesn't support get_client")
+
+        cache.sadd("foo1", "bar1", "bar2")
+        cache.sadd("foo2", "bar2", "bar3")
+        assert cache.sinterstore("foo3", "foo1", "foo2") == 1
+        assert cache.smembers("foo3") == {"bar2"}
+
+    def test_sismember(self, cache: RedisCache):
+        cache.sadd("foo", "bar")
+        assert cache.sismember("foo", "bar") is True
+        assert cache.sismember("foo", "bar2") is False
+
+    def test_smove(self, cache: RedisCache):
+        if isinstance(cache.client, ShardClient):
+            pytest.skip("ShardClient doesn't support get_client")
+
+        cache.sadd("foo1", "bar1", "bar2")
+        cache.sadd("foo2", "bar2", "bar3")
+        assert cache.smove("foo1", "foo2", "bar1") is True
+        assert cache.smove("foo1", "foo2", "bar4") is False
+        assert cache.smembers("foo1") == {"bar2"}
+        assert cache.smembers("foo2") == {"bar1", "bar2", "bar3"}
+
+    def test_spop_default_count(self, cache: RedisCache):
+        cache.sadd("foo", "bar1", "bar2")
+        assert cache.spop("foo") in {"bar1", "bar2"}
+        assert cache.smembers("foo") in [{"bar1"}, {"bar2"}]
+
+    def test_spop(self, cache: RedisCache):
+        cache.sadd("foo", "bar1", "bar2")
+        assert cache.spop("foo", 1) in [{"bar1"}, {"bar2"}]
+        assert cache.smembers("foo") in [{"bar1"}, {"bar2"}]
+
+    def test_srandmember_default_count(self, cache: RedisCache):
+        cache.sadd("foo", "bar1", "bar2")
+        assert cache.srandmember("foo") in {"bar1", "bar2"}
+
+    def test_srandmember(self, cache: RedisCache):
+        cache.sadd("foo", "bar1", "bar2")
+        assert cache.srandmember("foo", 1) in [["bar1"], ["bar2"]]
+
+    def test_srem(self, cache: RedisCache):
+        cache.sadd("foo", "bar1", "bar2")
+        assert cache.srem("foo", "bar1") == 1
+        assert cache.srem("foo", "bar3") == 0
+
+    def test_sscan(self, cache: RedisCache):
+        cache.sadd("foo", "bar1", "bar2")
+        items = cache.sscan("foo")
+        assert items == {"bar1", "bar2"}
+
+    def test_sscan_with_match(self, cache: RedisCache):
+        if cache.client._has_compression_enabled():
+            pytest.skip("Compression is enabled, sscan with match is not supported")
+        cache.sadd("foo", "bar1", "bar2", "zoo")
+        items = cache.sscan("foo", match="zoo")
+        assert items == {"zoo"}
+
+    def test_sscan_iter(self, cache: RedisCache):
+        cache.sadd("foo", "bar1", "bar2")
+        items = cache.sscan_iter("foo")
+        assert set(items) == {"bar1", "bar2"}
+
+    def test_sscan_iter_with_match(self, cache: RedisCache):
+        if cache.client._has_compression_enabled():
+            pytest.skip(
+                "Compression is enabled, sscan_iter with match is not supported",
+            )
+        cache.sadd("foo", "bar1", "bar2", "zoo")
+        items = cache.sscan_iter("foo", match="bar*")
+        assert set(items) == {"bar1", "bar2"}
+
+    def test_smismember(self, cache: RedisCache):
+        cache.sadd("foo", "bar1", "bar2", "bar3")
+        assert cache.smismember("foo", "bar1", "bar2", "xyz") == [True, True, False]
+
+    def test_sunion(self, cache: RedisCache):
+        if isinstance(cache.client, ShardClient):
+            pytest.skip("ShardClient doesn't support get_client")
+
+        cache.sadd("foo1", "bar1", "bar2")
+        cache.sadd("foo2", "bar2", "bar3")
+        assert cache.sunion("foo1", "foo2") == {"bar1", "bar2", "bar3"}
+
+    def test_sunionstore(self, cache: RedisCache):
+        if isinstance(cache.client, ShardClient):
+            pytest.skip("ShardClient doesn't support get_client")
+
+        cache.sadd("foo1", "bar1", "bar2")
+        cache.sadd("foo2", "bar2", "bar3")
+        assert cache.sunionstore("foo3", "foo1", "foo2") == 3
+        assert cache.smembers("foo3") == {"bar1", "bar2", "bar3"}
+
+    @patch("django_redis.cache.RedisCache.client")
+    def test_close_with_signal_parameter(self, client_mock, cache: RedisCache):
+        """
+        Test that close() method handles signal parameter from Django request_finished
+        signal.
+        """
+        # This should not raise TypeError even when called with extra parameters
+        # that Django's request_finished signal passes
+        cache.close(signal="request_finished", sender=object)
+        client_mock.close.assert_called_with()
+
+        # Test with no parameters as well
+        client_mock.reset_mock()
+        cache.close()
+        client_mock.close.assert_called_with()
+
+        # Test with arbitrary keyword arguments
+        client_mock.reset_mock()
+        cache.close(foo="bar", signal=None, sender="test")
+        client_mock.close.assert_called_with()

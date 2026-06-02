@@ -1,0 +1,37 @@
+services:
+  redis:
+    image: redis:alpine
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      start_period: 1m
+      start_interval: 1s
+    ports:
+      - 6379:6379
+
+  redis-sentinel:
+    command:
+      # Force `sh` as the shell as the multiline quoted string below is not
+      # being written correctly, and it's not clear what shell is being run.
+      - sh
+      - -c
+      # Generate a sentinel configuration that is writable by the sentinel
+      - |
+        echo '
+        sentinel resolve-hostnames yes
+        sentinel monitor redis redis 6379 1
+        sentinel down-after-milliseconds redis 3200
+        sentinel failover-timeout redis 10000
+        sentinel parallel-syncs redis 1
+        ' > /etc/redis-sentinel.conf
+
+        exec redis-server /etc/redis-sentinel.conf --sentinel
+    depends_on:
+      redis:
+        condition: service_healthy
+    image: redis:alpine
+    healthcheck:
+      test: ['CMD', 'redis-cli', '-p', '26379', 'ping']
+      start_period: 1m
+      start_interval: 1s
+    ports:
+      - 26379:26379

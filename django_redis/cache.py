@@ -1,21 +1,38 @@
+from __future__ import annotations
+
 import functools
 import logging
-from typing import Any, Callable, Dict, Optional
+import sys
+from typing import TYPE_CHECKING, Any, Generic
 
-from django import VERSION as DJANGO_VERSION
 from django.conf import settings
 from django.core.cache.backends.base import BaseCache
 from django.utils.module_loading import import_string
 
-from .exceptions import ConnectionInterrupted
+from django_redis.exceptions import ConnectionInterrupted
 
-DJANGO_REDIS_SCAN_ITERSIZE = getattr(settings, "DJANGO_REDIS_SCAN_ITERSIZE", 10)
+if sys.version_info < (3, 13):
+    from typing_extensions import TypeVar
+else:
+    from typing import TypeVar
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from django_redis.client import DefaultClient
+
+
+ClientType = TypeVar(
+    "ClientType",
+    bound="DefaultClient",
+    default="DefaultClient",
+)
 CONNECTION_INTERRUPTED = object()
 
 
 def omit_exception(
-    method: Optional[Callable] = None, return_value: Optional[Any] = None
+    method: Callable | None = None,
+    return_value: Any | None = None,
 ):
     """
     Simple decorator that intercepts connection
@@ -32,42 +49,51 @@ def omit_exception(
         except ConnectionInterrupted as e:
             if self._ignore_exceptions:
                 if self._log_ignored_exceptions:
-                    self.logger.error(str(e))
+                    self.logger.exception("Exception ignored")
 
                 return return_value
-            raise e.__cause__
+            raise e.__cause__  # type: ignore[misc] # noqa: B904
 
     return _decorator
 
 
-class RedisCache(BaseCache):
-    def __init__(self, server: str, params: Dict[str, Any]) -> None:
+class RedisCache(BaseCache, Generic[ClientType]):
+    def __init__(self, server: str, params: dict[str, Any]) -> None:
         super().__init__(params)
         self._server = server
         self._params = params
-
-        options = params.get("OPTIONS", {})
-        self._client_cls = options.get(
-            "CLIENT_CLASS", "django_redis.client.DefaultClient"
+        self._default_scan_itersize: int = getattr(
+            settings,
+            "DJANGO_REDIS_SCAN_ITERSIZE",
+            10,
         )
-        self._client_cls = import_string(self._client_cls)
-        self._client = None
 
-        self._ignore_exceptions = options.get(
+        options: dict[str, Any] = params.get("OPTIONS", {})
+        self._client_cls: type[ClientType] = import_string(
+            options.get(
+                "CLIENT_CLASS",
+                "django_redis.client.DefaultClient",
+            ),
+        )
+        self._client: ClientType | None = None
+
+        self._ignore_exceptions: bool = options.get(
             "IGNORE_EXCEPTIONS",
             getattr(settings, "DJANGO_REDIS_IGNORE_EXCEPTIONS", False),
         )
-        self._log_ignored_exceptions = getattr(
-            settings, "DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS", False
+        self._log_ignored_exceptions: bool = getattr(
+            settings,
+            "DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS",
+            False,
         )
-        self.logger = (
+        self.logger: logging.Logger | None = (
             logging.getLogger(getattr(settings, "DJANGO_REDIS_LOGGER", __name__))
             if self._log_ignored_exceptions
             else None
         )
 
     @property
-    def client(self):
+    def client(self) -> ClientType:
         """
         Lazy client connection property.
         """
@@ -100,12 +126,11 @@ class RedisCache(BaseCache):
     @omit_exception
     def delete(self, *args, **kwargs):
         """returns a boolean instead of int since django version 3.1"""
-        result = self.client.delete(*args, **kwargs)
-        return bool(result) if DJANGO_VERSION >= (3, 1, 0) else result
+        return bool(self.client.delete(*args, **kwargs))
 
     @omit_exception
     def delete_pattern(self, *args, **kwargs):
-        kwargs["itersize"] = kwargs.get("itersize", DJANGO_REDIS_SCAN_ITERSIZE)
+        kwargs.setdefault("itersize", self._default_scan_itersize)
         return self.client.delete_pattern(*args, **kwargs)
 
     @omit_exception
@@ -178,8 +203,153 @@ class RedisCache(BaseCache):
 
     @omit_exception
     def close(self, **kwargs):
-        self.client.close(**kwargs)
+        self.client.close()
 
     @omit_exception
     def touch(self, *args, **kwargs):
         return self.client.touch(*args, **kwargs)
+
+    @omit_exception
+    def sadd(self, *args, **kwargs):
+        return self.client.sadd(*args, **kwargs)
+
+    @omit_exception
+    def scard(self, *args, **kwargs):
+        return self.client.scard(*args, **kwargs)
+
+    @omit_exception
+    def sdiff(self, *args, **kwargs):
+        return self.client.sdiff(*args, **kwargs)
+
+    @omit_exception
+    def sdiffstore(self, *args, **kwargs):
+        return self.client.sdiffstore(*args, **kwargs)
+
+    @omit_exception
+    def sinter(self, *args, **kwargs):
+        return self.client.sinter(*args, **kwargs)
+
+    @omit_exception
+    def sinterstore(self, *args, **kwargs):
+        return self.client.sinterstore(*args, **kwargs)
+
+    @omit_exception
+    def sismember(self, *args, **kwargs):
+        return self.client.sismember(*args, **kwargs)
+
+    @omit_exception
+    def smembers(self, *args, **kwargs):
+        return self.client.smembers(*args, **kwargs)
+
+    @omit_exception
+    def smove(self, *args, **kwargs):
+        return self.client.smove(*args, **kwargs)
+
+    @omit_exception
+    def spop(self, *args, **kwargs):
+        return self.client.spop(*args, **kwargs)
+
+    @omit_exception
+    def srandmember(self, *args, **kwargs):
+        return self.client.srandmember(*args, **kwargs)
+
+    @omit_exception
+    def srem(self, *args, **kwargs):
+        return self.client.srem(*args, **kwargs)
+
+    @omit_exception
+    def sscan(self, *args, **kwargs):
+        return self.client.sscan(*args, **kwargs)
+
+    @omit_exception
+    def sscan_iter(self, *args, **kwargs):
+        return self.client.sscan_iter(*args, **kwargs)
+
+    @omit_exception
+    def smismember(self, *args, **kwargs):
+        return self.client.smismember(*args, **kwargs)
+
+    @omit_exception
+    def sunion(self, *args, **kwargs):
+        return self.client.sunion(*args, **kwargs)
+
+    @omit_exception
+    def sunionstore(self, *args, **kwargs):
+        return self.client.sunionstore(*args, **kwargs)
+
+    @omit_exception
+    def hset(self, *args, **kwargs):
+        return self.client.hset(*args, **kwargs)
+
+    @omit_exception
+    def hdel(self, *args, **kwargs):
+        return self.client.hdel(*args, **kwargs)
+
+    @omit_exception
+    def hlen(self, *args, **kwargs):
+        return self.client.hlen(*args, **kwargs)
+
+    @omit_exception
+    def hkeys(self, *args, **kwargs):
+        return self.client.hkeys(*args, **kwargs)
+
+    @omit_exception
+    def hexists(self, *args, **kwargs):
+        return self.client.hexists(*args, **kwargs)
+
+    # Sorted Set Operations
+    @omit_exception
+    def zadd(self, *args, **kwargs):
+        return self.client.zadd(*args, **kwargs)
+
+    @omit_exception
+    def zcard(self, *args, **kwargs):
+        return self.client.zcard(*args, **kwargs)
+
+    @omit_exception
+    def zcount(self, *args, **kwargs):
+        return self.client.zcount(*args, **kwargs)
+
+    @omit_exception
+    def zincrby(self, *args, **kwargs):
+        return self.client.zincrby(*args, **kwargs)
+
+    @omit_exception
+    def zpopmax(self, *args, **kwargs):
+        return self.client.zpopmax(*args, **kwargs)
+
+    @omit_exception
+    def zpopmin(self, *args, **kwargs):
+        return self.client.zpopmin(*args, **kwargs)
+
+    @omit_exception
+    def zrange(self, *args, **kwargs):
+        return self.client.zrange(*args, **kwargs)
+
+    @omit_exception
+    def zrangebyscore(self, *args, **kwargs):
+        return self.client.zrangebyscore(*args, **kwargs)
+
+    @omit_exception
+    def zrank(self, *args, **kwargs):
+        return self.client.zrank(*args, **kwargs)
+
+    @omit_exception
+    def zrem(self, *args, **kwargs):
+        return self.client.zrem(*args, **kwargs)
+
+    @omit_exception
+    def zremrangebyscore(self, *args, **kwargs):
+        return self.client.zremrangebyscore(*args, **kwargs)
+
+    @omit_exception
+    def zrevrange(self, *args, **kwargs):
+        return self.client.zrevrange(*args, **kwargs)
+
+    @omit_exception
+    def zrevrangebyscore(self, *args, **kwargs):
+        return self.client.zrevrangebyscore(*args, **kwargs)
+
+    @omit_exception
+    def zscore(self, *args, **kwargs):
+        return self.client.zscore(*args, **kwargs)

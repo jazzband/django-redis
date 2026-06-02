@@ -3,6 +3,100 @@ Changelog
 
 .. towncrier release notes start
 
+django-redis 6.0.0 (2025-06-17)
+===============================
+
+Features
+--------
+
+- Support HashMaps (`#598 <https://github.com/jazzband/django-redis/issues/598>`_)
+- Support gzip compression (`#688 <https://github.com/jazzband/django-redis/issues/688>`_)
+- Support for sets and support basic operations, sadd, scard, sdiff, sdiffstore, sinter, sinterstore, smismember, sismember, smembers, smove, spop, srandmember, srem, sscan, sscan_iter, sunion, sunionstore (`#730 <https://github.com/jazzband/django-redis/issues/730>`_)
+
+
+Bug Fixes
+---------
+
+- Hotfix for timeout=DEFAULT_TIMEOUT in expire and pexpire (`#724 <https://github.com/jazzband/django-redis/issues/724>`_)
+- Fix is_master parsing error for write separation in sentinel mode (`#749 <https://github.com/jazzband/django-redis/issues/749>`_)
+- Added blocking parameter for `cache.lock` (`#752 <https://github.com/jazzband/django-redis/issues/752>`_)
+
+
+Miscellaneous
+-------------
+
+- Added support for Python 3.12 (`#689 <https://github.com/jazzband/django-redis/issues/689>`_)
+- Pin pytest to <7.0 until compatibility issues are resolved (`#690 <https://github.com/jazzband/django-redis/issues/690>`_)
+- Replace isort and flake8 with ruff (`#692 <https://github.com/jazzband/django-redis/issues/692>`_)
+- Drop django 4.0 (`#693 <https://github.com/jazzband/django-redis/issues/693>`_)
+- Upgrade black to 23.10.1 (`#695 <https://github.com/jazzband/django-redis/issues/695>`_)
+- Typed DefaultClient (`#696 <https://github.com/jazzband/django-redis/issues/696>`_)
+- Support pytest>=7 (`#697 <https://github.com/jazzband/django-redis/issues/697>`_)
+- Drop support for django 3.2, python 3.6 and python 3.7 (`#699 <https://github.com/jazzband/django-redis/issues/699>`_)
+- Support tox 4 (`#701 <https://github.com/jazzband/django-redis/issues/701>`_)
+- Configured dependabot for github actions (`#702 <https://github.com/jazzband/django-redis/issues/702>`_)
+- Use ubuntu-latest for CI (`#703 <https://github.com/jazzband/django-redis/issues/703>`_)
+- Dropped support for django 4.1 and added support for django 5.0 (`#729 <https://github.com/jazzband/django-redis/issues/729>`_)
+- Added support for django 5.1 (`#754 <https://github.com/jazzband/django-redis/issues/754>`_)
+- Update minimum supported versions in README.md: Python to 3.8, Django to 4.2, redis-py to 4.0.2 (`#755 <https://github.com/jazzband/django-redis/issues/755>`_)
+- Added support for Python 3.13 (`#756 <https://github.com/jazzband/django-redis/issues/756>`_)
+- Speed up tests by using `pytest-xdist` and separating settings on different redis databases.
+  Dropped `pytest-django`
+  Using `docker-compose` for setting up redis containers for testing
+  Use `tox-uv` (`#757 <https://github.com/jazzband/django-redis/issues/757>`_)
+- Confirm support for Django 5.2.
+  Fix shadowing builtin Python exceptions. (`#824 <https://github.com/jazzband/django-redis/issues/824>`_)
+
+
+Deprecations and Removals
+-------------------------
+
+- Drop support for Python 3.8 (`#852 <https://github.com/jazzband/django-redis/issues/852>`_)
+
+
+django-redis 5.4.0 (2023-10-01)
+===============================
+
+Features
+--------
+
+- Connection factory goes to cache options (`#680 <https://github.com/jazzband/django-redis/issues/680>`_)
+
+
+Documentation
+-------------
+
+- Added note in docs for correctly configuring hiredis parser when using redis-py version 5. (`#677 <https://github.com/jazzband/django-redis/issues/677>`_)
+
+
+django-redis 5.3.0 (2023-06-16)
+===============================
+
+Features
+--------
+
+- Add support for django 4 (`#627 <https://github.com/jazzband/django-redis/issues/627>`_)
+
+
+Bug Fixes
+---------
+
+- Access `django_redis.cache.DJANGO_REDIS_SCAN_ITERSIZE` and `django_redis.client.herd.CACHE_HERD_TIMEOUT` in runtime to not read Django settings in import time. (`#638 <https://github.com/jazzband/django-redis/issues/638>`_)
+- Skipping pickle serializer test for django >= 4.2 (`#646 <https://github.com/jazzband/django-redis/issues/646>`_)
+
+
+Miscellaneous
+-------------
+
+- Speed up deleting multiple keys by a pattern with pipelines and larger itersize (`#609 <https://github.com/jazzband/django-redis/issues/609>`_)
+- Print full exception traceback when logging ignored exceptions (`#611 <https://github.com/jazzband/django-redis/issues/611>`_)
+- Fix mypy linting (`#626 <https://github.com/jazzband/django-redis/issues/626>`_)
+- Added support for python 3.11 (`#633 <https://github.com/jazzband/django-redis/issues/633>`_)
+- Fix CI, running tox<4 to still support Python 3.6. (`#645 <https://github.com/jazzband/django-redis/issues/645>`_)
+- Dropped support for django 2.2 and 3.1 (`#649 <https://github.com/jazzband/django-redis/issues/649>`_)
+- Run actions & tox against Django 4..2 (`#668 <https://github.com/jazzband/django-redis/issues/668>`_)
+
+
 django-redis 5.2.0 (2021-12-22)
 ===============================
 

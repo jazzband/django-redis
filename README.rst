@@ -46,9 +46,9 @@ Why use django-redis?
 Requirements
 ~~~~~~~~~~~~
 
-- `Python`_ 3.6+
-- `Django`_ 2.2+
-- `redis-py`_ 3.0+
+- `Python`_ 3.9+
+- `Django`_ 4.2+
+- `redis-py`_ 4.0.2+
 - `Redis server`_ 2.8+
 
 .. _Python: https://www.python.org/downloads/
@@ -291,6 +291,21 @@ Let see an example, of how make it work with *lzma* compression format:
         }
     }
 
+*Gzip* compression support:
+
+.. code-block:: python
+
+    import gzip
+
+    CACHES = {
+        "default": {
+            # ...
+            "OPTIONS": {
+                "COMPRESSOR": "django_redis.compressors.gzip.GzipCompressor",
+            }
+        }
+    }
+
 Memcached exceptions behavior
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -482,6 +497,15 @@ pattern syntax as the ``keys`` function and returns the number of deleted keys.
 
     >>> from django.core.cache import cache
     >>> cache.delete_pattern("foo_*")
+
+To achieve the best performance while deleting many keys, you should set ``DJANGO_REDIS_SCAN_ITERSIZE`` to a relatively
+high number (e.g., 100_000) by default in Django settings or pass it directly to the ``delete_pattern``.
+
+
+.. code-block:: pycon
+
+    >>> from django.core.cache import cache
+    >>> cache.delete_pattern("foo_*", itersize=100_000)
 
 Redis native commands
 ~~~~~~~~~~~~~~~~~~~~~
@@ -727,23 +751,54 @@ In order to enable this functionality you should add the following:
         },
     }
 
+It is also possible to set some caches as sentinels and some as not:
+
+.. code-block:: python
+
+    SENTINELS = [
+        ('sentinel-1', 26379),
+        ('sentinel-2', 26379),
+        ('sentinel-3', 26379),
+    ]
+    CACHES = {
+        "sentinel": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": "redis://service_name/db",
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.SentinelClient",
+                "SENTINELS": SENTINELS,
+                "CONNECTION_POOL_CLASS": "redis.sentinel.SentinelConnectionPool",
+                "CONNECTION_FACTORY": "django_redis.pool.SentinelConnectionFactory",
+            },
+        },
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": "redis://127.0.0.1:6379/1",
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            },
+        },
+    }
+
 .. _Redis Sentinels: https://redis.io/topics/sentinel
 
 Pluggable parsers
 ~~~~~~~~~~~~~~~~~
 
-redis-py (the Python Redis client used by django-redis) comes with a pure
-Python Redis parser that works very well for most common task, but if you want
-some performance boost, you can use hiredis.
+`redis-py`_, the Python Redis client used by django-redis, will automatically
+use a C-based parser if the `hiredis`_ package is installed in your environment.
+This can provide a significant performance boost for parsing Redis replies.
 
-hiredis is a Redis client written in C and it has its own parser that can be
-used with django-redis.
+To take advantage of this, simply install the `hiredis` package with pip:
 
-.. code-block:: python
+.. code-block:: console
 
-    "OPTIONS": {
-        "PARSER_CLASS": "redis.connection.HiredisParser",
-    }
+    $ python -m pip install hiredis
+
+No additional configuration in your Django settings is required. django-redis
+will use the faster parser automatically.
+
+.. _hiredis: https://pypi.org/project/hiredis/
 
 Pluggable clients
 ~~~~~~~~~~~~~~~~~
@@ -802,7 +857,7 @@ Herd client
 ^^^^^^^^^^^
 
 This pluggable client helps dealing with the thundering herd problem. You can read more about it
-on link: `Wikipedia <http://en.wikipedia.org/wiki/Thundering_herd_problem>`_
+on link: `Wikipedia <https://en.wikipedia.org/wiki/Thundering_herd_problem>`_
 
 Like previous pluggable clients, it inherits all functionality from the default client, adding some
 additional methods for getting/setting keys.
@@ -862,7 +917,7 @@ msgpack library):
         }
     }
 
-.. _MsgPack: http://msgpack.org/
+.. _MsgPack: https://msgpack.org/
 
 Pluggable Redis client
 ~~~~~~~~~~~~~~~~~~~~~~

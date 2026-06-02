@@ -1,4 +1,6 @@
-from .base import BaseCompressor
+from __future__ import annotations
+
+from django_redis.compressors.base import BaseCompressor
 
 
 class IdentityCompressor(BaseCompressor):

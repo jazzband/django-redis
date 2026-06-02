@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 import json
 from typing import Any
 
 from django.core.serializers.json import DjangoJSONEncoder
 
-from .base import BaseSerializer
+from django_redis.serializers.base import BaseSerializer
 
 
 class JSONSerializer(BaseSerializer):
