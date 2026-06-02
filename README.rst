@@ -106,12 +106,10 @@ There are several ways to specify a database number:
 - If using the ``redis://`` scheme, the path argument of the URL, e.g.
   ``redis://localhost/0``
 
-When using `Redis' ACLs <https://redis.io/topics/acl>`_, you can either pass the
-username and password in the Cache ``OPTIONS`` dict, in the URL, or the username 
-in the URL and the password in the ``OPTIONS``.
-
-Be aware that if the username/password are passed both in the URL and ``OPTIONS``
-dict, the ones passed in the URL prime.
+When using `Redis' ACLs <https://redis.io/topics/acl>`_, you will need to add
+the username and the password in the connection string or in ``OPTIONS`` with
+the keys ``USERNAME`` and ``PASSWORD``. *NOTE: Values in the connection string
+have precedence!*
 
 The login for the user ``django`` would look like this:
 
@@ -120,30 +118,27 @@ The login for the user ``django`` would look like this:
     CACHES = {
         "default": {
             "BACKEND": "django_redis.cache.RedisCache",
-            "LOCATION": "redis://localhost:6379/0",
-            "OPTIONS": {
-                "CLIENT_CLASS": "django_redis.client.DefaultClient",
-                "USERNAME": "django",
-                "PASSWORD": "mysecret"
-            }
+            "LOCATION": "redis://django:mysecret@localhost:6379/0",
         }
     }
 
-An alternative would be write both username and password into the URL:
+Instead you may specify both of these values in ``OPTIONS``:
 
 .. code-block:: python
 
     CACHES = {
         "default": {
             "BACKEND": "django_redis.cache.RedisCache",
-            "LOCATION": "redis://django:mysecret@localhost:6379/0",
+            "LOCATION": "redis://localhost:6379/0",
             "OPTIONS": {
-                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+                "USERNAME": "django",
+                "PASSWORD": "mysecret",
             }
         }
     }
 
-The username can also be passed in the URL, and the password in the ``OPTIONS``:
+And, finally you may mix the two as follows (be sure not to include a password,
+even if blank in the connection string):
 
 .. code-block:: python
 
@@ -151,17 +146,9 @@ The username can also be passed in the URL, and the password in the ``OPTIONS``:
         "default": {
             "BACKEND": "django_redis.cache.RedisCache",
             "LOCATION": "redis://django@localhost:6379/0",
-            "OPTIONS": {
-                "CLIENT_CLASS": "django_redis.client.DefaultClient",
-                "PASSWORD": "mysecret"
-            }
+            "OPTIONS": {"PASSWORD": "mysecret"}
         }
     }
-
-
-NOTE: In some circumstances the password you should use to connect Redis
-is not URL-safe, in this case you can escape it or just use the
-convenience option in ``OPTIONS`` dict.
 
 
 Configure as session backend
