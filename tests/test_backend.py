@@ -1087,3 +1087,24 @@ class TestDjangoRedisCache:
         cache.sadd("foo2", "bar2", "bar3")
         assert cache.sunionstore("foo3", "foo1", "foo2") == 3
         assert cache.smembers("foo3") == {"bar1", "bar2", "bar3"}
+
+    @patch("django_redis.cache.RedisCache.client")
+    def test_close_with_signal_parameter(self, client_mock, cache: RedisCache):
+        """
+        Test that close() method handles signal parameter from Django request_finished
+        signal.
+        """
+        # This should not raise TypeError even when called with extra parameters
+        # that Django's request_finished signal passes
+        cache.close(signal="request_finished", sender=object)
+        client_mock.close.assert_called_with()
+
+        # Test with no parameters as well
+        client_mock.reset_mock()
+        cache.close()
+        client_mock.close.assert_called_with()
+
+        # Test with arbitrary keyword arguments
+        client_mock.reset_mock()
+        cache.close(foo="bar", signal=None, sender="test")
+        client_mock.close.assert_called_with()
