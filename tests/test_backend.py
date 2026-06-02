@@ -1089,7 +1089,10 @@ class TestDjangoRedisCache:
         assert cache.smembers("foo3") == {"bar1", "bar2", "bar3"}
 
     def test_close_with_signal_parameter(self, cache: RedisCache):
-        """Test that close() method handles signal parameter from Django request_finished signal."""
+        """
+        Test that close() method handles signal parameter from Django request_finished
+        signal.
+        """
         # This should not raise TypeError even when called with extra parameters
         # that Django's request_finished signal passes
         cache.close(signal="request_finished", sender=object)
