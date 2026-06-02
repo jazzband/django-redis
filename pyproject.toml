@@ -33,6 +33,7 @@ classifiers = [
 dependencies = [
   "Django>=5.2,<7.0",
   "redis>=4.0.2",
+  "typing_extensions>=4.12; python_version <= '3.12'",
 ]
 dynamic = ["version"]
 requires-python = ">=3.10"

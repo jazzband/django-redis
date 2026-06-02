@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Protocol, TypeVar, cast
+import sys
+from typing import TYPE_CHECKING, Any, Protocol, cast
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 from django.conf import settings
@@ -9,19 +10,34 @@ from django.utils.module_loading import import_string
 from redis.connection import DefaultParser, to_bool
 from redis.sentinel import Sentinel
 
+if sys.version_info < (3, 13):
+    from typing_extensions import TypeVar
+else:
+    from typing import TypeVar
+
 if TYPE_CHECKING:
     from redis import ConnectionPool, Redis
-    from redis._parsers import BaseParser
+    from redis._parsers import BaseParser, _RESP2Parser
 
-ConnectionPoolType = TypeVar("ConnectionPoolType", bound="ConnectionPool")
+ConnectionPoolType = TypeVar(
+    "ConnectionPoolType",
+    bound="ConnectionPool",
+    default="ConnectionPool",
+)
 ConnectionPoolType_co = TypeVar(
     "ConnectionPoolType_co",
     bound="ConnectionPool",
     covariant=True,
+    default="ConnectionPool",
 )
-RedisParserType = TypeVar("RedisParserType", bound="BaseParser")
-RedisParserType_co = TypeVar("RedisParserType_co", bound="BaseParser", covariant=True)
-RedisType = TypeVar("RedisType", bound="Redis")
+RedisParserType = TypeVar("RedisParserType", bound="BaseParser", default="_RESP2Parser")
+RedisParserType_co = TypeVar(
+    "RedisParserType_co",
+    bound="BaseParser",
+    covariant=True,
+    default="_RESP2Parser",
+)
+RedisType = TypeVar("RedisType", bound="Redis", default="Redis")
 
 
 class ConnectionFactoryProtocol(
