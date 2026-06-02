@@ -1,3 +1,0 @@
-This change updates the compose configuration, and moves it to `tests`
-directory as it is only for testing.
-

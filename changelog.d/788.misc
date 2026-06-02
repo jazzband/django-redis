@@ -1,1 +1,0 @@
-Update `RedisCache.close` to not forward `kwargs` to the client implementation.

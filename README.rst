@@ -46,8 +46,8 @@ Why use django-redis?
 Requirements
 ~~~~~~~~~~~~
 
-- `Python`_ 3.9+
-- `Django`_ 4.2+
+- `Python`_ 3.10+
+- `Django`_ 5.2+
 - `redis-py`_ 4.0.2+
 - `Redis server`_ 2.8+
 
@@ -80,9 +80,6 @@ something like:
         "default": {
             "BACKEND": "django_redis.cache.RedisCache",
             "LOCATION": "redis://127.0.0.1:6379/1",
-            "OPTIONS": {
-                "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            }
         }
     }
 
