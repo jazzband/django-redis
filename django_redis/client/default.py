@@ -1,34 +1,78 @@
+from __future__ import annotations
+
 import random
 import re
 import socket
-from collections import OrderedDict
+import sys
 from contextlib import suppress
+from enum import Enum
 from typing import (
+    TYPE_CHECKING,
     Any,
-    Dict,
-    Iterable,
-    Iterator,
-    List,
-    Optional,
-    Set,
-    Tuple,
-    Union,
+    Generic,
+    Literal,
+    TypeAlias,
     cast,
+    overload,
 )
 
 from django.conf import settings
 from django.core.cache.backends.base import DEFAULT_TIMEOUT, BaseCache, get_key_func
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.module_loading import import_string
-from redis import Redis
-from redis.exceptions import ConnectionError, ResponseError, TimeoutError
-from redis.typing import AbsExpiryT, EncodableT, ExpiryT, KeyT, PatternT
+from redis.exceptions import (
+    ConnectionError as RedisConnectionError,
+    ResponseError,
+    TimeoutError as RedisTimeoutError,
+)
 
-from django_redis import pool
+from django_redis.client.mixins import SortedSetMixin
 from django_redis.exceptions import CompressorError, ConnectionInterrupted
+from django_redis.pool import (
+    ConnectionFactoryProtocol,
+    ConnectionPoolType,
+    RedisParserType,
+    RedisType,
+    get_connection_factory,
+)
 from django_redis.util import CacheKey
 
-_main_exceptions = (TimeoutError, ResponseError, ConnectionError, socket.timeout)
+if sys.version_info < (3, 13):
+    from typing_extensions import TypeVar
+else:
+    from typing import TypeVar
+
+if TYPE_CHECKING:
+    from collections.abc import Collection, Iterable, Iterator, Mapping
+
+    from redis import Redis
+    from redis.lock import Lock
+    from redis.typing import AbsExpiryT, ExpiryT, FieldT, PatternT
+
+    from django_redis.compressors.base import BaseCompressor
+    from django_redis.compressors.identity import IdentityCompressor
+    from django_redis.serializers.base import BaseSerializer
+    from django_redis.serializers.pickle import PickleSerializer
+
+    Set: TypeAlias = set
+
+CompressorType = TypeVar(
+    "CompressorType",
+    bound="BaseCompressor",
+    default="IdentityCompressor",
+)
+SerializerType = TypeVar(
+    "SerializerType",
+    bound="BaseSerializer",
+    default="PickleSerializer",
+)
+
+_main_exceptions = (
+    RedisConnectionError,
+    RedisTimeoutError,
+    ResponseError,
+    socket.timeout,
+)
 
 special_re = re.compile("([*?[])")
 
@@ -37,15 +81,24 @@ def glob_escape(s: str) -> str:
     return special_re.sub(r"[\1]", s)
 
 
-class DefaultClient:
-    def __init__(self, server, params: Dict[str, Any], backend: BaseCache) -> None:
+class DefaultClient(
+    SortedSetMixin,
+    Generic[
+        RedisType,
+        ConnectionPoolType,
+        RedisParserType,
+        SerializerType,
+        CompressorType,
+    ],
+):
+    def __init__(self, server, params: dict[str, Any], backend: BaseCache) -> None:
         self._backend = backend
         self._server = server
         self._params = params
 
         self.reverse_key = get_key_func(
             params.get("REVERSE_KEY_FUNCTION")
-            or "django_redis.util.default_reverse_key"
+            or "django_redis.util.default_reverse_key",
         )
 
         if not self._server:
@@ -55,38 +108,50 @@ class DefaultClient:
         if not isinstance(self._server, (list, tuple, set)):
             self._server = self._server.split(",")
 
-        self._clients: List[Optional[Redis]] = [None] * len(self._server)
+        self._clients: list[RedisType | None] = [None] * len(self._server)
         self._options = params.get("OPTIONS", {})
         self._replica_read_only = self._options.get("REPLICA_READ_ONLY", True)
 
         serializer_path = self._options.get(
-            "SERIALIZER", "django_redis.serializers.pickle.PickleSerializer"
+            "SERIALIZER",
+            "django_redis.serializers.pickle.PickleSerializer",
         )
-        serializer_cls = import_string(serializer_path)
+        serializer_cls: type[SerializerType] = import_string(serializer_path)
 
         compressor_path = self._options.get(
-            "COMPRESSOR", "django_redis.compressors.identity.IdentityCompressor"
+            "COMPRESSOR",
+            "django_redis.compressors.identity.IdentityCompressor",
         )
-        compressor_cls = import_string(compressor_path)
+        compressor_cls: type[CompressorType] = import_string(compressor_path)
 
         self._serializer = serializer_cls(options=self._options)
         self._compressor = compressor_cls(options=self._options)
 
-        self.connection_factory = pool.get_connection_factory(options=self._options)
+        self.connection_factory: ConnectionFactoryProtocol[
+            RedisType,
+            ConnectionPoolType,
+            RedisParserType,
+        ] = get_connection_factory(self._options)
 
-    def __contains__(self, key: KeyT) -> bool:
+    def __contains__(self, key: str) -> bool:
         return self.has_key(key)
 
     def _has_compression_enabled(self) -> bool:
         return (
-            self._options.get(
-                "COMPRESSOR", "django_redis.compressors.identity.IdentityCompressor"
+            cast(
+                "str",
+                self._options.get(
+                    "COMPRESSOR",
+                    "django_redis.compressors.identity.IdentityCompressor",
+                ),
             )
             != "django_redis.compressors.identity.IdentityCompressor"
         )
 
     def get_next_client_index(
-        self, write: bool = True, tried: Optional[List[int]] = None
+        self,
+        write: bool = True,
+        tried: list[int] | None = None,
     ) -> int:
         """
         Return a next index for read client. This function implements a default
@@ -110,7 +175,7 @@ class DefaultClient:
     def get_client(
         self,
         write: bool = True,
-        tried: Optional[List[int]] = None,
+        tried: list[int] | None = None,
     ) -> Redis:
         """
         Method used for obtain a raw redis client.
@@ -129,8 +194,8 @@ class DefaultClient:
     def get_client_with_index(
         self,
         write: bool = True,
-        tried: Optional[List[int]] = None,
-    ) -> Tuple[Redis, int]:
+        tried: list[int] | None = None,
+    ) -> tuple[Redis, int]:
         """
         Method used for obtain a raw redis client.
 
@@ -145,7 +210,7 @@ class DefaultClient:
 
         return self._clients[index], index  # type:ignore
 
-    def connect(self, index: int = 0) -> Redis:
+    def connect(self, index: int = 0) -> RedisType:
         """
         Given a connection index, returns a new raw redis client/connection
         instance. Index is used for replication setups and indicates that
@@ -153,7 +218,7 @@ class DefaultClient:
         """
         return self.connection_factory.connect(self._server[index])
 
-    def disconnect(self, index: int = 0, client: Optional[Redis] = None) -> None:
+    def disconnect(self, index: int = 0, client: RedisType | None = None) -> None:
         """
         delegates the connection factory to disconnect the client
         """
@@ -165,11 +230,11 @@ class DefaultClient:
 
     def set(
         self,
-        key: KeyT,
-        value: EncodableT,
-        timeout: Optional[float] = DEFAULT_TIMEOUT,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
+        key: str,
+        value: Any,
+        timeout: float | None = DEFAULT_TIMEOUT,
+        version: int | None = None,
+        client: Redis | None = None,
         nx: bool = False,
         xx: bool = False,
     ) -> bool:
@@ -186,7 +251,7 @@ class DefaultClient:
             timeout = self._backend.default_timeout
 
         original_client = client
-        tried: List[int] = []
+        tried: list[int] = []
         while True:
             try:
                 if client is None:
@@ -222,10 +287,10 @@ class DefaultClient:
 
     def incr_version(
         self,
-        key: KeyT,
+        key: str,
         delta: int = 1,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
+        version: int | None = None,
+        client: Redis | None = None,
     ) -> int:
         """
         Adds delta to the cache version for the supplied key. Returns the
@@ -261,11 +326,11 @@ class DefaultClient:
 
     def add(
         self,
-        key: KeyT,
-        value: EncodableT,
-        timeout: Optional[float] = DEFAULT_TIMEOUT,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
+        key: str,
+        value: Any,
+        timeout: float | None = DEFAULT_TIMEOUT,
+        version: int | None = None,
+        client: Redis | None = None,
     ) -> bool:
         """
         Add a value to the cache, failing if the key already exists.
@@ -276,10 +341,10 @@ class DefaultClient:
 
     def get(
         self,
-        key: KeyT,
-        default: Optional[Any] = None,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
+        key: str,
+        default: Any | None = None,
+        version: int | None = None,
+        client: Redis | None = None,
     ) -> Any:
         """
         Retrieve a value from the cache.
@@ -302,7 +367,10 @@ class DefaultClient:
         return self.decode(value)
 
     def persist(
-        self, key: KeyT, version: Optional[int] = None, client: Optional[Redis] = None
+        self,
+        key: str,
+        version: int | None = None,
+        client: Redis | None = None,
     ) -> bool:
         if client is None:
             client = self.get_client(write=True)
@@ -313,10 +381,10 @@ class DefaultClient:
 
     def expire(
         self,
-        key: KeyT,
+        key: str,
         timeout: ExpiryT,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
+        version: int | None = None,
+        client: Redis | None = None,
     ) -> bool:
         if timeout is DEFAULT_TIMEOUT:
             timeout = self._backend.default_timeout  # type: ignore
@@ -330,10 +398,10 @@ class DefaultClient:
 
     def pexpire(
         self,
-        key: KeyT,
+        key: str,
         timeout: ExpiryT,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
+        version: int | None = None,
+        client: Redis | None = None,
     ) -> bool:
         if timeout is DEFAULT_TIMEOUT:
             timeout = self._backend.default_timeout  # type: ignore
@@ -347,10 +415,10 @@ class DefaultClient:
 
     def pexpire_at(
         self,
-        key: KeyT,
+        key: str,
         when: AbsExpiryT,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
+        version: int | None = None,
+        client: Redis | None = None,
     ) -> bool:
         """
         Set an expire flag on a ``key`` to ``when``, which can be represented
@@ -365,10 +433,10 @@ class DefaultClient:
 
     def expire_at(
         self,
-        key: KeyT,
+        key: str,
         when: AbsExpiryT,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
+        version: int | None = None,
+        client: Redis | None = None,
     ) -> bool:
         """
         Set an expire flag on a ``key`` to ``when``, which can be represented
@@ -383,34 +451,37 @@ class DefaultClient:
 
     def lock(
         self,
-        key: KeyT,
-        version: Optional[int] = None,
-        timeout: Optional[float] = None,
+        key: str,
+        version: int | None = None,
+        timeout: float | None = None,
         sleep: float = 0.1,
         blocking: bool = True,
-        blocking_timeout: Optional[float] = None,
-        client: Optional[Redis] = None,
+        blocking_timeout: float | None = None,
+        client: Redis | None = None,
         thread_local: bool = True,
-    ):
+    ) -> Lock:
         if client is None:
             client = self.get_client(write=True)
 
         key = self.make_key(key, version=version)
-        return client.lock(
-            key,
-            timeout=timeout,
-            sleep=sleep,
-            blocking=blocking,
-            blocking_timeout=blocking_timeout,
-            thread_local=thread_local,
+        return cast(
+            "Lock",
+            client.lock(
+                key,
+                timeout=timeout,
+                sleep=sleep,
+                blocking=blocking,
+                blocking_timeout=blocking_timeout,
+                thread_local=thread_local,
+            ),
         )
 
     def delete(
         self,
-        key: KeyT,
-        version: Optional[int] = None,
-        prefix: Optional[str] = None,
-        client: Optional[Redis] = None,
+        key: str,
+        version: int | None = None,
+        prefix: str | None = None,
+        client: Redis | None = None,
     ) -> int:
         """
         Remove a key from the cache.
@@ -426,10 +497,10 @@ class DefaultClient:
     def delete_pattern(
         self,
         pattern: str,
-        version: Optional[int] = None,
-        prefix: Optional[str] = None,
-        client: Optional[Redis] = None,
-        itersize: Optional[int] = None,
+        version: int | None = None,
+        prefix: str | None = None,
+        client: Redis | None = None,
+        itersize: int | None = None,
     ) -> int:
         """
         Remove all keys matching pattern.
@@ -455,9 +526,9 @@ class DefaultClient:
 
     def delete_many(
         self,
-        keys: Iterable[KeyT],
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
+        keys: Iterable[str],
+        version: int | None = None,
+        client: Redis | None = None,
     ) -> int:
         """
         Remove multiple keys at once.
@@ -476,7 +547,7 @@ class DefaultClient:
         except _main_exceptions as e:
             raise ConnectionInterrupted(connection=client) from e
 
-    def clear(self, client: Optional[Redis] = None) -> None:
+    def clear(self, client: Redis | None = None) -> None:
         """
         Flush all cache keys.
         """
@@ -489,33 +560,46 @@ class DefaultClient:
         except _main_exceptions as e:
             raise ConnectionInterrupted(connection=client) from e
 
-    def decode(self, value: EncodableT) -> Any:
+    def decode(self, value: bytes | int | str) -> Any:
         """
         Decode the given value.
         """
         try:
             value = int(value)
         except (ValueError, TypeError):
+            # str should not happen, but fail in the compressor/serializer
+            value = cast("bytes", value)
+
             # Handle little values, chosen to be not compressed
             with suppress(CompressorError):
                 value = self._compressor.decompress(value)
             value = self._serializer.loads(value)
         return value
 
-    def encode(self, value: EncodableT) -> Union[bytes, int]:
+    @overload
+    def encode(self, value: Any, *, allow_int: Literal[False]) -> bytes: ...
+    @overload
+    def encode(self, value: Any, *, allow_int: bool = ...) -> bytes | int: ...
+    def encode(self, value: Any, *, allow_int: bool = True) -> bytes | int:
         """
         Encode the given value.
         """
 
-        if isinstance(value, bool) or not isinstance(value, int):
+        if (
+            isinstance(value, (bool, Enum))
+            or not allow_int
+            or not isinstance(value, int)
+        ):
             value = self._serializer.dumps(value)
             return self._compressor.compress(value)
 
         return value
 
     def _decode_iterable_result(
-        self, result: Any, covert_to_set: bool = True
-    ) -> Union[List[Any], None, Any]:
+        self,
+        result: Any,
+        covert_to_set: bool = True,
+    ) -> list[Any] | None | Any:
         if result is None:
             return None
         if isinstance(result, list):
@@ -526,10 +610,10 @@ class DefaultClient:
 
     def get_many(
         self,
-        keys: Iterable[KeyT],
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
-    ) -> OrderedDict:
+        keys: Collection[str],
+        version: int | None = None,
+        client: Redis | None = None,
+    ) -> dict:
         """
         Retrieve many keys.
         """
@@ -538,18 +622,18 @@ class DefaultClient:
             client = self.get_client(write=False)
 
         if not keys:
-            return OrderedDict()
+            return {}
 
-        recovered_data = OrderedDict()
+        recovered_data = {}
 
-        map_keys = OrderedDict((self.make_key(k, version=version), k) for k in keys)
+        map_keys = {self.make_key(k, version=version): k for k in keys}
 
         try:
             results = client.mget(*map_keys)
         except _main_exceptions as e:
             raise ConnectionInterrupted(connection=client) from e
 
-        for key, value in zip(map_keys, results):
+        for key, value in zip(map_keys, results, strict=True):
             if value is None:
                 continue
             recovered_data[map_keys[key]] = self.decode(value)
@@ -557,10 +641,10 @@ class DefaultClient:
 
     def set_many(
         self,
-        data: Dict[KeyT, EncodableT],
-        timeout: Optional[float] = DEFAULT_TIMEOUT,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
+        data: dict[str, Any],
+        timeout: float | None = DEFAULT_TIMEOUT,
+        version: int | None = None,
+        client: Redis | None = None,
     ) -> None:
         """
         Set a bunch of values in the cache at once from a dict of key/value
@@ -582,10 +666,10 @@ class DefaultClient:
 
     def _incr(
         self,
-        key: KeyT,
+        key: str,
         delta: int = 1,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
+        version: int | None = None,
+        client: Redis | None = None,
         ignore_key_check: bool = False,
     ) -> int:
         if client is None:
@@ -609,8 +693,8 @@ class DefaultClient:
                     lua = """
                     return redis.call('INCRBY', KEYS[1], ARGV[1])
                     """
-                value = client.eval(lua, 1, key, delta)
-                if value is None:
+                value: int | Literal[False] | None = client.eval(lua, 1, key, delta)
+                if value is None or value is False:
                     error_message = f"Key '{key!r}' not found"
                     raise ValueError(error_message)
             except ResponseError as e:
@@ -636,10 +720,10 @@ class DefaultClient:
 
     def incr(
         self,
-        key: KeyT,
+        key: str,
         delta: int = 1,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
+        version: int | None = None,
+        client: Redis | None = None,
         ignore_key_check: bool = False,
     ) -> int:
         """
@@ -657,10 +741,10 @@ class DefaultClient:
 
     def decr(
         self,
-        key: KeyT,
+        key: str,
         delta: int = 1,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
+        version: int | None = None,
+        client: Redis | None = None,
     ) -> int:
         """
         Decreace delta to value in the cache. If the key does not exist, raise a
@@ -669,8 +753,11 @@ class DefaultClient:
         return self._incr(key=key, delta=-delta, version=version, client=client)
 
     def ttl(
-        self, key: KeyT, version: Optional[int] = None, client: Optional[Redis] = None
-    ) -> Optional[int]:
+        self,
+        key: str,
+        version: int | None = None,
+        client: Redis | None = None,
+    ) -> int | None:
         """
         Executes TTL redis command and return the "time-to-live" of specified key.
         If key is a non volatile key, it returns None.
@@ -695,8 +782,11 @@ class DefaultClient:
         return None
 
     def pttl(
-        self, key: KeyT, version: Optional[int] = None, client: Optional[Redis] = None
-    ) -> Optional[int]:
+        self,
+        key: str,
+        version: int | None = None,
+        client: Redis | None = None,
+    ) -> int | None:
         """
         Executes PTTL redis command and return the "time-to-live" of specified key.
         If key is a non volatile key, it returns None.
@@ -721,7 +811,10 @@ class DefaultClient:
         return None
 
     def has_key(
-        self, key: KeyT, version: Optional[int] = None, client: Optional[Redis] = None
+        self,
+        key: str,
+        version: int | None = None,
+        client: Redis | None = None,
     ) -> bool:
         """
         Test if key exists.
@@ -739,9 +832,9 @@ class DefaultClient:
     def iter_keys(
         self,
         search: str,
-        itersize: Optional[int] = None,
-        client: Optional[Redis] = None,
-        version: Optional[int] = None,
+        itersize: int | None = None,
+        client: Redis | None = None,
+        version: int | None = None,
     ) -> Iterator[str]:
         """
         Same as keys, but uses redis >= 2.8 cursors
@@ -753,11 +846,14 @@ class DefaultClient:
 
         pattern = self.make_pattern(search, version=version)
         for item in client.scan_iter(match=pattern, count=itersize):
-            yield self.reverse_key(item.decode())
+            yield self.reverse_key(item.decode() if isinstance(item, bytes) else item)
 
     def keys(
-        self, search: str, version: Optional[int] = None, client: Optional[Redis] = None
-    ) -> List[Any]:
+        self,
+        search: str,
+        version: int | None = None,
+        client: Redis | None = None,
+    ) -> list[Any]:
         """
         Execute KEYS command and return matched results.
         Warning: this can return huge number of results, in
@@ -770,13 +866,19 @@ class DefaultClient:
 
         pattern = self.make_pattern(search, version=version)
         try:
-            return [self.reverse_key(k.decode()) for k in client.keys(pattern)]
+            return [
+                self.reverse_key(k.decode() if isinstance(k, bytes) else k)
+                for k in client.keys(pattern)
+            ]
         except _main_exceptions as e:
             raise ConnectionInterrupted(connection=client) from e
 
     def make_key(
-        self, key: KeyT, version: Optional[int] = None, prefix: Optional[str] = None
-    ) -> KeyT:
+        self,
+        key: str,
+        version: int | None = None,
+        prefix: str | None = None,
+    ) -> CacheKey:
         if isinstance(key, CacheKey):
             return key
 
@@ -789,7 +891,10 @@ class DefaultClient:
         return CacheKey(self._backend.key_func(key, prefix, version))
 
     def make_pattern(
-        self, pattern: str, version: Optional[int] = None, prefix: Optional[str] = None
+        self,
+        pattern: str,
+        version: int | None = None,
+        prefix: str | None = None,
     ) -> str:
         if isinstance(pattern, CacheKey):
             return pattern
@@ -806,10 +911,10 @@ class DefaultClient:
 
     def sadd(
         self,
-        key: KeyT,
+        key: str,
         *values: Any,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
+        version: int | None = None,
+        client: Redis | None = None,
     ) -> int:
         if client is None:
             client = self.get_client(write=True)
@@ -820,9 +925,9 @@ class DefaultClient:
 
     def scard(
         self,
-        key: KeyT,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
+        key: str,
+        version: int | None = None,
+        client: Redis | None = None,
     ) -> int:
         if client is None:
             client = self.get_client(write=False)
@@ -832,78 +937,78 @@ class DefaultClient:
 
     def sdiff(
         self,
-        *keys: KeyT,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
+        *keys: str,
+        version: int | None = None,
+        client: Redis | None = None,
     ) -> Set[Any]:
         if client is None:
             client = self.get_client(write=False)
 
         nkeys = [self.make_key(key, version=version) for key in keys]
-        return {self.decode(value) for value in client.sdiff(*nkeys)}
+        return {self.decode(value) for value in client.sdiff(*nkeys)}  # type: ignore[arg-type]
 
     def sdiffstore(
         self,
-        dest: KeyT,
-        *keys: KeyT,
-        version_dest: Optional[int] = None,
-        version_keys: Optional[int] = None,
-        client: Optional[Redis] = None,
+        dest: str,
+        *keys: str,
+        version_dest: int | None = None,
+        version_keys: int | None = None,
+        client: Redis | None = None,
     ) -> int:
         if client is None:
             client = self.get_client(write=True)
 
         dest = self.make_key(dest, version=version_dest)
         nkeys = [self.make_key(key, version=version_keys) for key in keys]
-        return int(client.sdiffstore(dest, *nkeys))
+        return int(client.sdiffstore(dest, *nkeys))  # type: ignore[arg-type]
 
     def sinter(
         self,
-        *keys: KeyT,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
+        *keys: str,
+        version: int | None = None,
+        client: Redis | None = None,
     ) -> Set[Any]:
         if client is None:
             client = self.get_client(write=False)
 
         nkeys = [self.make_key(key, version=version) for key in keys]
-        return {self.decode(value) for value in client.sinter(*nkeys)}
+        return {self.decode(value) for value in client.sinter(*nkeys)}  # type: ignore[arg-type]
 
     def sinterstore(
         self,
-        dest: KeyT,
-        *keys: KeyT,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
+        dest: str,
+        *keys: str,
+        version: int | None = None,
+        client: Redis | None = None,
     ) -> int:
         if client is None:
             client = self.get_client(write=True)
 
         dest = self.make_key(dest, version=version)
         nkeys = [self.make_key(key, version=version) for key in keys]
-        return int(client.sinterstore(dest, *nkeys))
+        return int(client.sinterstore(dest, *nkeys))  # type: ignore[arg-type]
 
     def smismember(
         self,
-        key: KeyT,
+        key: str,
         *members,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
-    ) -> List[bool]:
+        version: int | None = None,
+        client: Redis | None = None,
+    ) -> list[bool]:
         if client is None:
             client = self.get_client(write=False)
 
         key = self.make_key(key, version=version)
         encoded_members = [self.encode(member) for member in members]
 
-        return [bool(value) for value in client.smismember(key, *encoded_members)]
+        return [bool(value) for value in client.smismember(key, *encoded_members)]  # type: ignore[arg-type]
 
     def sismember(
         self,
-        key: KeyT,
+        key: str,
         member: Any,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
+        version: int | None = None,
+        client: Redis | None = None,
     ) -> bool:
         if client is None:
             client = self.get_client(write=False)
@@ -914,9 +1019,9 @@ class DefaultClient:
 
     def smembers(
         self,
-        key: KeyT,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
+        key: str,
+        version: int | None = None,
+        client: Redis | None = None,
     ) -> Set[Any]:
         if client is None:
             client = self.get_client(write=False)
@@ -926,11 +1031,11 @@ class DefaultClient:
 
     def smove(
         self,
-        source: KeyT,
-        destination: KeyT,
+        source: str,
+        destination: str,
         member: Any,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
+        version: int | None = None,
+        client: Redis | None = None,
     ) -> bool:
         if client is None:
             client = self.get_client(write=True)
@@ -942,11 +1047,11 @@ class DefaultClient:
 
     def spop(
         self,
-        key: KeyT,
-        count: Optional[int] = None,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
-    ) -> Union[Set, Any]:
+        key: str,
+        count: int | None = None,
+        version: int | None = None,
+        client: Redis | None = None,
+    ) -> Set | Any:
         if client is None:
             client = self.get_client(write=True)
 
@@ -956,11 +1061,11 @@ class DefaultClient:
 
     def srandmember(
         self,
-        key: KeyT,
-        count: Optional[int] = None,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
-    ) -> Union[List, Any]:
+        key: str,
+        count: int | None = None,
+        version: int | None = None,
+        client: Redis | None = None,
+    ) -> list | Any:
         if client is None:
             client = self.get_client(write=False)
 
@@ -970,10 +1075,10 @@ class DefaultClient:
 
     def srem(
         self,
-        key: KeyT,
-        *members: EncodableT,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
+        key: str,
+        *members: Any,
+        version: int | None = None,
+        client: Redis | None = None,
     ) -> int:
         if client is None:
             client = self.get_client(write=True)
@@ -984,11 +1089,11 @@ class DefaultClient:
 
     def sscan(
         self,
-        key: KeyT,
-        match: Optional[str] = None,
-        count: Optional[int] = 10,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
+        key: str,
+        match: str | None = None,
+        count: int | None = 10,
+        version: int | None = None,
+        client: Redis | None = None,
     ) -> Set[Any]:
         if self._has_compression_enabled() and match:
             err_msg = "Using match with compression is not supported."
@@ -1001,18 +1106,18 @@ class DefaultClient:
 
         cursor, result = client.sscan(
             key,
-            match=cast(PatternT, self.encode(match)) if match else None,
+            match=cast("PatternT", self.encode(match)) if match else None,
             count=count,
         )
         return {self.decode(value) for value in result}
 
     def sscan_iter(
         self,
-        key: KeyT,
-        match: Optional[str] = None,
-        count: Optional[int] = 10,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
+        key: str,
+        match: str | None = None,
+        count: int | None = 10,
+        version: int | None = None,
+        client: Redis | None = None,
     ) -> Iterator[Any]:
         if self._has_compression_enabled() and match:
             err_msg = "Using match with compression is not supported."
@@ -1024,36 +1129,36 @@ class DefaultClient:
         key = self.make_key(key, version=version)
         for value in client.sscan_iter(
             key,
-            match=cast(PatternT, self.encode(match)) if match else None,
+            match=cast("PatternT", self.encode(match)) if match else None,
             count=count,
         ):
             yield self.decode(value)
 
     def sunion(
         self,
-        *keys: KeyT,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
+        *keys: str,
+        version: int | None = None,
+        client: Redis | None = None,
     ) -> Set[Any]:
         if client is None:
             client = self.get_client(write=False)
 
         nkeys = [self.make_key(key, version=version) for key in keys]
-        return {self.decode(value) for value in client.sunion(*nkeys)}
+        return {self.decode(value) for value in client.sunion(*nkeys)}  # type: ignore[arg-type]
 
     def sunionstore(
         self,
         destination: Any,
-        *keys: KeyT,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
+        *keys: str,
+        version: int | None = None,
+        client: Redis | None = None,
     ) -> int:
         if client is None:
             client = self.get_client(write=True)
 
         destination = self.make_key(destination, version=version)
         encoded_keys = [self.make_key(key, version=version) for key in keys]
-        return int(client.sunionstore(destination, *encoded_keys))
+        return int(client.sunionstore(destination, *encoded_keys))  # type: ignore[arg-type]
 
     def close(self) -> None:
         close_flag = self._options.get(
@@ -1074,10 +1179,10 @@ class DefaultClient:
 
     def touch(
         self,
-        key: KeyT,
-        timeout: Optional[float] = DEFAULT_TIMEOUT,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
+        key: str,
+        timeout: float | None = DEFAULT_TIMEOUT,
+        version: int | None = None,
+        client: Redis | None = None,
     ) -> bool:
         """
         Sets a new expiration for a key.
@@ -1099,76 +1204,91 @@ class DefaultClient:
 
     def hset(
         self,
-        name: str,
-        key: KeyT,
-        value: EncodableT,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
+        key: str,
+        field: FieldT | None = None,
+        value: Any | None = None,
+        mapping: Mapping[FieldT, Any] | None = None,
+        version: int | None = None,
+        client: Redis | None = None,
     ) -> int:
         """
-        Set the value of hash name at key to value.
+        Set the value of hash key at field to value.
         Returns the number of fields added to the hash.
         """
         if client is None:
             client = self.get_client(write=True)
         nkey = self.make_key(key, version=version)
-        nvalue = self.encode(value)
-        return int(client.hset(name, nkey, nvalue))
+        return int(
+            client.hset(
+                nkey,
+                key=field,
+                value=self.encode(value) if value is not None else None,
+                mapping={f: self.encode(v) for f, v in mapping.items()}
+                if mapping is not None
+                else None,
+            ),
+        )
 
     def hdel(
         self,
-        name: str,
-        key: KeyT,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
+        key: str,
+        field: str,
+        version: int | None = None,
+        client: Redis | None = None,
     ) -> int:
         """
-        Remove keys from hash name.
+        Remove fields from hash key.
         Returns the number of fields deleted from the hash.
         """
         if client is None:
             client = self.get_client(write=True)
         nkey = self.make_key(key, version=version)
-        return int(client.hdel(name, nkey))
+        return int(client.hdel(nkey, field))
 
     def hlen(
         self,
-        name: str,
-        client: Optional[Redis] = None,
+        key: str,
+        version: int | None = None,
+        client: Redis | None = None,
     ) -> int:
         """
-        Return the number of items in hash name.
+        Return the number of items in hash key.
         """
         if client is None:
             client = self.get_client(write=False)
-        return int(client.hlen(name))
+        nkey = self.make_key(key, version=version)
+        return int(client.hlen(nkey))
 
     def hkeys(
         self,
-        name: str,
-        client: Optional[Redis] = None,
-    ) -> List[Any]:
+        key: str,
+        version: int | None = None,
+        client: Redis | None = None,
+    ) -> list[str]:
         """
-        Return a list of keys in hash name.
+        Return a list of fields in hash key.
         """
         if client is None:
             client = self.get_client(write=False)
+        nkey = self.make_key(key, version=version)
         try:
-            return [self.reverse_key(k.decode()) for k in client.hkeys(name)]
+            return [
+                k.decode() if isinstance(k, bytes) else k for k in client.hkeys(nkey)
+            ]
         except _main_exceptions as e:
             raise ConnectionInterrupted(connection=client) from e
 
     def hexists(
         self,
-        name: str,
-        key: KeyT,
-        version: Optional[int] = None,
-        client: Optional[Redis] = None,
+        key: str,
+        field: str,
+        version: int | None = None,
+        client: Redis | None = None,
     ) -> bool:
         """
-        Return True if key exists in hash name, else False.
+        Return True if field exists in hash key, else False.
         """
         if client is None:
             client = self.get_client(write=False)
         nkey = self.make_key(key, version=version)
-        return bool(client.hexists(name, nkey))
+        return bool(client.hexists(nkey, field))

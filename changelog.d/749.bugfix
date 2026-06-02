@@ -1,1 +1,0 @@
-Fix is_master parsing error for write separation in sentinel mode

@@ -1,6 +1,6 @@
 repos:
 - repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: v5.0.0
+  rev: v6.0.0
   hooks:
   - id: check-ast
   - id: check-case-conflict
@@ -9,15 +9,9 @@ repos:
   - id: check-symlinks
   - id: debug-statements
 
-# from readme - ruff with autofix must run before
-# other formatters, such as black
 - repo: https://github.com/astral-sh/ruff-pre-commit
-  rev: v0.7.3
+  rev: v0.15.14
   hooks:
-  - id: ruff
+  - id: ruff-check
     args: [ --fix, --exit-non-zero-on-fix , --show-fixes]
-
-- repo: https://github.com/psf/black
-  rev: 24.10.0
-  hooks:
-  - id: black
+  - id: ruff-format

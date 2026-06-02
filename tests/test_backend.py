@@ -1,21 +1,29 @@
+from __future__ import annotations
+
 import datetime
 import threading
 import time
 from datetime import timedelta
-from typing import Iterable, List, Union, cast
+from enum import IntEnum
+from typing import TYPE_CHECKING, cast
 from unittest.mock import patch
 
 import pytest
 from django.core.cache import caches
 from django.core.cache.backends.base import DEFAULT_TIMEOUT
 from django.test import override_settings
-from pytest_mock import MockerFixture
 
 from django_redis.cache import RedisCache
 from django_redis.client import ShardClient, herd
 from django_redis.serializers.json import JSONSerializer
 from django_redis.serializers.msgpack import MSGPackSerializer
-from tests.settings_wrapper import SettingsWrapper
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
+
+    from pytest_mock import MockerFixture
+
+    from tests.settings_wrapper import SettingsWrapper
 
 
 @pytest.fixture
@@ -26,6 +34,11 @@ def patch_itersize_setting() -> Iterable[None]:
         yield
     # destroy cache to force recreation with original settings
     del caches["default"]
+
+
+class Values2(IntEnum):
+    SOMETHING_1 = 1
+    SOMETHING_2 = 2
 
 
 class TestDjangoRedisCache:
@@ -103,7 +116,7 @@ class TestDjangoRedisCache:
         if isinstance(cache.client._serializer, (JSONSerializer, MSGPackSerializer)):
             # JSONSerializer and MSGPackSerializer use the isoformat for
             # datetimes.
-            now_dt: Union[str, datetime.datetime] = datetime.datetime.now().isoformat()
+            now_dt: str | datetime.datetime = datetime.datetime.now().isoformat()
         else:
             now_dt = datetime.datetime.now()
 
@@ -255,8 +268,7 @@ class TestDjangoRedisCache:
         res = cache.delete("a")
         assert bool(res) is False
 
-    @patch("django_redis.cache.DJANGO_VERSION", (3, 1, 0, "final", 0))
-    def test_delete_return_value_type_new31(self, cache: RedisCache):
+    def test_delete_return_value_type(self, cache: RedisCache):
         """delete() returns a boolean instead of int since django version 3.1"""
         cache.set("a", 1)
         res = cache.delete("a")
@@ -265,17 +277,6 @@ class TestDjangoRedisCache:
         res = cache.delete("b")
         assert isinstance(res, bool)
         assert res is False
-
-    @patch("django_redis.cache.DJANGO_VERSION", new=(3, 0, 1, "final", 0))
-    def test_delete_return_value_type_before31(self, cache: RedisCache):
-        """delete() returns a int before django version 3.1"""
-        cache.set("a", 1)
-        res = cache.delete("a")
-        assert isinstance(res, int)
-        assert res == 1
-        res = cache.delete("b")
-        assert isinstance(res, int)
-        assert res == 0
 
     def test_delete_many(self, cache: RedisCache):
         cache.set_many({"a": 1, "b": 2, "c": 3})
@@ -300,7 +301,7 @@ class TestDjangoRedisCache:
         assert bool(res) is False
 
     def test_delete_many_empty_generator(self, cache: RedisCache):
-        res = cache.delete_many(key for key in cast(List[str], []))
+        res = cache.delete_many(key for key in cast("list[str]", []))
         assert bool(res) is False
 
     def test_incr(self, cache: RedisCache):
@@ -522,13 +523,20 @@ class TestDjangoRedisCache:
         cache.delete_pattern("*foo-a*")
 
         client_mock.delete_pattern.assert_called_once_with(
-            "*foo-a*", itersize=expected_count
+            "*foo-a*",
+            itersize=expected_count,
         )
 
     def test_close(self, cache: RedisCache, settings: SettingsWrapper):
         settings.DJANGO_REDIS_CLOSE_CONNECTION = True
         cache.set("f", "1")
         cache.close()
+
+    @patch("django_redis.cache.RedisCache.client")
+    def test_close_uninitialized_client(self, client_mock):
+        cache = RedisCache("default", {})
+        cache.close()
+        client_mock.close.assert_not_called()
 
     def test_close_client(self, cache: RedisCache, mocker: MockerFixture):
         mock = mocker.patch.object(cache.client, "close")
@@ -675,6 +683,13 @@ class TestDjangoRedisCache:
         expiration_time = datetime.datetime.now() + timedelta(hours=2)
         assert cache.expire_at("not-existent-key", expiration_time) is False
 
+    def test_intenum(self, cache: RedisCache):
+        cache.set("hello", Values2.SOMETHING_1)
+        if isinstance(cache.client._serializer, JSONSerializer):
+            assert cache.get("hello") == Values2.SOMETHING_1.value
+        else:
+            assert cache.get("hello") is Values2.SOMETHING_1
+
     def test_lock(self, cache: RedisCache):
         lock = cache.lock("foobar")
         assert lock.acquire(blocking=True)
@@ -749,7 +764,7 @@ class TestDjangoRedisCache:
         if isinstance(cache.client, ShardClient):
             pytest.skip("ShardClient doesn't support get_client")
 
-        cache = cast(RedisCache, caches["sample"])
+        cache = cast("RedisCache", caches["sample"])
         client = cache.client
         client._server = ["foo", "bar"]
         client._clients = ["Foo", "Bar"]
@@ -761,7 +776,7 @@ class TestDjangoRedisCache:
         if isinstance(cache.client, ShardClient):
             pytest.skip("ShardClient doesn't support get_client")
 
-        cache = cast(RedisCache, caches["sample"])
+        cache = cast("RedisCache", caches["sample"])
         client = cache.client
         client._server = ["foo", "bar"]
         client._clients = ["Foo", "Bar"]
@@ -869,6 +884,70 @@ class TestDjangoRedisCache:
         assert cache.hexists("foo_hash5", "foo1")
         assert not cache.hexists("foo_hash5", "foo")
 
+    def test_hash_version_support(self, cache: RedisCache):
+        """Test that version parameter works correctly for hash methods."""
+        if isinstance(cache.client, ShardClient):
+            pytest.skip("ShardClient doesn't support get_client")
+
+        # Set values with different versions
+        cache.hset("my_hash", "field1", "value1", version=1)
+        cache.hset("my_hash", "field2", "value2", version=1)
+        cache.hset("my_hash", "field1", "different_value", version=2)
+
+        # Verify both versions exist independently
+        assert cache.hexists("my_hash", "field1", version=1)
+        assert cache.hexists("my_hash", "field2", version=1)
+        assert cache.hexists("my_hash", "field1", version=2)
+        assert not cache.hexists("my_hash", "field2", version=2)
+
+        # Verify hlen works with versions
+        assert cache.hlen("my_hash", version=1) == 2
+        assert cache.hlen("my_hash", version=2) == 1
+
+        # Verify hkeys works with versions
+        keys_v1 = cache.hkeys("my_hash", version=1)
+        assert len(keys_v1) == 2
+        assert "field1" in keys_v1
+        assert "field2" in keys_v1
+
+        keys_v2 = cache.hkeys("my_hash", version=2)
+        assert len(keys_v2) == 1
+        assert "field1" in keys_v2
+
+        # Verify hdel works with versions
+        cache.hdel("my_hash", "field1", version=1)
+        assert not cache.hexists("my_hash", "field1", version=1)
+        assert cache.hexists("my_hash", "field1", version=2)  # v2 should still exist
+
+    def test_hash_key_structure_in_redis(self, cache: RedisCache):
+        """Test that hash keys are prefixed but fields are not."""
+        if isinstance(cache.client, ShardClient):
+            pytest.skip("ShardClient doesn't support get_client")
+
+        # Get raw Redis client
+        client = cache.client.get_client(write=False)
+
+        # Set some hash data
+        cache.hset("user:1000", "email", "alice@example.com", version=2)
+        cache.hset("user:1000", "name", "Alice", version=2)
+
+        # Get the actual Redis key that was created
+        expected_key = cache.client.make_key("user:1000", version=2)
+
+        # Verify the hash exists in Redis with the prefixed key
+        assert client.exists(expected_key)
+        assert client.type(expected_key) == b"hash"
+
+        # Verify fields are stored WITHOUT prefix
+        actual_fields = client.hkeys(expected_key)
+        # Fields should be plain "email" and "name", not prefixed
+        assert b"email" in actual_fields
+        assert b"name" in actual_fields
+
+        # Verify field values are correct
+        assert client.hget(expected_key, b"email") is not None
+        assert client.hget(expected_key, b"name") is not None
+
     def test_sadd(self, cache: RedisCache):
         assert cache.sadd("foo", "bar") == 1
         assert cache.smembers("foo") == {"bar"}
@@ -904,7 +983,8 @@ class TestDjangoRedisCache:
         assert cache.smembers("foo3") == {"bar1"}
 
     def test_sdiffstore_with_different_keys_versions_without_initial_set_in_version(
-        self, cache: RedisCache
+        self,
+        cache: RedisCache,
     ):
         if isinstance(cache.client, ShardClient):
             pytest.skip("ShardClient doesn't support get_client")
@@ -914,7 +994,8 @@ class TestDjangoRedisCache:
         assert cache.sdiffstore("foo3", "foo1", "foo2", version_keys=2) == 0
 
     def test_sdiffstore_with_different_keys_versions_with_initial_set_in_version(
-        self, cache: RedisCache
+        self,
+        cache: RedisCache,
     ):
         if isinstance(cache.client, ShardClient):
             pytest.skip("ShardClient doesn't support get_client")
@@ -999,7 +1080,7 @@ class TestDjangoRedisCache:
     def test_sscan_iter_with_match(self, cache: RedisCache):
         if cache.client._has_compression_enabled():
             pytest.skip(
-                "Compression is enabled, sscan_iter with match is not supported"
+                "Compression is enabled, sscan_iter with match is not supported",
             )
         cache.sadd("foo", "bar1", "bar2", "zoo")
         items = cache.sscan_iter("foo", match="bar*")
@@ -1025,3 +1106,24 @@ class TestDjangoRedisCache:
         cache.sadd("foo2", "bar2", "bar3")
         assert cache.sunionstore("foo3", "foo1", "foo2") == 3
         assert cache.smembers("foo3") == {"bar1", "bar2", "bar3"}
+
+    @patch("django_redis.cache.RedisCache.client")
+    def test_close_with_signal_parameter(self, client_mock, cache: RedisCache):
+        """
+        Test that close() method handles signal parameter from Django request_finished
+        signal.
+        """
+        # This should not raise TypeError even when called with extra parameters
+        # that Django's request_finished signal passes
+        cache.close(signal="request_finished", sender=object)
+        client_mock.close.assert_called_with()
+
+        # Test with no parameters as well
+        client_mock.reset_mock()
+        cache.close()
+        client_mock.close.assert_called_with()
+
+        # Test with arbitrary keyword arguments
+        client_mock.reset_mock()
+        cache.close(foo="bar", signal=None, sender="test")
+        client_mock.close.assert_called_with()

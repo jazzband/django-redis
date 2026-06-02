@@ -1,0 +1,1 @@
+Fix hash method parameters: rename 'name' → 'key', 'key' → 'field' to align with Redis/Valkey terminology. Add version parameter to hlen() and hkeys(). Fix make_key() to only apply to hash key, not fields.

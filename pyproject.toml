@@ -1,3 +1,329 @@
+[build-system]
+requires = ["setuptools>=77.0.3"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "django-redis"
+description = "Full featured redis cache backend for Django."
+readme = "README.rst"
+license = "BSD-3-Clause"
+
+authors = [
+  { name = "Andrei Antoukh", email = "niwi@niwi.nz" },
+]
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Environment :: Web Environment",
+  "Framework :: Django",
+  "Framework :: Django :: 5.2",
+  "Framework :: Django :: 6.0",
+  "Intended Audience :: Developers",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Topic :: Software Development :: Libraries",
+  "Topic :: Utilities",
+]
+dependencies = [
+  "Django>=5.2,<7.0",
+  "redis>=4.0.2",
+  "typing_extensions>=4.12; python_version <= '3.12'",
+]
+dynamic = ["version"]
+requires-python = ">=3.10"
+
+[project.optional-dependencies]
+hiredis = ["redis[hiredis]>=4.0.2"]
+lz4 = ["lz4>=0.15"]
+msgpack = ["msgpack>=0.6.0"]
+pyzstd = ["pyzstd>=0.15"]
+
+[dependency-groups]
+test = [
+  "pytest>=9.0",
+  "pytest-cov",
+  "pytest-mock",
+  "pytest-pythonpath",
+  "pytest-xdist",
+]
+typing = [
+  "django-stubs",
+  "msgpack-types",
+  "mypy",
+]
+
+[project.urls]
+Homepage = "https://github.com/jazzband/django-redis"
+Source = "https://github.com/jazzband/django-redis"
+Issues = "https://github.com/jazzband/django-redis/issues"
+
+[tool.coverage.run]
+omit = [
+  "tests/*",
+]
+
+[tool.coverage.report]
+precision = 1
+skip_covered = true
+
+[tool.django-stubs]
+# all test settings look similar enough for mypy
+django_settings_module = "tests.settings.sqlite"
+ignore_missing_settings = true
+
+[tool.mypy]
+packages = ["django_redis"]
+plugins = [
+  "mypy_django_plugin.main",
+]
+pretty = true
+show_error_codes = true
+show_error_context = true
+strict = true
+warn_unreachable = true
+warn_unused_configs = true
+
+# first party mypy strictness overrides
+[[tool.mypy.overrides]]
+module = [
+  "django_redis.cache",
+  "django_redis.client.*",
+]
+disallow_any_generics = false
+disallow_untyped_calls = false
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+
+# third party mypy config
+[[tool.mypy.overrides]]
+module = "lz4.frame"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "pyzstd"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "msgpack"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "redis.sentinel"
+ignore_missing_imports = true
+
+[tool.pytest]
+minversion = "9.0"
+addopts = [
+  "--cov-config=pyproject.toml",
+  "--cov=django_redis",
+  "--doctest-modules",
+  "--maxprocesses=4",
+  "--no-cov-on-fail",
+  "--numprocesses=auto",
+]
+pythonpath = ["tests"]
+testpaths = ["tests"]
+xfail_strict = true
+
+[tool.ruff]
+fix = true
+
+[tool.ruff.lint]
+# https://beta.ruff.rs/docs/rules/
+select = [
+  # https://docs.astral.sh/ruff/rules/#flake8-builtins-a
+  # https://github.com/gforcada/flake8-builtins
+  "A",
+
+  # https://docs.astral.sh/ruff/rules/#flake8-annotations-ann
+  # https://github.com/sco1/flake8-annotations
+  # "ANN",
+
+  # https://docs.astral.sh/ruff/rules/#flake8-unused-arguments-arg
+  # https://github.com/nhoad/flake8-unused-arguments
+  # TODO: "ARG",
+
+  # https://docs.astral.sh/ruff/rules/#flake8-bugbear-b
+  # https://github.com/PyCQA/flake8-bugbear
+  "B",
+
+  # https://docs.astral.sh/ruff/rules/#flake8-blind-except-ble
+  # https://github.com/elijahandrews/flake8-blind-except
+  "BLE",
+
+  # https://docs.astral.sh/ruff/rules/#flake8-commas-com
+  # https://github.com/PyCQA/flake8-commas/
+  # About this warning:
+  # > The following rule may cause conflicts when used with the formatter: `COM812`
+  # Check https://github.com/astral-sh/ruff/issues/9216
+  "COM",
+
+  # https://docs.astral.sh/ruff/rules/#flake8-comprehensions-c4
+  # https://github.com/adamchainz/flake8-comprehensions
+  "C4",
+
+  # rules from mccabe
+  "C90",
+
+  # https://docs.astral.sh/ruff/rules/#flake8-django-dj
+  # https://github.com/rocioar/flake8-django
+  "DJ",
+
+  # https://docs.astral.sh/ruff/rules/#flake8-datetimez-dtz
+  # https://github.com/pjknkda/flake8-datetimez
+  # TODO: "DTZ",
+
+  # https://docs.astral.sh/ruff/rules/#error-e
+  # https://github.com/PyCQA/pycodestyle
+  "E",
+
+  # https://docs.astral.sh/ruff/rules/#flake8-errmsg-em
+  # https://github.com/henryiii/flake8-errmsg
+  "EM",
+
+  # https://docs.astral.sh/ruff/rules/#flake8-executable-exe
+  # https://github.com/xuhdev/flake8-executable
+  "EXE",
+
+  # https://docs.astral.sh/ruff/rules/#pyflakes-f
+  # https://github.com/PyCQA/pyflakes
+  "F",
+
+  # https://docs.astral.sh/ruff/rules/#flake8-boolean-trap-fbt
+  # https://github.com/pwoolvett/flake8_boolean_trap
+  # TODO: "FBT",
+
+  # https://docs.astral.sh/ruff/rules/#flake8-logging-format-g
+  # https://github.com/globality-corp/flake8-logging-format
+  "G",
+
+  # https://docs.astral.sh/ruff/rules/#isort-i
+  # https://pycqa.github.io/isort/
+  "I",
+
+  # https://docs.astral.sh/ruff/rules/#flake8-import-conventions-icn
+  # https://github.com/joaopalmeiro/flake8-import-conventions
+  "ICN",
+
+  # https://docs.astral.sh/ruff/rules/#flake8-implicit-str-concat-isc
+  # https://github.com/flake8-implicit-str-concat/flake8-implicit-str-concat
+  "ISC",
+
+  # https://docs.astral.sh/ruff/rules/#flake8-no-pep420-inp
+  # https://github.com/adamchainz/flake8-no-pep420
+  "INP",
+
+  # https://docs.astral.sh/ruff/rules/#flake8-gettext-int
+  # https://github.com/cielavenir/flake8_gettext
+  "INT",
+
+  # https://docs.astral.sh/ruff/rules/#flake8-pie-pie
+  # https://github.com/sbdchd/flake8-pie
+  # TODO: "PIE",
+
+  # https://docs.astral.sh/ruff/rules/#flake8-pytest-style-pt
+  # https://github.com/m-burst/flake8-pytest-style
+  # TODO: "PT",
+
+  # https://docs.astral.sh/ruff/rules/#flake8-pyi-pyi
+  # https://github.com/PyCQA/flake8-pyi
+  "PYI",
+
+  # https://docs.astral.sh/ruff/rules/#flake8-use-pathlib-pth
+  # https://gitlab.com/RoPP/flake8-use-pathlib
+  "PTH",
+
+  # https://docs.astral.sh/ruff/rules/#flake8-return-ret
+  # https://github.com/afonasev/flake8-return
+  "RET",
+
+  # https://docs.astral.sh/ruff/rules/#flake8-raise-rse
+  # https://github.com/jdufresne/flake8-raise
+  "RSE",
+
+  # https://docs.astral.sh/ruff/rules/unused-noqa/
+  "RUF100",
+
+  # https://docs.astral.sh/ruff/rules/#flake8-bandit-s
+  # https://github.com/tylerwince/flake8-bandit
+  "S",
+
+  # https://docs.astral.sh/ruff/rules/#flake8-simplify-sim
+  # https://github.com/MartinThoma/flake8-simplify
+  "SIM",
+
+  # https://docs.astral.sh/ruff/rules/#flake8-self-slf
+  # https://github.com/korijn/flake8-self
+  # TODO: "SLF",
+
+  # rules from flake8-type-checking
+  # TODO:
+  #   Replace with the new rules
+  #   https://github.com/astral-sh/ruff/issues/9573
+  "TCH",
+
+  # https://docs.astral.sh/ruff/rules/#flake8-tidy-imports-tid
+  # https://github.com/adamchainz/flake8-tidy-imports
+  "TID",
+
+  # https://docs.astral.sh/ruff/rules/#flake8-debugger-t10
+  # https://github.com/jbkahn/flake8-debugger
+  "T10",
+
+  # https://docs.astral.sh/ruff/rules/#flake8-print-t20
+  # https://github.com/jbkahn/flake8-print
+  "T20",
+
+  # https://docs.astral.sh/ruff/rules/#pyupgrade-up
+  # https://github.com/asottile/pyupgrade
+  "UP",
+
+  # https://docs.astral.sh/ruff/rules/#warning-w
+  # https://github.com/PyCQA/pycodestyle
+  "W",
+
+  # https://docs.astral.sh/ruff/rules/#flake8-2020-ytt
+  # https://github.com/asottile-archive/flake8-2020
+  "YTT",
+]
+
+ignore = [
+  "S311", # ignore Standard pseudo-random generators because they are not used for cryptographic purposes
+]
+
+[tool.ruff.lint.flake8-tidy-imports]
+## Disallow all relative imports.
+ban-relative-imports = "all"
+
+[tool.ruff.lint.isort]
+combine-as-imports = true
+required-imports = ["from __future__ import annotations"]
+
+[tool.ruff.lint.per-file-ignores]
+# ignore assert statements in tests
+"tests/*.py" = ["S101"]
+
+# ignore SECRET_KEY in settings files in tests
+"tests/settings/*.py" = ["S105"]
+
+# pickle is used on purpose and its use is discouraged
+"django_redis/serializers/pickle.py" = ["S301"]
+
+# min/max are official Redis parameter names matching redis-py API
+"django_redis/client/mixins/sorted_sets.py" = ["A002"]
+
+[tool.setuptools.packages.find]
+include = ["django_redis*"]
+
+[tool.setuptools.dynamic]
+version = {attr = "django_redis.__version__"}
+
 [tool.towncrier]
 directory = "changelog.d"
 filename = "CHANGELOG.rst"
@@ -5,9 +331,54 @@ issue_format = "`#{issue} <https://github.com/jazzband/django-redis/issues/{issu
 name = "django-redis"
 package = "django_redis"
 type = [
-  { name = "Features",                  directory = "feature", showcontent = true },
-  { name = "Bug Fixes",                 directory = "bugfix",  showcontent = true },
-  { name = "Miscellaneous",             directory = "misc",  showcontent = true },
-  { name = "Documentation",             directory = "doc",  showcontent = true },
+  { name = "Features", directory = "feature", showcontent = true },
+  { name = "Bug Fixes", directory = "bugfix",  showcontent = true },
+  { name = "Miscellaneous", directory = "misc",  showcontent = true },
+  { name = "Documentation", directory = "doc",  showcontent = true },
   { name = "Deprecations and Removals", directory = "removal", showcontent = true },
 ]
+
+[tool.tox]
+minversion = "4.43.0"
+envlist = [
+  "mypy",
+  "pre-commit",
+  # tests against released versions
+  { product = [{ prefix = "py3", start = 10, stop = 14 }, ["dj52"]] },
+  { product = [{ prefix = "py3", start = 12, stop = 14 }, ["dj60"]] },
+  # tests against unreleased versions
+  "py314-dj60-redismaster",
+  "py314-djmain",
+  "py314-djmain-redismaster",
+]
+
+[tool.tox.env_run_base]
+default_base_python = "python3"
+passenv = ["CI", "GITHUB*"]
+commands = [["pytest", { replace = "posargs", default = [], extend = true }]]
+dependency_groups = ["test"]
+extras = ["lz4", "msgpack", "pyzstd"]
+deps = [
+  { replace = "if", condition = "factor.dj52 or env.DJANGO == '5.2'", then = ["Django>=5.2,<6.0"], extend = true },
+  { replace = "if", condition = "factor.dj60 or env.DJANGO == '6.0'", then = ["Django>=6.0,<6.1"], extend = true },
+  { replace = "if", condition = "factor.djmain or env.DJANGO == 'main'", then = ["https://github.com/django/django/archive/main.tar.gz"], extend = true },
+  { replace = "if", condition = "factor.redismaster or env.REDIS == 'master'", then = ["https://github.com/redis/redis-py/archive/master.tar.gz"], extend = true },
+]
+
+[tool.tox.env.pre-commit]
+commands = [["pre-commit", "run", "--all-files"]]
+deps = ["pre-commit"]
+skip_install = true
+
+[tool.tox.env.mypy]
+commands = [["mypy", { replace = "posargs", default = ["--cobertura-xml-report", "."], extend = true}]]
+deps = ["lxml"]
+dependency_groups = ["test", "typing"]
+extras = ["lz4", "msgpack", "pyzstd"]
+
+[tool.tox.gh.python]
+"3.10" = ["py310"]
+"3.11" = ["py311"]
+"3.12" = ["py312"]
+"3.13" = ["py313"]
+"3.14" = ["py314"]
