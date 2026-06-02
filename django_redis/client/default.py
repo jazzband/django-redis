@@ -585,7 +585,11 @@ class DefaultClient(
         Encode the given value.
         """
 
-        if isinstance(value, (bool, Enum)) or not allow_int or not isinstance(value, int):
+        if (
+            isinstance(value, (bool, Enum))
+            or not allow_int
+            or not isinstance(value, int)
+        ):
             value = self._serializer.dumps(value)
             return self._compressor.compress(value)
 
