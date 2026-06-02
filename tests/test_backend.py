@@ -679,7 +679,10 @@ class TestDjangoRedisCache:
 
     def test_intenum(self, cache: RedisCache):
         cache.set("hello", Values2.SOMETHING_1)
-        assert cache.get("hello") is Values2.SOMETHING_1
+        if isinstance(cache.client._serializer, JSONSerializer):
+            assert cache.get("hello") == Values2.SOMETHING_1.value
+        else:
+            assert cache.get("hello") is Values2.SOMETHING_1
 
     def test_lock(self, cache: RedisCache):
         lock = cache.lock("foobar")
