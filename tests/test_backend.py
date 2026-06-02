@@ -4,6 +4,7 @@ import datetime
 import threading
 import time
 from datetime import timedelta
+from enum import IntEnum
 from typing import TYPE_CHECKING, cast
 from unittest.mock import patch
 
@@ -33,6 +34,11 @@ def patch_itersize_setting() -> Iterable[None]:
         yield
     # destroy cache to force recreation with original settings
     del caches["default"]
+
+
+class Values2(IntEnum):
+    SOMETHING_1 = 1
+    SOMETHING_2 = 2
 
 
 class TestDjangoRedisCache:
@@ -676,6 +682,13 @@ class TestDjangoRedisCache:
 
         expiration_time = datetime.datetime.now() + timedelta(hours=2)
         assert cache.expire_at("not-existent-key", expiration_time) is False
+
+    def test_intenum(self, cache: RedisCache):
+        cache.set("hello", Values2.SOMETHING_1)
+        if isinstance(cache.client._serializer, JSONSerializer):
+            assert cache.get("hello") == Values2.SOMETHING_1.value
+        else:
+            assert cache.get("hello") is Values2.SOMETHING_1
 
     def test_lock(self, cache: RedisCache):
         lock = cache.lock("foobar")
