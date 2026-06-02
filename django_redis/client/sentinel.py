@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+from typing import Any
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 from django.core.exceptions import ImproperlyConfigured
@@ -21,7 +24,10 @@ class SentinelClient(DefaultClient):
     def __init__(self, server, params, backend):
         if isinstance(server, str):
             url = urlparse(server)
-            primary_query = parse_qs(url.query, keep_blank_values=True)
+            primary_query: dict[str, list[Any]] = parse_qs(
+                url.query,
+                keep_blank_values=True,
+            )
             replica_query = dict(primary_query)
             primary_query["is_master"] = [1]
             replica_query["is_master"] = [0]

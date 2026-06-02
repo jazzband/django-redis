@@ -1,0 +1,1 @@
+Fix incorrect Redis typing that relied on the legacy `types-redis` package, and update the public API to avoid exposing redis-py key types (the encode/decode/make_key methods allow a different API surface).

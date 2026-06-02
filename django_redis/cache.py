@@ -1,20 +1,24 @@
+from __future__ import annotations
+
 import functools
 import logging
-from typing import Any, Callable, Optional
+from typing import TYPE_CHECKING, Any
 
-from django import VERSION as DJANGO_VERSION
 from django.conf import settings
 from django.core.cache.backends.base import BaseCache
 from django.utils.module_loading import import_string
 
 from django_redis.exceptions import ConnectionInterrupted
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
 CONNECTION_INTERRUPTED = object()
 
 
 def omit_exception(
-    method: Optional[Callable] = None,
-    return_value: Optional[Any] = None,
+    method: Callable | None = None,
+    return_value: Any | None = None,
 ):
     """
     Simple decorator that intercepts connection
@@ -34,7 +38,7 @@ def omit_exception(
                     self.logger.exception("Exception ignored")
 
                 return return_value
-            raise e.__cause__  # noqa: B904
+            raise e.__cause__  # type: ignore[misc] # noqa: B904
 
     return _decorator
 
@@ -107,8 +111,7 @@ class RedisCache(BaseCache):
     @omit_exception
     def delete(self, *args, **kwargs):
         """returns a boolean instead of int since django version 3.1"""
-        result = self.client.delete(*args, **kwargs)
-        return bool(result) if DJANGO_VERSION >= (3, 1, 0) else result
+        return bool(self.client.delete(*args, **kwargs))
 
     @omit_exception
     def delete_pattern(self, *args, **kwargs):
@@ -186,7 +189,7 @@ class RedisCache(BaseCache):
     @omit_exception
     def close(self, **kwargs):
         if self._client:
-            self.client.close(**kwargs)
+            self.client.close()
 
     @omit_exception
     def touch(self, *args, **kwargs):
@@ -279,3 +282,60 @@ class RedisCache(BaseCache):
     @omit_exception
     def hexists(self, *args, **kwargs):
         return self.client.hexists(*args, **kwargs)
+
+    # Sorted Set Operations
+    @omit_exception
+    def zadd(self, *args, **kwargs):
+        return self.client.zadd(*args, **kwargs)
+
+    @omit_exception
+    def zcard(self, *args, **kwargs):
+        return self.client.zcard(*args, **kwargs)
+
+    @omit_exception
+    def zcount(self, *args, **kwargs):
+        return self.client.zcount(*args, **kwargs)
+
+    @omit_exception
+    def zincrby(self, *args, **kwargs):
+        return self.client.zincrby(*args, **kwargs)
+
+    @omit_exception
+    def zpopmax(self, *args, **kwargs):
+        return self.client.zpopmax(*args, **kwargs)
+
+    @omit_exception
+    def zpopmin(self, *args, **kwargs):
+        return self.client.zpopmin(*args, **kwargs)
+
+    @omit_exception
+    def zrange(self, *args, **kwargs):
+        return self.client.zrange(*args, **kwargs)
+
+    @omit_exception
+    def zrangebyscore(self, *args, **kwargs):
+        return self.client.zrangebyscore(*args, **kwargs)
+
+    @omit_exception
+    def zrank(self, *args, **kwargs):
+        return self.client.zrank(*args, **kwargs)
+
+    @omit_exception
+    def zrem(self, *args, **kwargs):
+        return self.client.zrem(*args, **kwargs)
+
+    @omit_exception
+    def zremrangebyscore(self, *args, **kwargs):
+        return self.client.zremrangebyscore(*args, **kwargs)
+
+    @omit_exception
+    def zrevrange(self, *args, **kwargs):
+        return self.client.zrevrange(*args, **kwargs)
+
+    @omit_exception
+    def zrevrangebyscore(self, *args, **kwargs):
+        return self.client.zrevrangebyscore(*args, **kwargs)
+
+    @omit_exception
+    def zscore(self, *args, **kwargs):
+        return self.client.zscore(*args, **kwargs)

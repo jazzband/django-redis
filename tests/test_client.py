@@ -1,14 +1,21 @@
-from collections.abc import Iterable
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 from unittest.mock import Mock, call, patch
 
 import pytest
 from django.core.cache import DEFAULT_CACHE_ALIAS
 from django.test import override_settings
-from pytest_mock import MockerFixture
 
-from django_redis.cache import RedisCache
 from django_redis.client import DefaultClient, ShardClient
-from tests.settings_wrapper import SettingsWrapper
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
+
+    from pytest_mock import MockerFixture
+
+    from django_redis.cache import RedisCache
+    from tests.settings_wrapper import SettingsWrapper
 
 
 @pytest.fixture()

@@ -1,5 +1,13 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from redis import Redis
+
+
 class ConnectionInterrupted(Exception):
-    def __init__(self, connection, parent=None):
+    def __init__(self, connection: Redis | None) -> None:
         self.connection = connection
 
     def __str__(self) -> str:

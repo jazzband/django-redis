@@ -1,14 +1,19 @@
+from __future__ import annotations
+
 import random
 import socket
 import time
-from collections import OrderedDict
+from typing import Any
 
 from django.conf import settings
-from redis.exceptions import ConnectionError as RedisConnectionError
-from redis.exceptions import ResponseError
-from redis.exceptions import TimeoutError as RedisTimeoutError
+from django.core.cache.backends.base import DEFAULT_TIMEOUT
+from redis.exceptions import (
+    ConnectionError as RedisConnectionError,
+    ResponseError,
+    TimeoutError as RedisTimeoutError,
+)
 
-from django_redis.client.default import DEFAULT_TIMEOUT, DefaultClient
+from django_redis.client.default import DefaultClient
 from django_redis.exceptions import ConnectionInterrupted
 
 _main_exceptions = (
@@ -28,7 +33,7 @@ class Marker:
     pass
 
 
-def _is_expired(x, herd_timeout: int) -> bool:
+def _is_expired(x: float, herd_timeout: int) -> bool:
     if x >= herd_timeout:
         return True
     val = x + random.randint(1, herd_timeout)
@@ -39,14 +44,13 @@ def _is_expired(x, herd_timeout: int) -> bool:
 class HerdClient(DefaultClient):
     def __init__(self, *args, **kwargs):
         self._marker = Marker()
-        self._herd_timeout = getattr(settings, "CACHE_HERD_TIMEOUT", 60)
+        self._herd_timeout: int = getattr(settings, "CACHE_HERD_TIMEOUT", 60)
         super().__init__(*args, **kwargs)
 
-    def _pack(self, value, timeout):
-        herd_timeout = (timeout or self._backend.default_timeout) + int(time.time())
-        return self._marker, value, herd_timeout
+    def _pack(self, value: Any, timeout: float) -> tuple[Marker, Any, float | int]:
+        return self._marker, value, timeout + int(time.time())
 
-    def _unpack(self, value):
+    def _unpack(self, value: Any) -> tuple[Any, bool]:
         try:
             marker, unpacked, herd_timeout = value
         except (ValueError, TypeError):
@@ -114,17 +118,17 @@ class HerdClient(DefaultClient):
         if not keys:
             return {}
 
-        recovered_data = OrderedDict()
+        recovered_data = {}
 
         new_keys = [self.make_key(key, version=version) for key in keys]
-        map_keys = dict(zip(new_keys, keys))
+        map_keys = dict(zip(new_keys, keys, strict=True))
 
         try:
             results = client.mget(*new_keys)
         except _main_exceptions as e:
             raise ConnectionInterrupted(connection=client) from e
 
-        for key, value in zip(new_keys, results):
+        for key, value in zip(new_keys, results, strict=True):
             if value is None:
                 continue
 

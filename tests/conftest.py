@@ -1,13 +1,19 @@
+from __future__ import annotations
+
 import sys
-from collections.abc import Iterable
 from os import environ
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
 from xdist.scheduler import LoadScopeScheduling
 
-from django_redis.cache import BaseCache
 from tests.settings_wrapper import SettingsWrapper
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
+
+    from django_redis.cache import BaseCache
 
 
 class FixtureScheduling(LoadScopeScheduling):

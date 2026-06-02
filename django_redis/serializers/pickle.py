@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import pickle
 from typing import Any
 
@@ -7,13 +9,13 @@ from django_redis.serializers.base import BaseSerializer
 
 
 class PickleSerializer(BaseSerializer):
-    def __init__(self, options) -> None:
+    def __init__(self, options: dict[str, Any]) -> None:
         self._pickle_version = pickle.DEFAULT_PROTOCOL
         self.setup_pickle_version(options)
 
         super().__init__(options=options)
 
-    def setup_pickle_version(self, options) -> None:
+    def setup_pickle_version(self, options: dict[str, Any]) -> None:
         if "PICKLE_VERSION" in options:
             try:
                 self._pickle_version = int(options["PICKLE_VERSION"])

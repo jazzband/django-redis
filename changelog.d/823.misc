@@ -1,0 +1,1 @@
+Use `from __future__ import annotations` to postpone evaluation of annotations.
