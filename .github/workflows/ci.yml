@@ -89,7 +89,7 @@ jobs:
         run: docker compose -f tests/compose.yml down
 
       - name: Upload coverage
-        uses: codecov/codecov-action@v6
+        uses: codecov/codecov-action@v7
         with:
           env_vars: DJANGO,REDIS,PYTHON
           flags: tests
@@ -140,7 +140,7 @@ jobs:
 
       - name: Upload coverage
         if: ${{ matrix.tool == 'mypy' }}
-        uses: codecov/codecov-action@v6
+        uses: codecov/codecov-action@v7
         with:
           flags: mypy
 
