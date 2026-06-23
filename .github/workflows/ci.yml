@@ -61,7 +61,7 @@ jobs:
           echo "::set-output name=dir::$(pip cache dir)"
 
       - name: Cache
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ${{ steps.pip-cache.outputs.dir }}
           key: pip-test-python-${{ matrix.python-version }}-django-${{ matrix.django-version }}-redis-${{ matrix.redis-version }}-${{ hashFiles('**/pyproject.toml') }}
@@ -123,7 +123,7 @@ jobs:
           echo "::set-output name=dir::$(pip cache dir)"
 
       - name: Cache
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ${{ steps.pip-cache.outputs.dir }}
           key: pip-lint-${{ hashFiles('**/pyproject.toml') }}
@@ -164,7 +164,7 @@ jobs:
           echo "::set-output name=dir::$(pip cache dir)"
 
       - name: Cache
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ${{ steps.pip-cache.outputs.dir }}
           key: pip-check-changelog-${{ hashFiles('**/pyproject.toml') }}
