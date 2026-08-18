@@ -122,19 +122,26 @@ class ShardClient(DefaultClient):
         if not keys:
             return {}
 
-        recovered_data = {}
-
+        # Group keys by shard so we issue one MGET per shard instead of
+        # one GET per key.  (#838)
         new_keys = [self.make_key(key, version=version) for key in keys]
         map_keys = dict(zip(new_keys, keys, strict=True))
 
+        by_shard: dict[str, list[str]] = {}
         for key in new_keys:
-            client = self.get_server(key)
-            value = self.get(key=key, version=version, client=client)
+            shard = self.get_server_name(key)
+            by_shard.setdefault(shard, []).append(key)
 
-            if value is None:
-                continue
-
-            recovered_data[map_keys[key]] = value
+        recovered_data: dict = {}
+        for shard, shard_keys in by_shard.items():
+            conn = self._serverdict[shard]
+            try:
+                results = conn.mget(shard_keys)
+            except RedisConnectionError as e:
+                raise ConnectionInterrupted(connection=conn) from e
+            for key, raw in zip(shard_keys, results):
+                if raw is not None:
+                    recovered_data[map_keys[key]] = self.decode(raw)
         return recovered_data
 
     def set(
@@ -194,8 +201,23 @@ class ShardClient(DefaultClient):
         else:
             client = None
 
+        # Group by shard and use one pipeline per shard instead of
+        # one set() call per key.  (#838)
+        by_shard: dict[str, list[tuple[str, str]]] = {}
         for key, value in data.items():
-            self.set(key, value, timeout, version=version, client=client)
+            new_key = self.make_key(key, version=version)
+            shard = self.get_server_name(new_key)
+            by_shard.setdefault(shard, []).append((new_key, value))
+
+        for shard, items in by_shard.items():
+            conn = self._serverdict[shard]
+            try:
+                with conn.pipeline(transaction=False) as pipeline:
+                    for key, value in items:
+                        self._backend.set(key, value, timeout, version=version, client=pipeline)
+                    pipeline.execute()
+            except RedisConnectionError as e:
+                raise ConnectionInterrupted(connection=conn) from e
 
     def has_key(self, key, version=None, client: Redis | UnsetType | None = UNSET):
         """
@@ -427,10 +449,25 @@ class ShardClient(DefaultClient):
             message = "delete_many on sharded client may not specify client"
             raise NotImplementedError(message)
 
+        # Group by shard and use one pipeline per shard instead of
+        # one delete() call per key.  (#838)
+        by_shard: dict[str, list[str]] = {}
+        for k in keys:
+            new_key = self.make_key(k, version=version)
+            shard = self.get_server_name(new_key)
+            by_shard.setdefault(shard, []).append(new_key)
+
         res = 0
-        for key in [self.make_key(k, version=version) for k in keys]:
-            client = self.get_server(key)
-            res += self.delete(key, client=client)
+        for shard, shard_keys in by_shard.items():
+            conn = self._serverdict[shard]
+            try:
+                with conn.pipeline(transaction=False) as pipeline:
+                    for key in shard_keys:
+                        pipeline.delete(key)
+                    results = pipeline.execute()
+                res += sum(results)
+            except RedisConnectionError as e:
+                raise ConnectionInterrupted(connection=conn) from e
         return res
 
     def incr_version(
