@@ -214,7 +214,9 @@ class ShardClient(DefaultClient):
             try:
                 with conn.pipeline(transaction=False) as pipeline:
                     for key, value in items:
-                        self._backend.set(key, value, timeout, version=version, client=pipeline)
+                        self._backend.set(
+                            key, value, timeout, version=version, client=pipeline
+                        )
                     pipeline.execute()
             except RedisConnectionError as e:
                 raise ConnectionInterrupted(connection=conn) from e
