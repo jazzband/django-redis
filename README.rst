@@ -705,6 +705,12 @@ In order to enable this functionality you should add the following:
                     "password": "sentinel-pass",
                 },
 
+                # kwargs for Redis master/replica connections (optional). Example with auth on Redis nodes
+                "CONNECTION_POOL_KWARGS": {
+                    "username": "redis-user",
+                    "password": "redis-pass",
+                },
+
                 # You can still override the connection pool (optional).
                 "CONNECTION_POOL_CLASS": "redis.sentinel.SentinelConnectionPool",
             },
@@ -772,6 +778,39 @@ It is also possible to set some caches as sentinels and some as not:
                 "CLIENT_CLASS": "django_redis.client.DefaultClient",
             },
         },
+    }
+
+Authentication & ACLs with Sentinel
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+When both Redis Sentinel nodes and Redis server instances require authentication (e.g., using Redis ACLs), pass credentials to ``SENTINEL_KWARGS`` for Sentinel nodes and ``CONNECTION_POOL_KWARGS`` for the Redis nodes:
+
+.. code-block:: python
+
+    DJANGO_REDIS_CONNECTION_FACTORY = "django_redis.pool.SentinelConnectionFactory"
+
+    CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": "redis://service_name/0",
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.SentinelClient",
+                "SENTINELS": [
+                    ("sentinel-1", 26379),
+                    ("sentinel-2", 26379),
+                ],
+                # Credentials for Sentinel instances
+                "SENTINEL_KWARGS": {
+                    "username": "sentinel_user",
+                    "password": "sentinel_password",
+                },
+                # Credentials for Redis master/replica nodes
+                "CONNECTION_POOL_KWARGS": {
+                    "username": "redis_user",
+                    "password": "redis_password",
+                },
+            },
+        }
     }
 
 .. _Redis Sentinels: https://redis.io/topics/sentinel
