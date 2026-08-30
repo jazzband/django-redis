@@ -32,14 +32,14 @@ classifiers = [
 ]
 dependencies = [
   "Django>=5.2,<7.0",
-  "redis>=4.0.2",
+  "redis>=4.2.0",
   "typing_extensions>=4.12; python_version <= '3.12'",
 ]
 dynamic = ["version"]
 requires-python = ">=3.10"
 
 [project.optional-dependencies]
-hiredis = ["redis[hiredis]>=4.0.2"]
+hiredis = ["redis[hiredis]>=4.2.0"]
 lz4 = ["lz4>=0.15"]
 msgpack = ["msgpack>=0.6.0"]
 pyzstd = ["pyzstd>=0.15"]

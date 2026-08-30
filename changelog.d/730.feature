@@ -1,0 +1,1 @@
+Add support for the ``NX``, ``XX``, ``GT`` and ``LT`` options to ``expire`` and ``pexpire``
