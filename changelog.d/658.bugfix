@@ -1,0 +1,1 @@
+Fix a circular exception reference when re-raising a connection error with ``IGNORE_EXCEPTIONS`` off, which could produce a confusing/incomplete traceback on Django's debug error page.
