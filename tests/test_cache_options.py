@@ -81,6 +81,33 @@ def test_get_django_omit_exceptions_priority_2(settings):
         cache.get("key")
 
 
+def _next_in_chain(exc: BaseException) -> BaseException | None:
+    """Mirrors Django's ExceptionReporter._get_explicit_or_implicit_cause."""
+    if exc.__cause__ is not None:
+        return exc.__cause__
+    if exc.__suppress_context__:
+        return None
+    return exc.__context__
+
+
+def test_reraised_connection_error_has_no_context_cycle(settings):
+    caches_setting = copy.deepcopy(settings.CACHES)
+    caches_setting["doesnotexist"]["OPTIONS"]["IGNORE_EXCEPTIONS"] = False
+    settings.CACHES = caches_setting
+    settings.DJANGO_REDIS_IGNORE_EXCEPTIONS = False
+    cache = cast("RedisCache", caches["doesnotexist"])
+
+    with pytest.raises(RedisConnectionError) as exc_info:
+        cache.get("key")
+
+    error: BaseException | None = exc_info.value
+    seen = set()
+    while error is not None:
+        assert id(error) not in seen, "exception chain contains a cycle"
+        seen.add(id(error))
+        error = _next_in_chain(error)
+
+
 @pytest.fixture
 def key_prefix_cache(cache: RedisCache, settings) -> Iterable[RedisCache]:
     caches_setting = copy.deepcopy(settings.CACHES)

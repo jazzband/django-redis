@@ -52,7 +52,8 @@ def omit_exception(
                     self.logger.exception("Exception ignored")
 
                 return return_value
-            raise e.__cause__  # type: ignore[misc] # noqa: B904
+            # avoids a __context__/__cause__ cycle with the wrapper exception
+            raise e.__cause__ from None  # type: ignore[misc]
 
     return _decorator
 
