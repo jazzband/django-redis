@@ -43,4 +43,3 @@ def test_hashring_instances_do_not_share_nodes():
     assert ring1.nodes == ["node1", "node2"]
     assert ring2.nodes == ["node3"]
     assert ring1.nodes is not ring2.nodes
-
