@@ -304,14 +304,15 @@ class DefaultClient(
             version = self._backend.version
 
         old_key = self.make_key(key, version)
-        value = self.get(old_key, version=version, client=client)
+        missing = object()
+        value = self.get(old_key, default=missing, version=version, client=client)
 
         try:
             ttl = self.ttl(old_key, version=version, client=client)
         except _main_exceptions as e:
             raise ConnectionInterrupted(connection=client) from e
 
-        if value is None:
+        if value is missing:
             error_message = f"Key '{key!r}' not found"
             raise ValueError(error_message)
 
