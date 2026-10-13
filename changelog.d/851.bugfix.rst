@@ -1,0 +1,1 @@
+Fix version changes for cached ``None`` values in the default and sharded clients.
