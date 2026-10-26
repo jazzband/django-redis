@@ -17,4 +17,4 @@ def test_cache_settings_follow_parametrization(cache, cache_settings: str) -> No
         "DJANGO_REDIS_CONNECTION_FACTORY",
         "django_redis.pool.ConnectionFactory",
     )
-    assert settings.DJANGO_REDIS_CONNECTION_FACTORY == expected_factory
+    assert expected_factory == settings.DJANGO_REDIS_CONNECTION_FACTORY
