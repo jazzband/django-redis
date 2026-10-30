@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import sys
+from copy import deepcopy
 from importlib import import_module
 from os import environ
 from pathlib import Path
@@ -53,7 +54,7 @@ def cache(cache_settings: str) -> Iterable[BaseCache]:
     setup()
     cache_module = import_module(f"settings.{cache_settings}")
     overrides = {
-        "CACHES": cache_module.CACHES,
+        "CACHES": deepcopy(cache_module.CACHES),
         "DJANGO_REDIS_CONNECTION_FACTORY": getattr(
             cache_module,
             "DJANGO_REDIS_CONNECTION_FACTORY",
@@ -66,6 +67,7 @@ def cache(cache_settings: str) -> Iterable[BaseCache]:
     # Switching DJANGO_SETTINGS_MODULE after django.setup() has no effect.
     # override_settings refreshes Django's cache handlers for each variant.
     with override_settings(**overrides):
+        _ = default_cache.client
         yield default_cache
         default_cache.clear()
 
