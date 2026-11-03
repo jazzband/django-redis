@@ -125,7 +125,7 @@ class RedisCache(BaseCache, Generic[ClientType]):
 
     @omit_exception
     def delete(self, *args, **kwargs):
-        """returns a boolean instead of int since django version 3.1"""
+        """Return a boolean instead of int since Django version 3.1."""
         return bool(self.client.delete(*args, **kwargs))
 
     @omit_exception
