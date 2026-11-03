@@ -1,0 +1,1 @@
+Updated `actions/cache` to v6.
