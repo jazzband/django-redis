@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 
 @pytest.fixture
 def patch_itersize_setting() -> Iterable[None]:
-    # destroy cache to force recreation with overriden settings
+    # destroy cache to force recreation with overridden settings
     del caches["default"]
     with override_settings(DJANGO_REDIS_SCAN_ITERSIZE=30):
         yield
@@ -387,7 +387,7 @@ class TestDjangoRedisCache:
         assert res == 1
         cache.delete("num")
 
-        # since key doesnt exist it is set to the delta value, 10 in this case
+        # since key doesn't exist it is set to the delta value, 10 in this case
         cache.incr("num", 10, ignore_key_check=True)
         res = cache.get("num")
         assert res == 10
