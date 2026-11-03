@@ -27,12 +27,11 @@ if TYPE_CHECKING:
 
 
 @pytest.fixture
-def patch_itersize_setting() -> Iterable[None]:
-    # destroy cache to force recreation with overriden settings
+def patch_itersize_setting(cache: RedisCache) -> Iterable[None]:
+    # Ensure the cache fixture has initialized the default connection.
     del caches["default"]
     with override_settings(DJANGO_REDIS_SCAN_ITERSIZE=30):
         yield
-    # destroy cache to force recreation with original settings
     del caches["default"]
 
 
@@ -685,7 +684,7 @@ class TestDjangoRedisCache:
 
     def test_intenum(self, cache: RedisCache):
         cache.set("hello", Values2.SOMETHING_1)
-        if isinstance(cache.client._serializer, JSONSerializer):
+        if isinstance(cache.client._serializer, (JSONSerializer, MSGPackSerializer)):
             assert cache.get("hello") == Values2.SOMETHING_1.value
         else:
             assert cache.get("hello") is Values2.SOMETHING_1

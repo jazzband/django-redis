@@ -2,12 +2,23 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+import pytest
+
+from django_redis.client import ShardClient
+
 if TYPE_CHECKING:
     from django_redis.cache import RedisCache
 
 
 class TestSortedSetOperations:
     """Tests for sorted set (ZSET) operations."""
+
+    @pytest.fixture(autouse=True)
+    def skip_unsupported_sharding(self, cache: RedisCache) -> None:
+        if isinstance(cache.client, ShardClient):
+            pytest.skip(
+                "ShardClient does not support sorted-set operations",
+            )
 
     def test_zadd_basic(self, cache: RedisCache):
         """Test adding members to sorted set."""
