@@ -17,6 +17,7 @@ classifiers = [
   "Framework :: Django",
   "Framework :: Django :: 5.2",
   "Framework :: Django :: 6.0",
+  "Framework :: Django :: 6.1",
   "Intended Audience :: Developers",
   "Operating System :: OS Independent",
   "Programming Language :: Python",
@@ -346,8 +347,9 @@ envlist = [
   # tests against released versions
   { product = [{ prefix = "py3", start = 10, stop = 14 }, ["dj52"]] },
   { product = [{ prefix = "py3", start = 12, stop = 14 }, ["dj60"]] },
+  { product = [{ prefix = "py3", start = 12, stop = 14 }, ["dj61"]] },
   # tests against unreleased versions
-  "py314-dj60-redismaster",
+  "py314-dj61-redismaster",
   "py314-djmain",
   "py314-djmain-redismaster",
 ]
@@ -361,6 +363,7 @@ extras = ["lz4", "msgpack", "pyzstd"]
 deps = [
   { replace = "if", condition = "factor.dj52 or env.DJANGO == '5.2'", then = ["Django>=5.2,<6.0"], extend = true },
   { replace = "if", condition = "factor.dj60 or env.DJANGO == '6.0'", then = ["Django>=6.0,<6.1"], extend = true },
+  { replace = "if", condition = "factor.dj61 or env.DJANGO == '6.1'", then = ["Django>=6.1,<6.2"], extend = true },
   { replace = "if", condition = "factor.djmain or env.DJANGO == 'main'", then = ["https://github.com/django/django/archive/main.tar.gz"], extend = true },
   { replace = "if", condition = "factor.redismaster or env.REDIS == 'master'", then = ["https://github.com/redis/redis-py/archive/master.tar.gz"], extend = true },
 ]
