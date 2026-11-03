@@ -455,14 +455,15 @@ class ShardClient(DefaultClient):
             version = self._backend.version
 
         old_key = self.make_key(key, version)
-        value = self.get(old_key, version=version, client=client)
+        missing = object()
+        value = self.get(old_key, default=missing, version=version, client=client)
 
         try:
             ttl = self.ttl(old_key, version=version, client=client)
         except RedisConnectionError as e:
             raise ConnectionInterrupted(connection=client) from e
 
-        if value is None:
+        if value is missing:
             msg = f"Key '{key}' not found"
             raise ValueError(msg)
 

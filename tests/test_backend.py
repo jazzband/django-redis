@@ -486,6 +486,28 @@ class TestDjangoRedisCache:
 
         assert my_value == "hello world!"
 
+    @pytest.mark.parametrize("delta", [1, -1])
+    @pytest.mark.parametrize("timeout", [None, 300])
+    def test_incr_version_cached_none(self, cache: RedisCache, delta, timeout):
+        cache.set("cached-none", None, timeout=timeout, version=2)
+        assert cache.has_key("cached-none", version=2) is True
+
+        new_version = cache.incr_version("cached-none", delta=delta, version=2)
+
+        assert new_version == 2 + delta
+        assert cache.has_key("cached-none", version=2) is False
+        assert cache.has_key("cached-none", version=new_version) is True
+        assert cache.get("cached-none", default="missing", version=new_version) is None
+        if timeout is None:
+            assert cache.ttl("cached-none", version=new_version) is None
+        else:
+            assert cache.ttl("cached-none", version=new_version) > 0
+
+    def test_incr_version_missing_key(self, cache: RedisCache):
+        with pytest.raises(ValueError, match="not found"):
+            cache.incr_version("missing-version-key")
+        assert cache.has_key("missing-version-key", version=2) is False
+
     def test_delete_pattern(self, cache: RedisCache):
         for key in ["foo-aa", "foo-ab", "foo-bb", "foo-bc"]:
             cache.set(key, "foo")
