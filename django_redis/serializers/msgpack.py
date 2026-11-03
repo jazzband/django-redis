@@ -12,4 +12,6 @@ class MSGPackSerializer(BaseSerializer):
         return msgpack.dumps(value)
 
     def loads(self, value: bytes) -> Any:
-        return msgpack.loads(value, raw=False)
+        # msgpack 1.0 defaults strict_map_key to True and rejects integer keys
+        # that dumps() still writes. Cache values such as {1: "a"} must load.
+        return msgpack.loads(value, raw=False, strict_map_key=False)

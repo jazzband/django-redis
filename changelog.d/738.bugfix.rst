@@ -1,0 +1,1 @@
+``MSGPackSerializer.loads`` keeps integer map keys instead of raising ``ValueError`` under msgpack 1.0.
