@@ -12,6 +12,7 @@ import pytest
 from django.core.cache import caches
 from django.core.cache.backends.base import DEFAULT_TIMEOUT
 from django.test import override_settings
+from redis.exceptions import ResponseError
 
 from django_redis.cache import RedisCache
 from django_redis.client import ShardClient, herd
@@ -620,6 +621,67 @@ class TestDjangoRedisCache:
         assert cache.expire("foo", DEFAULT_TIMEOUT) is True
         assert cache.expire("not-existent-key", DEFAULT_TIMEOUT) is False
 
+    def test_expire_with_conditions(self, cache: RedisCache):
+        # NOTE: intentionally a plain loop, not @pytest.mark.parametrize.
+        # tests/conftest.py's FixtureScheduling groups xdist workers by the
+        # trailing `[cache_settings]` in the node id so tests sharing a
+        # Redis db don't run concurrently; stacking parametrize here would
+        # fold into that same bracket (e.g. `[sqlite-nx-...]`) and defeat
+        # the grouping, causing cross-worker races on the same key.
+        #
+        # (initial timeout, new timeout, options, expected result, expected ttl)
+        cases = [
+            (None, 20, {"nx": True}, True, 20),
+            (20, 30, {"nx": True}, False, 20),
+            (None, 20, {"xx": True}, False, None),
+            (20, 30, {"xx": True}, True, 30),
+            (20, 30, {"gt": True}, True, 30),
+            (30, 20, {"gt": True}, False, 30),
+            (30, 20, {"lt": True}, True, 20),
+            (20, 30, {"lt": True}, False, 20),
+            (20, 30, {"xx": True, "gt": True}, True, 30),
+            (30, 20, {"xx": True, "gt": True}, False, 30),
+            (30, 20, {"xx": True, "lt": True}, True, 20),
+            (20, 30, {"xx": True, "lt": True}, False, 20),
+        ]
+        for initial, new, options, ok, ttl in cases:
+            cache.set("foo", "bar", timeout=initial)
+            assert cache.expire("foo", new, **options) is ok, options
+
+            if ttl is None:
+                assert cache.ttl("foo") is None, options
+            else:
+                # 2s of slack absorbs TTL truncation and scheduling jitter
+                # between SET and the EXPIRE/TTL round-trip under a loaded
+                # test runner; deltas between cases here are 10s.
+                assert pytest.approx(cache.ttl("foo"), abs=2) == ttl, options
+
+    def test_expire_invalid_option_combinations(self, cache: RedisCache):
+        # NX is mutually exclusive with XX, GT and LT; GT is mutually
+        # exclusive with LT. Confirmed against a live Redis 7 server: it
+        # rejects these combinations with a syntax-level ResponseError
+        # rather than the client silently picking one option.
+        cache.set("foo", "bar", timeout=20)
+
+        with pytest.raises(ResponseError):
+            cache.expire("foo", 30, nx=True, xx=True)
+        with pytest.raises(ResponseError):
+            cache.expire("foo", 30, nx=True, gt=True)
+        with pytest.raises(ResponseError):
+            cache.expire("foo", 30, nx=True, lt=True)
+        with pytest.raises(ResponseError):
+            cache.expire("foo", 30, gt=True, lt=True)
+
+    def test_expire_conditions_on_non_existent_key(self, cache: RedisCache):
+        assert cache.expire("not-existent-key", 20, nx=True) is False
+        assert cache.expire("not-existent-key", 20, xx=True) is False
+        assert cache.expire("not-existent-key", 20, gt=True) is False
+        assert cache.expire("not-existent-key", 20, lt=True) is False
+
+    def test_expire_with_default_timeout_and_nx(self, cache: RedisCache):
+        cache.set("foo", "bar", timeout=None)
+        assert cache.expire("foo", DEFAULT_TIMEOUT, nx=True) is True
+
     def test_pexpire(self, cache: RedisCache):
         cache.set("foo", "bar", timeout=None)
         assert cache.pexpire("foo", 20500) is True
@@ -632,6 +694,65 @@ class TestDjangoRedisCache:
         cache.set("foo", "bar", timeout=None)
         assert cache.pexpire("foo", DEFAULT_TIMEOUT) is True
         assert cache.pexpire("not-existent-key", DEFAULT_TIMEOUT) is False
+
+    def test_pexpire_with_conditions(self, cache: RedisCache):
+        # See test_expire_with_conditions: a plain loop, not
+        # @pytest.mark.parametrize, to keep the xdist scope-splitting in
+        # tests/conftest.py working.
+        #
+        # (initial pttl, new pttl, options, expected result, expected pttl)
+        cases = [
+            (None, 20000, {"nx": True}, True, 20000),
+            (20000, 30000, {"nx": True}, False, 20000),
+            (None, 20000, {"xx": True}, False, None),
+            (20000, 30000, {"xx": True}, True, 30000),
+            (20000, 30000, {"gt": True}, True, 30000),
+            (30000, 20000, {"gt": True}, False, 30000),
+            (30000, 20000, {"lt": True}, True, 20000),
+            (20000, 30000, {"lt": True}, False, 20000),
+            (20000, 30000, {"xx": True, "gt": True}, True, 30000),
+            (30000, 20000, {"xx": True, "gt": True}, False, 30000),
+            (30000, 20000, {"xx": True, "lt": True}, True, 20000),
+            (20000, 30000, {"xx": True, "lt": True}, False, 20000),
+        ]
+        for initial, new, options, ok, pttl in cases:
+            cache.set("foo", "bar", timeout=None)
+            if initial is not None:
+                cache.pexpire("foo", initial)
+
+            assert cache.pexpire("foo", new, **options) is ok, options
+
+            if pttl is None:
+                assert cache.pttl("foo") is None, options
+            else:
+                # 200ms of slack absorbs the round-trip/serialization
+                # overhead observed with ShardClient; deltas between cases
+                # here are 10000ms, so this still clearly proves the GT/LT
+                # outcome.
+                assert pytest.approx(cache.pttl("foo"), abs=200) == pttl, options
+
+    def test_pexpire_invalid_option_combinations(self, cache: RedisCache):
+        cache.set("foo", "bar", timeout=None)
+        cache.pexpire("foo", 20000)
+
+        with pytest.raises(ResponseError):
+            cache.pexpire("foo", 30000, nx=True, xx=True)
+        with pytest.raises(ResponseError):
+            cache.pexpire("foo", 30000, nx=True, gt=True)
+        with pytest.raises(ResponseError):
+            cache.pexpire("foo", 30000, nx=True, lt=True)
+        with pytest.raises(ResponseError):
+            cache.pexpire("foo", 30000, gt=True, lt=True)
+
+    def test_pexpire_conditions_on_non_existent_key(self, cache: RedisCache):
+        assert cache.pexpire("not-existent-key", 20000, nx=True) is False
+        assert cache.pexpire("not-existent-key", 20000, xx=True) is False
+        assert cache.pexpire("not-existent-key", 20000, gt=True) is False
+        assert cache.pexpire("not-existent-key", 20000, lt=True) is False
+
+    def test_pexpire_with_default_timeout_and_nx(self, cache: RedisCache):
+        cache.set("foo", "bar", timeout=None)
+        assert cache.pexpire("foo", DEFAULT_TIMEOUT, nx=True) is True
 
     def test_pexpire_at(self, cache: RedisCache):
         # Test settings expiration time 1 hour ahead by datetime.

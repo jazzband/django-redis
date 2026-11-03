@@ -48,8 +48,11 @@ Requirements
 
 - `Python`_ 3.10+
 - `Django`_ 5.2+
-- `redis-py`_ 4.0.2+
+- `redis-py`_ 4.2.0+
 - `Redis server`_ 2.8+
+
+The ``NX``, ``XX``, ``GT`` and ``LT`` options for ``expire``/``pexpire`` require
+Redis Server 7.0+.
 
 .. _Python: https://www.python.org/downloads/
 .. _Django: https://www.djangoproject.com/download/

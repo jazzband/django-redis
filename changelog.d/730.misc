@@ -1,0 +1,1 @@
+Raise the minimum supported ``redis-py`` version to 4.2.0, the first release that supports the ``NX``, ``XX``, ``GT`` and ``LT`` options on ``expire``/``pexpire``

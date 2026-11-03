@@ -297,6 +297,10 @@ class ShardClient(DefaultClient):
         timeout,
         version=None,
         client: Redis | UnsetType | None = UNSET,
+        nx: bool = False,
+        xx: bool = False,
+        gt: bool = False,
+        lt: bool = False,
     ):
         if client is not UNSET:
             warnings.warn(
@@ -309,7 +313,16 @@ class ShardClient(DefaultClient):
             key = self.make_key(key, version=version)
             client = self.get_server(key)
 
-        return super().expire(key=key, timeout=timeout, version=version, client=client)
+        return super().expire(
+            key=key,
+            timeout=timeout,
+            version=version,
+            client=client,
+            nx=nx,
+            xx=xx,
+            gt=gt,
+            lt=lt,
+        )
 
     def pexpire(
         self,
@@ -317,6 +330,10 @@ class ShardClient(DefaultClient):
         timeout,
         version=None,
         client: Redis | UnsetType | None = UNSET,
+        nx: bool = False,
+        xx: bool = False,
+        gt: bool = False,
+        lt: bool = False,
     ):
         if client is not UNSET:
             warnings.warn(
@@ -329,7 +346,16 @@ class ShardClient(DefaultClient):
             key = self.make_key(key, version=version)
             client = self.get_server(key)
 
-        return super().pexpire(key=key, timeout=timeout, version=version, client=client)
+        return super().pexpire(
+            key=key,
+            timeout=timeout,
+            version=version,
+            client=client,
+            nx=nx,
+            xx=xx,
+            gt=gt,
+            lt=lt,
+        )
 
     def pexpire_at(
         self,
