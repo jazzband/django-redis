@@ -47,12 +47,19 @@ def omit_exception(
         try:
             return method(self, *args, **kwargs)
         except ConnectionInterrupted as e:
-            if self._ignore_exceptions:
+            if not self._ignore_exceptions:
+                raise e.__cause__  # type: ignore[misc] # noqa: B904
+            if self._exception_handler is None:
                 if self._log_ignored_exceptions:
                     self.logger.exception("Exception ignored")
 
                 return return_value
-            raise e.__cause__  # type: ignore[misc] # noqa: B904
+            error = e.__cause__
+
+        # Called outside the except block, so an exception the handler raises
+        # does not get the ConnectionInterrupted wrapper as its context.
+        self._exception_handler(self, error)
+        return return_value
 
     return _decorator
 
@@ -85,6 +92,17 @@ class RedisCache(BaseCache, Generic[ClientType]):
             settings,
             "DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS",
             False,
+        )
+        exception_handler: str | Callable[[RedisCache, BaseException], None] | None = (
+            options.get(
+                "EXCEPTION_HANDLER",
+                getattr(settings, "DJANGO_REDIS_EXCEPTION_HANDLER", None),
+            )
+        )
+        self._exception_handler: Callable[[RedisCache, BaseException], None] | None = (
+            import_string(exception_handler)
+            if isinstance(exception_handler, str)
+            else exception_handler
         )
         self.logger: logging.Logger | None = (
             logging.getLogger(getattr(settings, "DJANGO_REDIS_LOGGER", __name__))

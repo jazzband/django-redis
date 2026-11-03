@@ -341,6 +341,52 @@ specified and ``DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS`` is ``True``::
 
     DJANGO_REDIS_LOGGER = 'some.specified.logger'
 
+Custom Exception Handler
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+To decide yourself what happens to an ignored exception, set
+``EXCEPTION_HANDLER`` in the cache options (or ``DJANGO_REDIS_EXCEPTION_HANDLER``
+for all caches) to a callable or its dotted path. It is called with the cache
+and the original redis exception, and replaces the
+``DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS`` logging. If it returns, the exception is
+ignored; if it raises, the exception reaches the caller.
+
+For example, to log timeouts as warnings and never ignore authentication
+errors (``AuthenticationError`` is a subclass of ``ConnectionError``, so it is
+ignored by default):
+
+.. code-block:: python
+
+    # myproject/cache.py
+    import logging
+
+    from redis.exceptions import AuthenticationError, TimeoutError
+
+    logger = logging.getLogger(__name__)
+
+
+    def handle_redis_exception(cache, exception):
+        if isinstance(exception, AuthenticationError):
+            raise exception
+        if isinstance(exception, TimeoutError):
+            logger.warning("Redis timeout ignored", exc_info=exception)
+        else:
+            logger.error("Redis error ignored", exc_info=exception)
+
+.. code-block:: python
+
+    CACHES = {
+        "default": {
+            # ...
+            "OPTIONS": {
+                "IGNORE_EXCEPTIONS": True,
+                "EXCEPTION_HANDLER": "myproject.cache.handle_redis_exception",
+            }
+        }
+    }
+
+The handler is only called when exceptions are ignored.
+
 Infinite timeout
 ~~~~~~~~~~~~~~~~
 
