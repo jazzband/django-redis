@@ -699,8 +699,13 @@ In order to enable this functionality you should add the following:
                 # Sentinels which are passed directly to redis Sentinel.
                 "SENTINELS": SENTINELS,
 
-                # kwargs for redis Sentinel (optional). Example with auth on sentinels
+                # kwargs for redis Sentinel (optional). Example with auth on sentinels.
+                # For ACL users, credentials must also be passed in CONNECTION_POOL_KWARGS.
                 "SENTINEL_KWARGS": {
+                    "username": "sentinel-user",
+                    "password": "sentinel-pass",
+                },
+                "CONNECTION_POOL_KWARGS": {
                     "username": "sentinel-user",
                     "password": "sentinel-pass",
                 },
