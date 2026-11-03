@@ -53,6 +53,7 @@ class ConnectionFactoryProtocol(
         self,
         params: dict[str, Any],
     ) -> ConnectionPoolType_co: ...
+    def get_connection_pool_key(self, params: dict[str, Any]) -> str: ...
     def get_connection_pool(self, params: dict[str, Any]) -> ConnectionPoolType_co: ...
 
 
@@ -166,10 +167,22 @@ class ConnectionFactory(
         Reimplement this method if you want distinct
         connection pool instance caching behavior.
         """
-        key = params["url"]
+        key = self.get_connection_pool_key(params)
         if key not in self._pools:
             self._pools[key] = self.get_connection_pool(params)
         return self._pools[key]
+
+    def get_connection_pool_key(self, params: dict[str, Any]) -> str:
+        """
+        Build the key used to cache and share connection pools.
+
+        Two cache aliases can resolve to the same URL while still differing
+        in other connection options (for example the socket timeouts), so the
+        key is derived from all of the connection params rather than the URL
+        alone. Aliases that share an identical configuration keep sharing a
+        pool, matching the previous behavior.
+        """
+        return repr(sorted((str(k), repr(v)) for k, v in params.items()))
 
     def get_connection_pool(self, params: dict[str, Any]) -> ConnectionPoolType:
         """
@@ -216,6 +229,17 @@ class SentinelConnectionFactory(
             sentinel_kwargs=options.get("SENTINEL_KWARGS"),
             **connection_kwargs,
         )
+
+    def get_connection_pool_key(self, params: dict[str, Any]) -> str:
+        """
+        Include the sentinels in the pool key.
+
+        Different sentinel clusters can be reached through the same URL, so the
+        base key (which ignores the sentinels) would otherwise let two aliases
+        pointing at different clusters share a single pool.
+        """
+        base_key = super().get_connection_pool_key(params)
+        return repr((base_key, self.options.get("SENTINELS")))
 
     def get_connection_pool(self, params: dict[str, Any]) -> ConnectionPoolType:
         """

@@ -1,0 +1,1 @@
+Key cached connection pools by all connection options instead of the URL alone, so cache aliases that share a URL but differ in options (such as socket timeouts, or Sentinel clusters) no longer share a single pool.
