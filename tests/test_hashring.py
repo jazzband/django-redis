@@ -34,3 +34,12 @@ def test_hashring(hash_ring):
 def test_hashring_brute_force(hash_ring):
     for key in (f"test{x}" for x in range(10000)):
         assert hash_ring.get_node(key)
+
+
+def test_hashring_instances_do_not_share_nodes():
+    ring1 = HashRing(["node1", "node2"])
+    ring2 = HashRing(["node3"])
+
+    assert ring1.nodes == ["node1", "node2"]
+    assert ring2.nodes == ["node3"]
+    assert ring1.nodes is not ring2.nodes

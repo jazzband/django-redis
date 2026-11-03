@@ -9,12 +9,11 @@ if TYPE_CHECKING:
 
 
 class HashRing:
-    nodes: list[str] = []
-
     def __init__(self, nodes: Iterable[str] = (), replicas: int = 128) -> None:
         self.replicas: int = replicas
         self.ring: dict[str, str] = {}
         self.sorted_keys: list[str] = []
+        self.nodes: list[str] = []
 
         for node in nodes:
             self.add_node(node)
