@@ -1,0 +1,1 @@
+Updated `actions/setup-python` to v7.
