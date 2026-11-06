@@ -100,6 +100,7 @@ class HerdClient(DefaultClient):
             version=version,
             client=client,
             nx=nx,
+            xx=xx,
         )
 
     def get(self, key, default=None, version=None, client=None):

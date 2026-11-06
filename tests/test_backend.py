@@ -60,6 +60,16 @@ class TestDjangoRedisCache:
         res = cache.get("test_key_nx")
         assert res is None
 
+    @pytest.mark.parametrize("timeout", [30, None])
+    def test_setxx(self, cache: RedisCache, timeout):
+        cache.delete("test_key_xx")
+        assert cache.set("test_key_xx", 1, timeout=timeout, xx=True) is False
+        assert cache.get("test_key_xx") is None
+
+        cache.set("test_key_xx", 1, timeout=timeout)
+        assert cache.set("test_key_xx", 2, timeout=timeout, xx=True) is True
+        assert cache.get("test_key_xx") == 2
+
     def test_setnx_timeout(self, cache: RedisCache):
         # test that timeout still works for nx=True
         res = cache.set("test_key_nx", 1, timeout=2, nx=True)
