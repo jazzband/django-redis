@@ -1,0 +1,1 @@
+Honor ``xx=True`` for expiring ``HerdClient`` writes so missing keys are not created.
