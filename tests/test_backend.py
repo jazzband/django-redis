@@ -806,6 +806,13 @@ class TestDjangoRedisCache:
         res = cache.get("test_key")
         assert res is None
 
+    def test_touch_cached_none(self, cache: RedisCache):
+        cache.set("nullable", None, timeout=30)
+
+        assert cache.touch("nullable", None) is True
+        assert cache.ttl("nullable") is None
+        assert cache.get("nullable", object()) is None
+
     def test_touch_missed_key(self, cache: RedisCache):
         assert cache.touch("test_key_does_not_exist", 1) is False
 
