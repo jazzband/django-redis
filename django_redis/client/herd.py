@@ -175,8 +175,9 @@ class HerdClient(DefaultClient):
         if client is None:
             client = self.get_client(write=True)
 
-        value = self.get(key, version=version, client=client)
-        if value is None:
+        missing = object()
+        value = self.get(key, default=missing, version=version, client=client)
+        if value is missing:
             return False
 
         self.set(key, value, timeout=timeout, version=version, client=client)
