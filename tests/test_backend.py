@@ -477,6 +477,37 @@ class TestDjangoRedisCache:
         res = cache.get("keytest", version=2)
         assert res == 2
 
+    @pytest.mark.parametrize("ttl_ms", [300, 1700])
+    @pytest.mark.parametrize("delta", [-1, 1])
+    def test_incr_version_preserves_milliseconds(
+        self,
+        cache: RedisCache,
+        mocker: MockerFixture,
+        ttl_ms: int,
+        delta: int,
+    ):
+        if isinstance(cache.client, herd.HerdClient):
+            pytest.skip("HerdClient adds its own grace period")
+
+        cache.set("version_ttl", "value", timeout=30)
+        old_key = cache.make_key("version_ttl")
+        new_key = cache.make_key("version_ttl", version=1 + delta)
+        if isinstance(cache.client, ShardClient):
+            old_client = cache.client.get_server(old_key)
+            new_client = cache.client.get_server(new_key)
+        else:
+            old_client = new_client = cache.client.get_client(write=True)
+        mocker.patch.object(old_client, "ttl", return_value=round(ttl_ms / 1000))
+        mocker.patch.object(old_client, "pttl", return_value=ttl_ms)
+        write = mocker.spy(new_client, "set")
+
+        assert cache.incr_version("version_ttl", delta=delta) == 1 + delta
+
+        write.assert_called_once()
+        assert write.call_args.args[0] == new_key
+        assert write.call_args.kwargs["px"] == ttl_ms
+        assert cache.get("version_ttl") is None
+
     def test_ttl_incr_version_no_timeout(self, cache: RedisCache):
         cache.set("my_key", "hello world!", timeout=None)
 

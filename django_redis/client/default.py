@@ -307,7 +307,7 @@ class DefaultClient(
         value = self.get(old_key, version=version, client=client)
 
         try:
-            ttl = self.ttl(old_key, version=version, client=client)
+            ttl = self.pttl(old_key, version=version, client=client)
         except _main_exceptions as e:
             raise ConnectionInterrupted(connection=client) from e
 
@@ -320,7 +320,8 @@ class DefaultClient(
         else:
             new_key = self.make_key(key, version=version + delta)
 
-        self.set(new_key, value, timeout=ttl, client=client)
+        timeout = ttl / 1000 if ttl is not None else None
+        self.set(new_key, value, timeout=timeout, client=client)
         self.delete(old_key, client=client)
         return version + delta
 

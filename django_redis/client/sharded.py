@@ -458,7 +458,7 @@ class ShardClient(DefaultClient):
         value = self.get(old_key, version=version, client=client)
 
         try:
-            ttl = self.ttl(old_key, version=version, client=client)
+            ttl = self.pttl(old_key, version=version, client=client)
         except RedisConnectionError as e:
             raise ConnectionInterrupted(connection=client) from e
 
@@ -471,7 +471,8 @@ class ShardClient(DefaultClient):
         else:
             new_key = self.make_key(key, version=version + delta)
 
-        self.set(new_key, value, timeout=ttl, client=self.get_server(new_key))
+        timeout = ttl / 1000 if ttl is not None else None
+        self.set(new_key, value, timeout=timeout, client=self.get_server(new_key))
         self.delete(old_key, client=client)
         return version + delta
 
