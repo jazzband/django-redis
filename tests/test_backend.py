@@ -208,6 +208,31 @@ class TestDjangoRedisCache:
         res = cache.get_many(["a", "b", "c"])
         assert res == {"a": 1, "b": 2, "c": 3}
 
+    def test_herd_get_many_omits_expired_keys(
+        self,
+        cache: RedisCache,
+        mocker: MockerFixture,
+    ):
+        if not isinstance(cache.client, herd.HerdClient):
+            pytest.skip("HerdClient expiration behavior")
+
+        clock = mocker.patch("django_redis.client.herd.time").time
+        clock.return_value = 1000
+        fresh_timeout = cache.client._herd_timeout + 10
+        cache.set("fresh", "value", timeout=fresh_timeout, version=7)
+        cache.set("cached_none", None, timeout=fresh_timeout, version=7)
+        cache.set("expired", "old", timeout=1, version=7)
+        clock.return_value += cache.client._herd_timeout + 2
+
+        client = cache.client.get_client(write=False)
+        assert client.exists(cache.client.make_key("expired", version=7))
+        missing = object()
+        assert cache.get("expired", default=missing, version=7) is missing
+        assert cache.get_many(
+            ["fresh", "cached_none", "expired", "absent"],
+            version=7,
+        ) == {"fresh": "value", "cached_none": None}
+
     def test_get_many_unicode(self, cache: RedisCache):
         cache.set("a", "1")
         cache.set("b", "2")
