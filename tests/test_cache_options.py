@@ -8,12 +8,11 @@ from django.core.cache import caches
 from pytest import LogCaptureFixture
 from redis.exceptions import ConnectionError as RedisConnectionError
 
+from django_redis.cache import RedisCache
 from django_redis.client import ShardClient
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
-
-    from django_redis.cache import RedisCache
 
 
 def make_key(key: str, prefix: str, version: str) -> str:
@@ -97,6 +96,26 @@ def with_prefix_cache() -> Iterable[RedisCache]:
 
 
 class TestDjangoRedisCacheEscapePrefix:
+    def test_backslash_prefix(self, cache: RedisCache, settings):
+        config = copy.deepcopy(settings.CACHES["default"])
+        config["KEY_PREFIX"] = r"tenant\x"
+        target = RedisCache(config["LOCATION"], config)
+        config = copy.deepcopy(config)
+        config["KEY_PREFIX"] = "tenantx"
+        neighbor = RedisCache(config["LOCATION"], config)
+        try:
+            target.set("own", "target")
+            neighbor.set("other", "neighbor")
+            assert target.keys("*") == ["own"]
+            if not isinstance(target.client, ShardClient):
+                assert list(target.iter_keys("*")) == ["own"]
+            assert target.delete_pattern("*") == 1
+            assert target.get("own") is None
+            assert neighbor.get("other") == "neighbor"
+        finally:
+            target.delete("own")
+            neighbor.delete("other")
+
     def test_delete_pattern(
         self,
         key_prefix_cache: RedisCache,

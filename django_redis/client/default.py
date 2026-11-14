@@ -78,7 +78,7 @@ special_re = re.compile("([*?[])")
 
 
 def glob_escape(s: str) -> str:
-    return special_re.sub(r"[\1]", s)
+    return special_re.sub(r"[\1]", s.replace("\\", "\\\\"))
 
 
 class DefaultClient(
