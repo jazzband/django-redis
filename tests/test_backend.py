@@ -1037,6 +1037,19 @@ class TestDjangoRedisCache:
         assert cache.smembers("foo1") == {"bar2"}
         assert cache.smembers("foo2") == {"bar1", "bar2", "bar3"}
 
+    def test_smove_version(self, cache: RedisCache):
+        if isinstance(cache.client, ShardClient):
+            pytest.skip("ShardClient doesn't support cross-shard moves")
+
+        cache.sadd("source", "move", "stay", version=2)
+        cache.sadd("destination", "version-one")
+        cache.sadd("destination", "version-two", version=2)
+        assert cache.smove("source", "destination", "move", version=2) is True
+        assert cache.smembers("source", version=2) == {"stay"}
+        assert cache.smembers("destination", version=2) == {"version-two", "move"}
+        assert cache.smembers("destination") == {"version-one"}
+        cache.delete_many(["source", "destination"], version=2)
+
     def test_spop_default_count(self, cache: RedisCache):
         cache.sadd("foo", "bar1", "bar2")
         assert cache.spop("foo") in {"bar1", "bar2"}
