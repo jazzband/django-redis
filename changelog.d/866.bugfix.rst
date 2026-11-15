@@ -1,0 +1,1 @@
+Respect the requested cache version for both keys when moving a set member with ``smove``.

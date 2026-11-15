@@ -1041,7 +1041,7 @@ class DefaultClient(
             client = self.get_client(write=True)
 
         source = self.make_key(source, version=version)
-        destination = self.make_key(destination)
+        destination = self.make_key(destination, version=version)
         member = self.encode(member)
         return bool(client.smove(source, destination, member))
 
