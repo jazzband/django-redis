@@ -1,0 +1,1 @@
+Support dotted paths for credential providers in ``CONNECTION_POOL_KWARGS``.

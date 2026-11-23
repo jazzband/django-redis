@@ -73,7 +73,14 @@ class ConnectionFactory(
             "redis.connection.ConnectionPool",
         )
         self.pool_cls: type[ConnectionPoolType] = import_string(pool_cls_path)
-        self.pool_cls_kwargs: dict[str, Any] = options.get("CONNECTION_POOL_KWARGS", {})
+        self.pool_cls_kwargs: dict[str, Any] = dict(
+            options.get("CONNECTION_POOL_KWARGS", {}),
+        )
+        credential_provider = self.pool_cls_kwargs.get("credential_provider")
+        if isinstance(credential_provider, str):
+            self.pool_cls_kwargs["credential_provider"] = import_string(
+                credential_provider,
+            )()
 
         redis_client_cls_path = options.get("REDIS_CLIENT_CLASS", "redis.client.Redis")
         self.redis_client_cls: type[RedisType] = import_string(redis_client_cls_path)

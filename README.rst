@@ -567,6 +567,18 @@ in the ``CACHES`` setting:
         }
     }
 
+A ``credential_provider`` in ``CONNECTION_POOL_KWARGS`` may be a provider instance
+or a dotted path to a provider class. Classes loaded from a dotted path are
+instantiated without arguments. Providers that need constructor arguments can
+be passed as instances. This applies to both regular and Sentinel connection
+pools.
+
+.. code-block:: python
+
+    "CONNECTION_POOL_KWARGS": {
+        "credential_provider": "myapp.auth.RedisCredentialProvider",
+    }
+
 You can verify how many connections the pool has opened with the following
 snippet:
 
