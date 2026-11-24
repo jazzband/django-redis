@@ -962,9 +962,40 @@ Setting True as a value will instruct the django-redis to close all the connecti
 SSL/TLS and Self-Signed certificates
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+To connect over TLS, use the ``rediss://`` scheme in ``LOCATION``. redis-py
+then verifies the server's certificate and hostname against the system's
+trusted certificate authorities. SSL options are passed to redis-py through
+``CONNECTION_POOL_KWARGS``; they are only accepted with ``rediss://``, and with
+``redis://`` redis-py fails with ``unexpected keyword argument 'ssl_ca_certs'``.
+
+If the server's certificate is signed by a certificate authority that is not
+in the system store, for example a managed service's own CA, point redis-py at
+that CA bundle to keep verification on:
+
+.. code-block:: python
+
+    CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": "rediss://127.0.0.1:6379/1",
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+                "CONNECTION_POOL_KWARGS": {"ssl_ca_certs": "/path/to/ca.pem"}
+            }
+        }
+    }
+
+If the certificate is valid but issued for another hostname, for example when
+connecting through a DNS alias, you can skip only the hostname check:
+
+.. code-block:: python
+
+    "CONNECTION_POOL_KWARGS": {"ssl_check_hostname": False}
+
 In case you encounter a Redis server offering a TLS connection using a
 self-signed certificate you may disable certification verification with the
-following:
+following. This also disables the hostname check, so only do it on a network
+you trust:
 
 .. code-block:: python
 
@@ -978,6 +1009,10 @@ following:
             }
         }
     }
+
+These options can also be set in the URL, which is useful when the URL comes
+from an environment variable, for example
+``rediss://127.0.0.1:6379/1?ssl_cert_reqs=none``.
 
 
 License

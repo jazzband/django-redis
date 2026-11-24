@@ -1,0 +1,3 @@
+Expanded the SSL/TLS section of the README: verifying with a custom CA bundle,
+skipping only the hostname check, setting options in the URL, and the
+``rediss://`` requirement.
