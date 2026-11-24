@@ -1,0 +1,7 @@
+# KiviDB, a Redis-compatible server, used by the test-kividb CI job.
+# The -full image includes Lua, which cache.incr and cache.lock use.
+services:
+  kividb:
+    image: kividb/kividb:v1.2.2-full
+    ports:
+      - 6379:6380
