@@ -1,0 +1,1 @@
+Run the test suite against KiviDB, a Redis-compatible server, in CI.
