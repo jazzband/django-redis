@@ -98,6 +98,54 @@ jobs:
           REDIS: ${{ matrix.redis-version }}
           PYTHON: ${{ matrix.python-version }}
 
+  test-kividb:
+    name: Test Python 3.12, Django 6.0 on KiviDB
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --upgrade tox-uv
+
+      - name: Docker compose up
+        run: docker compose -f tests/compose.kividb.yml up --detach --wait
+
+      # The image has no shell for a healthcheck, so wait for PING here.
+      - name: Wait for KiviDB
+        run: |
+          python - <<'PY'
+          import socket, time
+          for _ in range(60):
+              try:
+                  s = socket.create_connection(("127.0.0.1", 6379), timeout=1)
+                  s.sendall(b"PING\r\n")
+                  if s.recv(16).startswith(b"+PONG"):
+                      break
+              except OSError:
+                  pass
+              time.sleep(1)
+          else:
+              raise SystemExit("KiviDB did not answer PING")
+          PY
+
+      # KiviDB has no Sentinel mode, and the unix socket settings need a socket
+      # inside the container, so those settings are left out.
+      - name: Tox tests
+        run: tox -e py312-dj60 -- -k "not sqlite_sentinel and not sqlite_usock"
+
+      - name: Docker compose down
+        if: ${{ !cancelled() }}
+        run: docker compose -f tests/compose.kividb.yml down
+
   lint:
     name: Lint (${{ matrix.tool }})
     runs-on: ubuntu-latest
